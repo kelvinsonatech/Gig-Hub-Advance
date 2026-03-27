@@ -1,12 +1,12 @@
 import { Link, useRoute } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
-import { Wallet, Bell, Menu, UserCircle, LogOut } from "lucide-react";
+import { Wallet, Sun, Users, Menu, UserCircle, LogOut, X, LayoutDashboard, ShoppingBag, Bell } from "lucide-react";
 import { useGetWallet } from "@workspace/api-client-react";
 import { formatGHS, cn } from "@/lib/utils";
 import logoUrl from "@assets/logo.png";
 import { useState } from "react";
-import { 
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -22,129 +22,183 @@ export function Navbar() {
   const NavLink = ({ href, children }: { href: string; children: React.ReactNode }) => {
     const [isActive] = useRoute(href);
     return (
-      <Link 
-        href={href} 
+      <Link
+        href={href}
         className={cn(
-          "text-sm font-medium transition-colors hover:text-primary relative py-2",
-          isActive ? "text-primary" : "text-muted-foreground"
+          "text-sm font-medium transition-colors px-3 py-1.5 rounded-full",
+          isActive
+            ? "text-foreground bg-muted font-semibold"
+            : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
         )}
       >
         {children}
-        {isActive && (
-          <span className="absolute bottom-0 left-0 w-full h-0.5 bg-primary rounded-full" />
-        )}
       </Link>
     );
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-white/80 backdrop-blur-md border-b border-border shadow-sm">
-      <div className="container mx-auto px-4 h-16 flex items-center justify-between max-w-7xl">
-        <div className="flex items-center gap-8">
-          <Link href="/" className="flex items-center gap-2 group">
-            <img src={logoUrl} alt="GigsHub Logo" className="h-8 group-hover:scale-105 transition-transform" />
+    <>
+      {/* Floating pill navbar */}
+      <header className="sticky top-0 z-50 w-full flex justify-center pt-3 pb-2 px-4">
+        <div className="w-full max-w-4xl bg-white/90 backdrop-blur-md border border-gray-200 shadow-md rounded-2xl px-4 h-14 flex items-center justify-between">
+
+          {/* Logo */}
+          <Link href="/" className="flex items-center gap-2 flex-shrink-0 group">
+            <img src={logoUrl} alt="GigsHub" className="h-7 group-hover:scale-105 transition-transform" />
           </Link>
-          
-          <nav className="hidden md:flex items-center gap-6">
+
+          {/* Center Nav Links */}
+          <nav className="hidden md:flex items-center gap-1">
             <NavLink href="/">Home</NavLink>
-            <NavLink href="/bundles">Data Bundles</NavLink>
-            <NavLink href="/services">Services</NavLink>
-            {isAuthenticated && <NavLink href="/dashboard">Dashboard</NavLink>}
-          </nav>
-        </div>
-
-        <div className="flex items-center gap-4">
-          {isAuthenticated ? (
-            <>
-              <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-full border border-emerald-100 shadow-inner">
-                <Wallet className="w-4 h-4" />
-                <span className="font-bold text-sm tracking-tight">{formatGHS(wallet?.balance)}</span>
-              </div>
-              
-              <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary relative">
-                <Bell className="w-5 h-5" />
-                <span className="absolute top-2 right-2 w-2 h-2 bg-destructive rounded-full" />
-              </Button>
-
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-10 w-10 rounded-full bg-primary/10 hover:bg-primary/20 transition-colors">
-                    <UserCircle className="h-6 w-6 text-primary" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56 p-2 rounded-xl">
-                  <div className="flex items-center justify-start gap-2 p-2">
-                    <div className="flex flex-col space-y-0.5 leading-none">
-                      <p className="font-medium text-sm">{user?.name}</p>
-                      <p className="w-[200px] truncate text-xs text-muted-foreground">
-                        {user?.email}
-                      </p>
-                    </div>
-                  </div>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild className="cursor-pointer rounded-lg">
-                    <Link href="/dashboard">Dashboard</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild className="cursor-pointer rounded-lg">
-                    <Link href="/wallet">Wallet & Top Up</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild className="cursor-pointer rounded-lg">
-                    <Link href="/orders">Order History</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem className="cursor-pointer text-destructive focus:text-destructive rounded-lg" onClick={logout}>
-                    <LogOut className="mr-2 h-4 w-4" />
-                    <span>Log out</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </>
-          ) : (
-            <div className="hidden sm:flex items-center gap-3">
-              <Button variant="ghost" asChild className="rounded-xl font-medium hover:bg-primary/5 hover:text-primary">
-                <Link href="/login">Sign In</Link>
-              </Button>
-              <Button asChild className="rounded-xl font-medium shadow-md shadow-primary/20 hover:shadow-lg transition-all hover:-translate-y-0.5">
-                <Link href="/register">Sign Up Free</Link>
-              </Button>
-            </div>
-          )}
-
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="md:hidden" 
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          >
-            <Menu className="w-6 h-6" />
-          </Button>
-        </div>
-      </div>
-
-      {/* Mobile Menu */}
-      {isMobileMenuOpen && (
-        <div className="md:hidden border-t border-border bg-white p-4 space-y-4 shadow-xl">
-          <nav className="flex flex-col space-y-3">
-            <Link href="/" className="text-foreground font-medium p-2 hover:bg-muted rounded-lg">Home</Link>
-            <Link href="/bundles" className="text-foreground font-medium p-2 hover:bg-muted rounded-lg">Data Bundles</Link>
-            <Link href="/services" className="text-foreground font-medium p-2 hover:bg-muted rounded-lg">Services</Link>
-            {isAuthenticated && (
-              <Link href="/dashboard" className="text-primary font-medium p-2 bg-primary/5 rounded-lg">Dashboard</Link>
+            {isAuthenticated ? (
+              <>
+                <NavLink href="/bundles">Data Bundles</NavLink>
+                <NavLink href="/services">Services</NavLink>
+                <NavLink href="/dashboard">Dashboard</NavLink>
+              </>
+            ) : (
+              <>
+                <NavLink href="/bundles">Data Bundles</NavLink>
+                <NavLink href="/services">Services</NavLink>
+              </>
             )}
           </nav>
-          
-          {!isAuthenticated && (
-            <div className="flex flex-col gap-2 pt-4 border-t border-border">
-              <Button variant="outline" asChild className="w-full justify-center">
-                <Link href="/login">Sign In</Link>
-              </Button>
-              <Button asChild className="w-full justify-center">
-                <Link href="/register">Sign Up</Link>
-              </Button>
-            </div>
-          )}
+
+          {/* Right side actions */}
+          <div className="flex items-center gap-2">
+            {isAuthenticated ? (
+              <>
+                {/* Wallet balance */}
+                <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-full border border-emerald-100 text-sm font-semibold">
+                  <Wallet className="w-3.5 h-3.5" />
+                  <span>{formatGHS(wallet?.balance)}</span>
+                </div>
+
+                {/* Bell */}
+                <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full text-muted-foreground hover:text-primary relative">
+                  <Bell className="w-4 h-4" />
+                  <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-red-500 rounded-full" />
+                </Button>
+
+                {/* User dropdown */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="h-8 w-8 rounded-full bg-primary/10 hover:bg-primary/20 transition-colors p-0">
+                      <UserCircle className="h-5 w-5 text-primary" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56 p-2 rounded-xl mt-2">
+                    <div className="flex items-center justify-start gap-2 p-2">
+                      <div className="flex flex-col space-y-0.5 leading-none">
+                        <p className="font-medium text-sm">{user?.name}</p>
+                        <p className="w-[200px] truncate text-xs text-muted-foreground">{user?.email}</p>
+                      </div>
+                    </div>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild className="cursor-pointer rounded-lg">
+                      <Link href="/dashboard">
+                        <LayoutDashboard className="mr-2 h-4 w-4" /> Dashboard
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild className="cursor-pointer rounded-lg">
+                      <Link href="/wallet">
+                        <Wallet className="mr-2 h-4 w-4" /> Wallet & Top Up
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild className="cursor-pointer rounded-lg">
+                      <Link href="/orders">
+                        <ShoppingBag className="mr-2 h-4 w-4" /> Order History
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem className="cursor-pointer text-destructive focus:text-destructive rounded-lg" onClick={logout}>
+                      <LogOut className="mr-2 h-4 w-4" />
+                      <span>Log out</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </>
+            ) : (
+              <div className="hidden sm:flex items-center gap-2">
+                {/* Theme / settings icon */}
+                <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full text-muted-foreground hover:text-foreground">
+                  <Sun className="w-4 h-4" />
+                </Button>
+
+                {/* Join Community */}
+                <Button
+                  variant="outline"
+                  asChild
+                  className="h-8 rounded-full text-xs font-medium px-3 border-gray-300 hover:border-primary hover:text-primary gap-1.5"
+                >
+                  <Link href="/register">
+                    <Users className="w-3.5 h-3.5" />
+                    Join Community
+                  </Link>
+                </Button>
+
+                {/* Sign In */}
+                <Button
+                  asChild
+                  className="h-8 rounded-full text-xs font-medium px-4 bg-primary hover:bg-primary/90 shadow-sm"
+                >
+                  <Link href="/login">Sign In</Link>
+                </Button>
+              </div>
+            )}
+
+            {/* Mobile hamburger */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="md:hidden h-8 w-8 rounded-full"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            >
+              {isMobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+            </Button>
+          </div>
         </div>
-      )}
-    </header>
+
+        {/* Mobile menu dropdown */}
+        {isMobileMenuOpen && (
+          <div className="absolute top-[68px] left-4 right-4 max-w-4xl mx-auto bg-white border border-gray-200 rounded-2xl shadow-xl p-4 space-y-3 z-40">
+            <nav className="flex flex-col gap-1">
+              <Link href="/" className="text-foreground font-medium p-2 hover:bg-muted rounded-xl text-sm" onClick={() => setIsMobileMenuOpen(false)}>Home</Link>
+              <Link href="/bundles" className="text-foreground font-medium p-2 hover:bg-muted rounded-xl text-sm" onClick={() => setIsMobileMenuOpen(false)}>Data Bundles</Link>
+              <Link href="/services" className="text-foreground font-medium p-2 hover:bg-muted rounded-xl text-sm" onClick={() => setIsMobileMenuOpen(false)}>Services</Link>
+              {isAuthenticated && (
+                <Link href="/dashboard" className="text-primary font-semibold p-2 bg-primary/5 rounded-xl text-sm" onClick={() => setIsMobileMenuOpen(false)}>Dashboard</Link>
+              )}
+            </nav>
+
+            {!isAuthenticated ? (
+              <div className="flex flex-col gap-2 pt-3 border-t border-border">
+                <Button variant="outline" asChild className="w-full rounded-xl justify-center">
+                  <Link href="/register" onClick={() => setIsMobileMenuOpen(false)}>
+                    <Users className="mr-2 w-4 h-4" /> Join Community
+                  </Link>
+                </Button>
+                <Button asChild className="w-full rounded-xl justify-center">
+                  <Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>Sign In</Link>
+                </Button>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-2 pt-3 border-t border-border">
+                <div className="flex items-center gap-2 px-3 py-2 bg-emerald-50 text-emerald-700 rounded-xl border border-emerald-100 text-sm font-semibold">
+                  <Wallet className="w-4 h-4" />
+                  <span>{formatGHS(wallet?.balance)}</span>
+                </div>
+                <Button variant="outline" asChild className="w-full rounded-xl justify-center">
+                  <Link href="/wallet" onClick={() => setIsMobileMenuOpen(false)}>Wallet & Top Up</Link>
+                </Button>
+                <Button variant="ghost" className="w-full rounded-xl justify-center text-destructive" onClick={() => { logout(); setIsMobileMenuOpen(false); }}>
+                  <LogOut className="mr-2 h-4 w-4" /> Log out
+                </Button>
+              </div>
+            )}
+          </div>
+        )}
+      </header>
+    </>
   );
 }
