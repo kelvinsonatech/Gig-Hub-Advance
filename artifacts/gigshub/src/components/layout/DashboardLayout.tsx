@@ -28,7 +28,7 @@ const bottomTabs = [
 function BottomTab({ href, icon: Icon }: { href: string; icon: any }) {
   const [isActive] = useRoute(href);
   return (
-    <Link href={href} className="flex-1 flex items-center justify-center py-3">
+    <Link href={href} className="flex-1 flex items-center justify-center">
       <div className={cn(
         "w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200",
         isActive
@@ -98,14 +98,12 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       </div>
 
       {/* ── Mobile Bottom Navigation ── */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white border-t border-gray-100 shadow-[0_-4px_20px_rgba(0,0,0,0.06)]">
-        <div className="flex items-center justify-around h-16 max-w-md mx-auto px-4">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden flex justify-center pb-3 px-4">
+        <div className="w-full max-w-sm bg-white/90 backdrop-blur-md border border-gray-200 shadow-md rounded-2xl h-14 flex items-center justify-around px-2">
           {bottomTabs.map((tab) => (
             <BottomTab key={tab.href} href={tab.href} icon={tab.icon} />
           ))}
         </div>
-        {/* safe-area bottom padding for notch phones */}
-        <div className="h-safe-area-inset-bottom" />
       </nav>
     </>
   );
