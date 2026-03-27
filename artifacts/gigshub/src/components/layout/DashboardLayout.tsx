@@ -20,44 +20,48 @@ interface DashboardLayoutProps {
 }
 
 const bottomTabs = [
-  { href: "/dashboard", icon: LayoutDashboard },
-  { href: "/bundles",   icon: Wifi },
-  { href: "/orders",    icon: ShoppingBag },
-  { href: "/wallet",    icon: Grid2x2 },
+  { href: "/dashboard", icon: LayoutDashboard, label: "Home" },
+  { href: "/bundles",   icon: Wifi,             label: "Data"   },
+  { href: "/orders",    icon: ShoppingBag,      label: "Orders" },
+  { href: "/wallet",    icon: Grid2x2,          label: "Wallet" },
 ];
 
-function BottomTab({ href, icon: Icon }: { href: string; icon: any }) {
+function BottomTab({ href, icon: Icon, label }: { href: string; icon: any; label: string }) {
   const [location] = useLocation();
   const isActive = location === href;
 
   return (
-    <Link href={href} className="flex-1 flex items-center justify-center">
-      <div className="relative w-10 h-10 flex items-center justify-center">
+    <Link href={href} className="flex-1 flex flex-col items-center justify-center gap-0.5 py-1.5">
+      {/* Icon circle */}
+      <div className="relative flex items-center justify-center w-12 h-7">
         {isActive && (
           <motion.div
             layoutId="liquid-pill"
-            className="absolute inset-0 rounded-full bg-[#e8f3fc]"
-            transition={{
-              type: "spring",
-              stiffness: 500,
-              damping: 30,
-              mass: 0.6,
-            }}
+            className="absolute inset-x-0 inset-y-0 rounded-full bg-gray-100"
+            transition={{ type: "spring", stiffness: 500, damping: 32, mass: 0.6 }}
           />
         )}
         <motion.div
-          animate={{ scale: isActive ? 1.1 : 1 }}
-          transition={{ type: "spring", stiffness: 400, damping: 25 }}
+          animate={{ scale: isActive ? 1.08 : 1 }}
+          transition={{ type: "spring", stiffness: 420, damping: 26 }}
           className="relative z-10"
         >
           <Icon
             className={cn(
               "w-5 h-5 transition-colors duration-150",
-              isActive ? "text-[#0077C7]" : "text-gray-400"
+              isActive ? "text-[#0077C7]" : "text-gray-800"
             )}
           />
         </motion.div>
       </div>
+
+      {/* Label */}
+      <span className={cn(
+        "text-[11px] font-semibold leading-none transition-colors duration-150",
+        isActive ? "text-[#0077C7]" : "text-gray-800"
+      )}>
+        {label}
+      </span>
     </Link>
   );
 }
@@ -117,9 +121,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
       {/* ── Mobile Bottom Navigation ── */}
       <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden flex justify-center pb-3 px-4">
-        <div className="w-full max-w-sm bg-white/90 backdrop-blur-md border border-gray-200 shadow-md rounded-2xl h-14 flex items-center justify-around px-2">
+        <div className="w-full max-w-sm bg-white/90 backdrop-blur-md border border-gray-200 shadow-md rounded-2xl h-[4.25rem] flex items-center justify-around px-2">
           {bottomTabs.map((tab) => (
-            <BottomTab key={tab.href} href={tab.href} icon={tab.icon} />
+            <BottomTab key={tab.href} href={tab.href} icon={tab.icon} label={tab.label} />
           ))}
         </div>
       </nav>
