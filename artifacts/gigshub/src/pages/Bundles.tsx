@@ -81,90 +81,115 @@ export default function Bundles() {
     return "bg-white text-foreground border-border hover:border-muted-foreground";
   };
 
+  const getNetworkAccent = (code: string) => {
+    if (code === 'MTN') return { bg: '#FFCC00', text: '#000', glow: 'shadow-yellow-200', badge: 'bg-[#FFCC00] text-black', btn: 'bg-[#FFCC00] hover:bg-[#e6b800] text-black border-0' };
+    if (code === 'AT') return { bg: '#004b87', text: '#fff', glow: 'shadow-blue-200', badge: 'bg-[#004b87] text-white', btn: 'bg-[#004b87] hover:bg-[#003a6e] text-white border-0' };
+    if (code === 'TELECEL') return { bg: '#CC0000', text: '#fff', glow: 'shadow-red-200', badge: 'bg-[#CC0000] text-white', btn: 'bg-[#CC0000] hover:bg-[#a80000] text-white border-0' };
+    return { bg: '#0077C7', text: '#fff', glow: 'shadow-blue-200', badge: 'bg-primary text-white', btn: 'bg-primary hover:bg-primary/90 text-white border-0' };
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-8">
-        <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
-              <Wifi className="w-8 h-8 text-primary" /> Buy Data Bundles
-            </h1>
-            <p className="text-muted-foreground mt-1">Select a network and choose your preferred data package.</p>
+        {/* Header */}
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#0077C7] to-[#0099FF] p-8 text-white shadow-xl shadow-primary/20">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3" />
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+                  <Wifi className="w-5 h-5 text-white" />
+                </div>
+                <h1 className="text-2xl font-extrabold">Buy Data Bundles</h1>
+              </div>
+              <p className="text-white/70">Select your network and choose the perfect data package.</p>
+            </div>
+            <div className="flex items-center gap-3 bg-white/10 border border-white/20 rounded-2xl px-5 py-3">
+              <CreditCard className="w-5 h-5 text-white/70" />
+              <div>
+                <p className="text-white/60 text-xs font-medium">Wallet Balance</p>
+                <p className="font-extrabold text-lg tracking-tight">{formatGHS(wallet?.balance)}</p>
+              </div>
+            </div>
           </div>
-          <div className="bg-secondary px-4 py-2 rounded-xl flex items-center gap-3">
-            <CreditCard className="w-5 h-5 text-muted-foreground" />
-            <span className="text-sm font-medium text-muted-foreground">Wallet Balance:</span>
-            <span className="font-bold text-primary">{formatGHS(wallet?.balance)}</span>
-          </div>
-        </header>
+        </div>
 
-        {/* Network Selection Tabs */}
+        {/* Network Selection */}
         {loadingNetworks ? (
           <div className="flex gap-4 animate-pulse">
-            {[1, 2, 3].map(i => <div key={i} className="h-12 w-32 bg-muted rounded-xl" />)}
+            {[1, 2, 3].map(i => <div key={i} className="h-16 w-36 bg-muted rounded-2xl" />)}
           </div>
         ) : (
-          <div className="flex flex-wrap gap-4">
-            {networks?.map((network) => (
-              <button
-                key={network.id}
-                onClick={() => setActiveNetwork(network.id)}
-                className={cn(
-                  "px-6 py-3 rounded-xl border-2 font-bold text-lg transition-all duration-200",
-                  getNetworkStyle(network.code, activeNetwork === network.id)
-                )}
-              >
-                {network.name}
-              </button>
-            ))}
+          <div className="flex flex-wrap gap-3">
+            {networks?.map((network) => {
+              const accent = getNetworkAccent(network.code);
+              const isActive = activeNetwork === network.id;
+              return (
+                <button
+                  key={network.id}
+                  onClick={() => setActiveNetwork(network.id)}
+                  className={cn(
+                    "px-6 py-3 rounded-2xl font-bold text-base transition-all duration-200 border-2 flex items-center gap-2",
+                    isActive
+                      ? `text-[${accent.text}] border-transparent shadow-lg ${accent.glow}`
+                      : "bg-white text-gray-600 border-gray-200 hover:border-gray-300"
+                  )}
+                  style={isActive ? { background: accent.bg, color: accent.text } : {}}
+                >
+                  {network.name}
+                </button>
+              );
+            })}
           </div>
         )}
 
         {/* Bundles Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
           {loadingBundles ? (
-            [1, 2, 3, 4].map(i => <div key={i} className="h-48 bg-muted rounded-2xl animate-pulse" />)
+            [1, 2, 3, 4].map(i => <div key={i} className="h-52 bg-muted rounded-3xl animate-pulse" />)
           ) : bundles?.length === 0 ? (
-            <div className="col-span-full py-12 text-center text-muted-foreground">
+            <div className="col-span-full py-16 text-center text-muted-foreground">
               No bundles available for this network right now.
             </div>
           ) : (
             bundles?.map((bundle) => {
               const net = networks?.find(n => n.id === bundle.networkId);
-              const colorClass = net ? getNetworkColor(net.code).split(' ')[0] : 'bg-primary';
-              const textClass = net ? getNetworkColor(net.code).split(' ')[1] : 'text-white';
+              const accent = net ? getNetworkAccent(net.code) : getNetworkAccent('');
               
               return (
-                <div 
-                  key={bundle.id} 
-                  className="bg-white border border-border rounded-2xl p-6 hover:shadow-xl transition-all flex flex-col justify-between group relative overflow-hidden"
+                <div
+                  key={bundle.id}
+                  className="bg-white border border-gray-100 rounded-3xl p-6 hover:shadow-xl hover:-translate-y-1 transition-all flex flex-col justify-between group relative overflow-hidden"
                 >
                   {bundle.popular && (
-                    <div className="absolute top-0 right-0 bg-emerald-500 text-white text-[10px] font-bold px-3 py-1 rounded-bl-lg z-10">
+                    <div className="absolute top-0 right-0 bg-emerald-500 text-white text-[10px] font-bold px-3 py-1 rounded-bl-2xl z-10 tracking-wider">
                       POPULAR
                     </div>
                   )}
+                  {/* Network accent bar */}
+                  <div className="absolute top-0 left-0 right-0 h-1 rounded-t-3xl" style={{ background: accent.bg }} />
+
                   <div>
-                    <div className="flex justify-between items-start mb-4">
-                      <span className={cn("px-2.5 py-1 rounded text-xs font-bold", colorClass, textClass)}>
+                    <div className="flex justify-between items-start mb-4 mt-2">
+                      <span className={cn("px-2.5 py-1 rounded-lg text-xs font-bold", accent.badge)}>
                         {net?.code}
                       </span>
-                      <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider bg-secondary px-2 py-1 rounded">
+                      <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider bg-gray-50 px-2 py-1 rounded-lg">
                         {bundle.type}
                       </span>
                     </div>
-                    <h3 className="text-3xl font-extrabold text-foreground mb-1">{bundle.data}</h3>
-                    <p className="text-sm font-medium text-muted-foreground mb-6">Validity: {bundle.validity}</p>
+                    <h3 className="text-3xl font-extrabold text-gray-900 mb-1">{bundle.data}</h3>
+                    <p className="text-sm font-medium text-muted-foreground mb-5">Valid: {bundle.validity}</p>
                   </div>
-                  
-                  <Button 
-                    className="w-full rounded-xl shadow-md group-hover:shadow-lg transition-all" 
+
+                  <Button
+                    className={cn("w-full rounded-xl h-11 font-bold text-sm shadow-md transition-all", accent.btn)}
                     onClick={() => {
                       setSelectedBundle(bundle);
                       setIsModalOpen(true);
                     }}
                   >
-                    Buy for {formatGHS(bundle.price)}
+                    Buy — {formatGHS(bundle.price)}
                   </Button>
                 </div>
               );
