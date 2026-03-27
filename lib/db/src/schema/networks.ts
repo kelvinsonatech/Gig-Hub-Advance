@@ -1,0 +1,15 @@
+import { pgTable, text, serial } from "drizzle-orm/pg-core";
+import { createInsertSchema } from "drizzle-zod";
+import { z } from "zod/v4";
+
+export const networksTable = pgTable("networks", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  code: text("code").notNull().unique(),
+  color: text("color").notNull(),
+  logoUrl: text("logo_url"),
+});
+
+export const insertNetworkSchema = createInsertSchema(networksTable).omit({ id: true });
+export type InsertNetwork = z.infer<typeof insertNetworkSchema>;
+export type Network = typeof networksTable.$inferSelect;

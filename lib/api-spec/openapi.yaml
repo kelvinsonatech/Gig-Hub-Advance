@@ -1,22 +1,32 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: GigsHub API specification
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: auth
+    description: Authentication operations
+  - name: bundles
+    description: Data bundle operations
+  - name: services
+    description: Digital services operations
+  - name: orders
+    description: Order operations
+  - name: wallet
+    description: Wallet operations
+  - name: networks
+    description: Network provider operations
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +34,203 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /auth/register:
+    post:
+      operationId: register
+      tags: [auth]
+      summary: Register new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRequest"
+      responses:
+        "201":
+          description: User registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Login user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/me:
+    get:
+      operationId: getMe
+      tags: [auth]
+      summary: Get current user
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /networks:
+    get:
+      operationId: getNetworks
+      tags: [networks]
+      summary: Get all network providers
+      responses:
+        "200":
+          description: List of network providers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Network"
+
+  /bundles:
+    get:
+      operationId: getBundles
+      tags: [bundles]
+      summary: Get data bundles
+      parameters:
+        - name: networkId
+          in: query
+          schema:
+            type: string
+          description: Filter by network provider
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [daily, weekly, monthly, special]
+          description: Filter by bundle type
+      responses:
+        "200":
+          description: List of data bundles
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Bundle"
+
+  /services:
+    get:
+      operationId: getServices
+      tags: [services]
+      summary: Get available services
+      responses:
+        "200":
+          description: List of services
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Service"
+
+  /orders:
+    get:
+      operationId: getOrders
+      tags: [orders]
+      summary: Get user orders
+      responses:
+        "200":
+          description: List of orders
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Order"
+    post:
+      operationId: createOrder
+      tags: [orders]
+      summary: Create new order
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateOrderRequest"
+      responses:
+        "201":
+          description: Order created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /wallet:
+    get:
+      operationId: getWallet
+      tags: [wallet]
+      summary: Get wallet balance
+      responses:
+        "200":
+          description: Wallet info
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Wallet"
+
+  /wallet/topup:
+    post:
+      operationId: topupWallet
+      tags: [wallet]
+      summary: Top up wallet
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TopupRequest"
+      responses:
+        "200":
+          description: Top up successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Wallet"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +241,258 @@ components:
       required:
         - status
 
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+      required:
+        - error
+        - message
+
+    RegisterRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+        password:
+          type: string
+          minLength: 6
+      required:
+        - name
+        - email
+        - phone
+        - password
+
+    LoginRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+      required:
+        - email
+        - password
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        role:
+          type: string
+          enum: [user, agent, admin]
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - email
+        - phone
+        - role
+        - createdAt
+
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        user:
+          $ref: "#/components/schemas/User"
+      required:
+        - token
+        - user
+
+    Network:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        code:
+          type: string
+        color:
+          type: string
+        logoUrl:
+          type: string
+      required:
+        - id
+        - name
+        - code
+        - color
+
+    Bundle:
+      type: object
+      properties:
+        id:
+          type: string
+        networkId:
+          type: string
+        networkName:
+          type: string
+        name:
+          type: string
+        data:
+          type: string
+        validity:
+          type: string
+        price:
+          type: number
+        type:
+          type: string
+          enum: [daily, weekly, monthly, special]
+        popular:
+          type: boolean
+      required:
+        - id
+        - networkId
+        - networkName
+        - name
+        - data
+        - validity
+        - price
+        - type
+        - popular
+
+    Service:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+        price:
+          type: number
+        iconUrl:
+          type: string
+      required:
+        - id
+        - name
+        - description
+        - category
+        - price
+
+    Order:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        type:
+          type: string
+          enum: [bundle, afa_registration, agent_registration]
+        status:
+          type: string
+          enum: [pending, processing, completed, failed]
+        amount:
+          type: number
+        details:
+          type: object
+          additionalProperties: true
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - userId
+        - type
+        - status
+        - amount
+        - createdAt
+
+    CreateOrderRequest:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [bundle, afa_registration, agent_registration]
+        bundleId:
+          type: string
+        phoneNumber:
+          type: string
+        serviceId:
+          type: string
+        details:
+          type: object
+          additionalProperties: true
+      required:
+        - type
+        - phoneNumber
+
+    Wallet:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        balance:
+          type: number
+        currency:
+          type: string
+        transactions:
+          type: array
+          items:
+            $ref: "#/components/schemas/Transaction"
+      required:
+        - id
+        - userId
+        - balance
+        - currency
+
+    Transaction:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [credit, debit]
+        amount:
+          type: number
+        description:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - type
+        - amount
+        - description
+        - createdAt
+
+    TopupRequest:
+      type: object
+      properties:
+        amount:
+          type: number
+          minimum: 1
+        paymentMethod:
+          type: string
+          enum: [momo, card, bank]
+      required:
+        - amount
+        - paymentMethod

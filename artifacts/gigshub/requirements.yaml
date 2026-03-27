@@ -1,0 +1,18 @@
+packages:
+  "framer-motion": "For page transitions, smooth enter animations, and micro-interactions"
+  "clsx": "Utility for constructing className strings conditionally"
+  "tailwind-merge": "Utility function to efficiently merge Tailwind CSS classes"
+  "date-fns": "For formatting dates in order history and transaction logs"
+
+images:
+  - path: "artifacts/gigshub/public/images/hero-fintech.png"
+    description: "A beautiful, vibrant 3D illustration of a young African woman smiling and using a smartphone, surrounded by floating colorful abstract shapes, internet data symbols, and glowing notification badges. Clean white and light blue gradient background, modern 3D clay style, premium fintech aesthetic."
+    aspect_ratio: "16:9"
+  - path: "artifacts/gigshub/public/images/afa-card-placeholder.png"
+    description: "A stylized 3D representation of a futuristic identification card floating in mid-air with soft glowing edges and geometric patterns on a clean light background. Modern and professional."
+    aspect_ratio: "4:3"
+
+notes:
+  - Assuming generated React Query hooks from orval are available at `@workspace/api-client-react`
+  - Overriding `window.fetch` globally in App.tsx to automatically inject the Bearer token since we cannot modify the generated `custom-fetch.ts` directly.
+  - The API base path is `/api`.

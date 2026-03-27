@@ -1,0 +1,165 @@
+{
+  "colorScheme": "light",
+  "fonts": [
+    {
+      "family": "Roboto",
+      "role": "body"
+    },
+    {
+      "family": "Helvetica Neue",
+      "role": "body"
+    },
+    {
+      "family": "Helvetica",
+      "role": "body"
+    },
+    {
+      "family": "Arial",
+      "role": "body"
+    },
+    {
+      "family": "Segoe UI",
+      "role": "body"
+    }
+  ],
+  "colors": {
+    "primary": "#0077C7",
+    "accent": "#0077C7",
+    "background": "#FFFFFF",
+    "textPrimary": "#0A0A0A",
+    "link": "#075E54"
+  },
+  "typography": {
+    "fontFamilies": {
+      "primary": "Roboto",
+      "heading": "Roboto"
+    },
+    "fontStacks": {
+      "heading": [
+        "-apple-system",
+        "BlinkMacSystemFont",
+        "Segoe UI",
+        "Roboto",
+        "sans-serif"
+      ],
+      "body": [
+        "-apple-system",
+        "BlinkMacSystemFont",
+        "Segoe UI",
+        "Roboto",
+        "sans-serif"
+      ],
+      "paragraph": [
+        "-apple-system",
+        "BlinkMacSystemFont",
+        "Segoe UI",
+        "Roboto",
+        "sans-serif"
+      ]
+    },
+    "fontSizes": {
+      "h1": "24px",
+      "h2": "24px",
+      "body": "14px"
+    }
+  },
+  "spacing": {
+    "baseUnit": 4,
+    "borderRadius": "16px"
+  },
+  "components": {
+    "input": {
+      "background": "#FFFFFF",
+      "textColor": "#0A0A0A",
+      "borderColor": "#E5E7EB",
+      "borderRadius": "12px",
+      "borderRadiusCorners": {
+        "topLeft": "12px",
+        "topRight": "12px",
+        "bottomRight": "12px",
+        "bottomLeft": "12px"
+      },
+      "shadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.05) 0px 1px 2px 0px"
+    },
+    "buttonPrimary": {
+      "background": "#0077C7",
+      "textColor": "#FAFAFA",
+      "borderRadius": "16px",
+      "borderRadiusCorners": {
+        "topLeft": "16px",
+        "topRight": "16px",
+        "bottomRight": "16px",
+        "bottomLeft": "16px"
+      },
+      "shadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.1) 0px 1px 3px 0px, rgba(0, 0, 0, 0.1) 0px 1px 2px -1px"
+    },
+    "buttonSecondary": {
+      "background": "#FFFFFF",
+      "textColor": "#0077C7",
+      "borderRadius": "16px",
+      "borderRadiusCorners": {
+        "topLeft": "16px",
+        "topRight": "16px",
+        "bottomRight": "16px",
+        "bottomLeft": "16px"
+      },
+      "shadow": "none"
+    }
+  },
+  "images": {
+    "logo": "File saved at: attached_assets/logo.png",
+    "favicon": "File saved at: attached_assets/favicon.png",
+    "ogImage": "File saved at: attached_assets/ogImage.png",
+    "logoHref": "File saved at: attached_assets/logoHref.html",
+    "logoAlt": "GiGSHUB"
+  },
+  "__llm_logo_reasoning": {
+    "selectedIndex": 2,
+    "reasoning": "Selected #2 because it is visible, located in the header, has the alt text 'GiGSHUB', and links to the homepage, matching the brand name inferred from the URL and page title.",
+    "confidence": 0.95,
+    "source": "llm"
+  },
+  "__llm_button_reasoning": {
+    "primary": {
+      "index": 1,
+      "text": "Sign In",
+      "reasoning": "Button #1 has a vibrant blue background (#0077C7), which is the brand color, and the text 'Sign In' indicates a primary action on a login page."
+    },
+    "secondary": {
+      "index": 0,
+      "text": "Sign Up",
+      "reasoning": "Button #0 has a white background with blue text, making it a less prominent option compared to the primary button. It offers a secondary action 'Sign Up'."
+    },
+    "confidence": 0.95
+  },
+  "personality": {
+    "tone": "professional",
+    "energy": "medium",
+    "targetAudience": "digital service users"
+  },
+  "designSystem": {
+    "framework": "tailwind",
+    "componentLibrary": ""
+  },
+  "confidence": {
+    "buttons": 0.95,
+    "colors": 0.9,
+    "overall": 0.925
+  },
+  "__llm_metadata": {
+    "logoSelection": {
+      "llmCalled": true,
+      "llmSucceeded": true,
+      "finalSource": "llm",
+      "rawLogoSelection": {
+        "selectedLogoIndex": 2,
+        "selectedLogoReasoning": "Selected #2 because it is visible, located in the header, has the alt text 'GiGSHUB', and links to the homepage, matching the brand name inferred from the URL and page title.",
+        "confidence": 0.95
+      }
+    },
+    "buttonClassification": {
+      "llmCalled": true,
+      "llmSucceeded": true
+    }
+  }
+}
