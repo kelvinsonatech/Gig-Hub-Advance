@@ -1,6 +1,7 @@
 import { useAuth } from "@/hooks/use-auth";
-import { Link, useRoute } from "wouter";
+import { Link, useRoute, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
 import {
   LayoutDashboard,
   Wifi,
@@ -26,19 +27,36 @@ const bottomTabs = [
 ];
 
 function BottomTab({ href, icon: Icon }: { href: string; icon: any }) {
-  const [isActive] = useRoute(href);
+  const [location] = useLocation();
+  const isActive = location === href;
+
   return (
     <Link href={href} className="flex-1 flex items-center justify-center">
-      <div className={cn(
-        "w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200",
-        isActive
-          ? "bg-[#e8f3fc] shadow-sm"
-          : "hover:bg-gray-50"
-      )}>
-        <Icon className={cn(
-          "w-5 h-5 transition-colors duration-200",
-          isActive ? "text-[#0077C7]" : "text-gray-400"
-        )} />
+      <div className="relative w-10 h-10 flex items-center justify-center">
+        {isActive && (
+          <motion.div
+            layoutId="liquid-pill"
+            className="absolute inset-0 rounded-full bg-[#e8f3fc]"
+            transition={{
+              type: "spring",
+              stiffness: 500,
+              damping: 30,
+              mass: 0.6,
+            }}
+          />
+        )}
+        <motion.div
+          animate={{ scale: isActive ? 1.1 : 1 }}
+          transition={{ type: "spring", stiffness: 400, damping: 25 }}
+          className="relative z-10"
+        >
+          <Icon
+            className={cn(
+              "w-5 h-5 transition-colors duration-150",
+              isActive ? "text-[#0077C7]" : "text-gray-400"
+            )}
+          />
+        </motion.div>
       </div>
     </Link>
   );
