@@ -49,16 +49,19 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     return (
       <Link
         href={href}
-        className="flex flex-col items-center gap-1 flex-1 py-2 relative"
+        className="flex flex-col items-center gap-1 flex-1 py-1"
         onClick={() => setMoreOpen(false)}
       >
         <div className={cn(
-          "w-10 h-10 rounded-2xl flex items-center justify-center transition-all",
-          isActive ? "bg-primary shadow-md shadow-primary/30" : "bg-transparent"
+          "w-8 h-8 rounded-full flex items-center justify-center transition-all",
+          isActive ? "bg-primary/10" : "bg-transparent"
         )}>
-          <Icon className={cn("w-5 h-5", isActive ? "text-white" : "text-gray-400")} />
+          <Icon className={cn("w-4 h-4 transition-colors", isActive ? "text-primary" : "text-gray-400")} />
         </div>
-        <span className={cn("text-[10px] font-semibold leading-none", isActive ? "text-primary" : "text-gray-400")}>
+        <span className={cn(
+          "text-[10px] font-semibold leading-none transition-colors",
+          isActive ? "text-primary" : "text-gray-400"
+        )}>
           {label}
         </span>
       </Link>
@@ -95,11 +98,11 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       </div>
 
       {/* ── Mobile Bottom Navigation ── */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden">
-        {/* "More" tray — slides up above the nav bar */}
+      <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden flex justify-center pb-3 px-4">
+        {/* "More" tray — floats above the pill bar */}
         {moreOpen && (
           <>
-            <div className="absolute bottom-full left-0 right-0 bg-white border-t border-gray-100 shadow-2xl rounded-t-3xl px-6 py-5 space-y-1 animate-in slide-in-from-bottom-2 duration-200">
+            <div className="absolute bottom-full mb-2 left-4 right-4 bg-white/90 backdrop-blur-md border border-gray-200 shadow-xl rounded-2xl px-4 py-4 space-y-1 animate-in slide-in-from-bottom-2 duration-200">
               <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 px-1">More Options</p>
               {[
                 { href: "/afa-registration", icon: ShieldCheck, label: "AFA Registration" },
@@ -110,10 +113,10 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                   key={href}
                   href={href}
                   onClick={() => setMoreOpen(false)}
-                  className="flex items-center gap-4 px-3 py-3 rounded-2xl hover:bg-gray-50 transition-colors"
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 transition-colors"
                 >
-                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                    <Icon className="w-5 h-5 text-primary" />
+                  <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <Icon className="w-4 h-4 text-primary" />
                   </div>
                   <span className="font-semibold text-gray-700 text-sm">{label}</span>
                 </Link>
@@ -121,36 +124,34 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             </div>
             {/* Backdrop */}
             <div
-              className="fixed inset-0 bottom-16 bg-black/20 backdrop-blur-sm"
+              className="fixed inset-0 bg-black/10 backdrop-blur-[1px]"
               onClick={() => setMoreOpen(false)}
             />
           </>
         )}
 
-        {/* The actual bottom bar */}
-        <div className="bg-white/95 backdrop-blur-md border-t border-gray-100 shadow-[0_-4px_24px_rgba(0,0,0,0.08)] px-2 pb-safe">
-          <div className="flex items-center justify-around max-w-lg mx-auto">
-            <BottomNavItem href="/dashboard" icon={LayoutDashboard} label="Home" />
-            <BottomNavItem href="/bundles" icon={Wifi} label="Data" />
-            <BottomNavItem href="/wallet" icon={CreditCard} label="Wallet" />
-            <BottomNavItem href="/orders" icon={History} label="Orders" />
+        {/* Floating pill bar — matches the top navbar style */}
+        <div className="relative z-10 w-full max-w-sm bg-white/90 backdrop-blur-md border border-gray-200 shadow-md rounded-2xl px-3 h-14 flex items-center justify-around">
+          <BottomNavItem href="/dashboard" icon={LayoutDashboard} label="Home" />
+          <BottomNavItem href="/bundles" icon={Wifi} label="Data" />
+          <BottomNavItem href="/wallet" icon={CreditCard} label="Wallet" />
+          <BottomNavItem href="/orders" icon={History} label="Orders" />
 
-            {/* More button */}
-            <button
-              onClick={() => setMoreOpen((v) => !v)}
-              className="flex flex-col items-center gap-1 flex-1 py-2"
-            >
-              <div className={cn(
-                "w-10 h-10 rounded-2xl flex items-center justify-center transition-all",
-                moreOpen ? "bg-primary shadow-md shadow-primary/30" : "bg-transparent"
-              )}>
-                <MoreHorizontal className={cn("w-5 h-5", moreOpen ? "text-white" : "text-gray-400")} />
-              </div>
-              <span className={cn("text-[10px] font-semibold leading-none", moreOpen ? "text-primary" : "text-gray-400")}>
-                More
-              </span>
-            </button>
-          </div>
+          {/* More button */}
+          <button
+            onClick={() => setMoreOpen((v) => !v)}
+            className="flex flex-col items-center gap-1 flex-1 py-1"
+          >
+            <div className={cn(
+              "w-8 h-8 rounded-full flex items-center justify-center transition-all",
+              moreOpen ? "bg-primary shadow-sm shadow-primary/30" : "bg-transparent"
+            )}>
+              <MoreHorizontal className={cn("w-4 h-4", moreOpen ? "text-white" : "text-gray-400")} />
+            </div>
+            <span className={cn("text-[10px] font-semibold leading-none", moreOpen ? "text-primary" : "text-gray-400")}>
+              More
+            </span>
+          </button>
         </div>
       </nav>
     </>
