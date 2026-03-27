@@ -44,7 +44,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl flex flex-col md:flex-row gap-8 min-h-[calc(100vh-4rem)]">
       {/* Sidebar */}
-      <aside className="w-full md:w-64 shrink-0 space-y-6">
+      <aside className="hidden md:block md:w-64 shrink-0 space-y-6">
         <nav className="space-y-2">
           <SidebarLink href="/dashboard" icon={LayoutDashboard}>Overview</SidebarLink>
           <SidebarLink href="/bundles" icon={Wifi}>Buy Data</SidebarLink>
