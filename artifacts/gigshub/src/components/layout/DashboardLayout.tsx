@@ -5,22 +5,47 @@ import {
   LayoutDashboard,
   Wifi,
   CreditCard,
+  ShoppingBag,
   History,
   UserPlus,
   ShieldCheck,
   Settings,
-  MoreHorizontal,
+  Grid2x2,
 } from "lucide-react";
 import { Redirect } from "wouter";
-import { useState } from "react";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
 }
 
+const bottomTabs = [
+  { href: "/dashboard", icon: LayoutDashboard },
+  { href: "/bundles",   icon: Wifi },
+  { href: "/orders",    icon: ShoppingBag },
+  { href: "/wallet",    icon: Grid2x2 },
+];
+
+function BottomTab({ href, icon: Icon }: { href: string; icon: any }) {
+  const [isActive] = useRoute(href);
+  return (
+    <Link href={href} className="flex-1 flex items-center justify-center py-3">
+      <div className={cn(
+        "w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200",
+        isActive
+          ? "bg-[#e8f3fc] shadow-sm"
+          : "hover:bg-gray-50"
+      )}>
+        <Icon className={cn(
+          "w-5 h-5 transition-colors duration-200",
+          isActive ? "text-[#0077C7]" : "text-gray-400"
+        )} />
+      </div>
+    </Link>
+  );
+}
+
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const { isAuthenticated, isLoading } = useAuth();
-  const [moreOpen, setMoreOpen] = useState(false);
 
   if (!isLoading && !isAuthenticated) {
     return <Redirect to="/login" />;
@@ -44,33 +69,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     );
   };
 
-  const BottomNavItem = ({ href, icon: Icon, label }: { href: string; icon: any; label: string }) => {
-    const [isActive] = useRoute(href);
-    return (
-      <Link
-        href={href}
-        className="flex flex-col items-center gap-1 flex-1 py-1"
-        onClick={() => setMoreOpen(false)}
-      >
-        <div className={cn(
-          "w-8 h-8 rounded-full flex items-center justify-center transition-all",
-          isActive ? "bg-primary/10" : "bg-transparent"
-        )}>
-          <Icon className={cn("w-4 h-4 transition-colors", isActive ? "text-primary" : "text-gray-400")} />
-        </div>
-        <span className={cn(
-          "text-[10px] font-semibold leading-none transition-colors",
-          isActive ? "text-primary" : "text-gray-400"
-        )}>
-          {label}
-        </span>
-      </Link>
-    );
-  };
-
   return (
     <>
-      <div className="container mx-auto px-4 py-8 max-w-7xl flex flex-col md:flex-row gap-8 min-h-[calc(100vh-4rem)] pb-24 md:pb-8">
+      <div className="container mx-auto px-4 py-8 max-w-7xl flex flex-col md:flex-row gap-8 min-h-[calc(100vh-4rem)] pb-20 md:pb-8">
         {/* Sidebar — desktop only */}
         <aside className="hidden md:block md:w-64 shrink-0 space-y-6">
           <nav className="space-y-2">
@@ -81,7 +82,6 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             <SidebarLink href="/afa-registration" icon={ShieldCheck}>AFA Registration</SidebarLink>
             <SidebarLink href="/agent-registration" icon={UserPlus}>Become an Agent</SidebarLink>
           </nav>
-
           <div className="pt-6 border-t border-border">
             <nav className="space-y-2">
               <SidebarLink href="/settings" icon={Settings}>Settings</SidebarLink>
@@ -98,61 +98,14 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       </div>
 
       {/* ── Mobile Bottom Navigation ── */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden flex justify-center pb-3 px-4">
-        {/* "More" tray — floats above the pill bar */}
-        {moreOpen && (
-          <>
-            <div className="absolute bottom-full mb-2 left-4 right-4 bg-white/90 backdrop-blur-md border border-gray-200 shadow-xl rounded-2xl px-4 py-4 space-y-1 animate-in slide-in-from-bottom-2 duration-200">
-              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 px-1">More Options</p>
-              {[
-                { href: "/afa-registration", icon: ShieldCheck, label: "AFA Registration" },
-                { href: "/agent-registration", icon: UserPlus, label: "Become an Agent" },
-                { href: "/settings", icon: Settings, label: "Settings" },
-              ].map(({ href, icon: Icon, label }) => (
-                <Link
-                  key={href}
-                  href={href}
-                  onClick={() => setMoreOpen(false)}
-                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 transition-colors"
-                >
-                  <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center">
-                    <Icon className="w-4 h-4 text-primary" />
-                  </div>
-                  <span className="font-semibold text-gray-700 text-sm">{label}</span>
-                </Link>
-              ))}
-            </div>
-            {/* Backdrop */}
-            <div
-              className="fixed inset-0 bg-black/10 backdrop-blur-[1px]"
-              onClick={() => setMoreOpen(false)}
-            />
-          </>
-        )}
-
-        {/* Floating pill bar — matches the top navbar style */}
-        <div className="relative z-10 w-full max-w-sm bg-white/90 backdrop-blur-md border border-gray-200 shadow-md rounded-2xl px-3 h-14 flex items-center justify-around">
-          <BottomNavItem href="/dashboard" icon={LayoutDashboard} label="Home" />
-          <BottomNavItem href="/bundles" icon={Wifi} label="Data" />
-          <BottomNavItem href="/wallet" icon={CreditCard} label="Wallet" />
-          <BottomNavItem href="/orders" icon={History} label="Orders" />
-
-          {/* More button */}
-          <button
-            onClick={() => setMoreOpen((v) => !v)}
-            className="flex flex-col items-center gap-1 flex-1 py-1"
-          >
-            <div className={cn(
-              "w-8 h-8 rounded-full flex items-center justify-center transition-all",
-              moreOpen ? "bg-primary shadow-sm shadow-primary/30" : "bg-transparent"
-            )}>
-              <MoreHorizontal className={cn("w-4 h-4", moreOpen ? "text-white" : "text-gray-400")} />
-            </div>
-            <span className={cn("text-[10px] font-semibold leading-none", moreOpen ? "text-primary" : "text-gray-400")}>
-              More
-            </span>
-          </button>
+      <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white border-t border-gray-100 shadow-[0_-4px_20px_rgba(0,0,0,0.06)]">
+        <div className="flex items-center justify-around h-16 max-w-md mx-auto px-4">
+          {bottomTabs.map((tab) => (
+            <BottomTab key={tab.href} href={tab.href} icon={tab.icon} />
+          ))}
         </div>
+        {/* safe-area bottom padding for notch phones */}
+        <div className="h-safe-area-inset-bottom" />
       </nav>
     </>
   );
