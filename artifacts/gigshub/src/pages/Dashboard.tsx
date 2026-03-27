@@ -4,130 +4,257 @@ import { useGetWallet, useGetOrders } from "@workspace/api-client-react";
 import { formatGHS } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
-import { Wifi, ShieldCheck, Plus, History, ArrowRight } from "lucide-react";
+import {
+  Wifi, ShieldCheck, Plus, ArrowRight, Users, Eye, EyeOff,
+  TrendingUp, Package, CheckCircle2, Clock, XCircle,
+} from "lucide-react";
 import { format } from "date-fns";
+import { useState } from "react";
+import { motion } from "framer-motion";
+
+const statusConfig: Record<string, { label: string; color: string; icon: React.ElementType }> = {
+  completed: { label: "Completed", color: "text-emerald-600 bg-emerald-50 border-emerald-100", icon: CheckCircle2 },
+  pending: { label: "Pending", color: "text-amber-600 bg-amber-50 border-amber-100", icon: Clock },
+  processing: { label: "Processing", color: "text-blue-600 bg-blue-50 border-blue-100", icon: Clock },
+  failed: { label: "Failed", color: "text-red-600 bg-red-50 border-red-100", icon: XCircle },
+};
+
+const quickActions = [
+  {
+    href: "/bundles",
+    label: "Buy Data",
+    sublabel: "MTN · AT · Telecel",
+    icon: Wifi,
+    gradient: "from-[#0077C7] to-[#0099FF]",
+    shadow: "shadow-blue-200",
+  },
+  {
+    href: "/afa-registration",
+    label: "AFA Reg",
+    sublabel: "Ghana Card",
+    icon: ShieldCheck,
+    gradient: "from-amber-400 to-orange-400",
+    shadow: "shadow-orange-200",
+  },
+  {
+    href: "/agent-registration",
+    label: "Agent Reg",
+    sublabel: "Earn commissions",
+    icon: Users,
+    gradient: "from-emerald-400 to-teal-500",
+    shadow: "shadow-emerald-200",
+  },
+  {
+    href: "/orders",
+    label: "Orders",
+    sublabel: "View history",
+    icon: Package,
+    gradient: "from-violet-500 to-purple-600",
+    shadow: "shadow-purple-200",
+  },
+];
 
 export default function Dashboard() {
   const { user } = useAuth();
   const { data: wallet, isLoading: isLoadingWallet } = useGetWallet();
   const { data: orders, isLoading: isLoadingOrders } = useGetOrders();
+  const [balanceHidden, setBalanceHidden] = useState(false);
 
-  const recentOrders = orders?.slice(0, 3) || [];
+  const recentOrders = orders?.slice(0, 5) || [];
+  const completedCount = orders?.filter(o => o.status === "completed").length ?? 0;
 
   return (
     <DashboardLayout>
-      <div className="space-y-8">
-        <header>
-          <h1 className="text-3xl font-bold text-foreground">Welcome back, {user?.name?.split(' ')[0]}! 👋</h1>
-          <p className="text-muted-foreground mt-1">Here's what's happening with your account today.</p>
-        </header>
+      <div className="space-y-6">
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Wallet Card */}
-          <div className="col-span-1 md:col-span-2 bg-gradient-to-br from-primary to-blue-600 rounded-3xl p-8 text-white shadow-xl shadow-primary/20 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3" />
-            <div className="relative z-10 flex flex-col h-full justify-between">
-              <div>
-                <p className="text-primary-foreground/80 font-medium mb-1">Available Balance</p>
-                {isLoadingWallet ? (
-                  <div className="h-10 w-48 bg-white/20 animate-pulse rounded-lg" />
-                ) : (
-                  <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight">
-                    {formatGHS(wallet?.balance)}
-                  </h2>
-                )}
-              </div>
-              <div className="mt-8 flex gap-3">
-                <Button variant="secondary" asChild className="rounded-xl px-6">
-                  <Link href="/wallet"><Plus className="w-4 h-4 mr-2" /> Top Up Wallet</Link>
-                </Button>
-                <Button variant="outline" className="rounded-xl border-white/20 text-white hover:bg-white/10" asChild>
-                  <Link href="/bundles">Buy Data</Link>
-                </Button>
-              </div>
-            </div>
+        {/* ── Greeting ── */}
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm text-muted-foreground font-medium">Good day,</p>
+            <h1 className="text-2xl font-extrabold text-gray-900 leading-tight">
+              {user?.name?.split(" ")[0]} 👋
+            </h1>
           </div>
-
-          {/* Quick Actions */}
-          <div className="grid grid-rows-2 gap-4">
-            <Link href="/bundles">
-              <div className="bg-orange-50 border border-orange-100 rounded-2xl p-5 hover:bg-orange-100 transition-colors h-full flex flex-col justify-center cursor-pointer group">
-                <div className="w-10 h-10 bg-orange-200 text-orange-600 rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                  <Wifi className="w-5 h-5" />
-                </div>
-                <h3 className="font-bold text-orange-900">Buy Data</h3>
-                <p className="text-sm text-orange-700/80">MTN, AT, Telecel</p>
-              </div>
-            </Link>
-            
-            <Link href="/afa-registration">
-              <div className="bg-indigo-50 border border-indigo-100 rounded-2xl p-5 hover:bg-indigo-100 transition-colors h-full flex flex-col justify-center cursor-pointer group">
-                <div className="w-10 h-10 bg-indigo-200 text-indigo-600 rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                  <ShieldCheck className="w-5 h-5" />
-                </div>
-                <h3 className="font-bold text-indigo-900">AFA Register</h3>
-                <p className="text-sm text-indigo-700/80">Ghana Card Link</p>
-              </div>
-            </Link>
+          <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-[#0077C7] to-[#0099FF] flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-blue-200">
+            {user?.name?.[0]?.toUpperCase() ?? "G"}
           </div>
         </div>
 
-        {/* Recent Activity */}
-        <div className="mt-12">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold flex items-center gap-2">
-              <History className="w-5 h-5 text-primary" /> Recent Orders
-            </h2>
-            <Link href="/orders" className="text-sm font-medium text-primary hover:underline flex items-center">
-              View All <ArrowRight className="w-4 h-4 ml-1" />
+        {/* ── Wallet Card ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#0077C7] via-[#0088e0] to-[#00AAFF] p-6 text-white shadow-2xl shadow-blue-300/40"
+        >
+          {/* decorative circles */}
+          <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full bg-white/10" />
+          <div className="absolute -bottom-16 -left-8 w-48 h-48 rounded-full bg-black/10" />
+          <div className="absolute top-4 right-20 w-20 h-20 rounded-full bg-white/5" />
+
+          <div className="relative z-10">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+                  <TrendingUp className="w-4 h-4 text-white" />
+                </div>
+                <span className="text-white/80 text-sm font-medium">GigsHub Wallet</span>
+              </div>
+              <button
+                onClick={() => setBalanceHidden(v => !v)}
+                className="p-1.5 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+              >
+                {balanceHidden ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
+
+            <div className="mb-6">
+              <p className="text-white/60 text-xs font-medium uppercase tracking-widest mb-1">Available Balance</p>
+              {isLoadingWallet ? (
+                <div className="h-10 w-44 bg-white/20 animate-pulse rounded-xl" />
+              ) : (
+                <h2 className="text-4xl font-extrabold tracking-tight">
+                  {balanceHidden ? "GHS ••••••" : formatGHS(wallet?.balance)}
+                </h2>
+              )}
+              {user?.phone && (
+                <p className="text-white/50 text-sm mt-1 font-mono">
+                  {user.phone.replace(/(\d{3})(\d{3})(\d{4})/, "$1 $2 $3")}
+                </p>
+              )}
+            </div>
+
+            <div className="flex gap-3">
+              <Button
+                asChild
+                className="flex-1 h-11 rounded-2xl bg-white text-[#0077C7] font-bold hover:bg-gray-50 shadow-lg border-0 text-sm"
+              >
+                <Link href="/wallet">
+                  <Plus className="w-4 h-4 mr-1.5" /> Top Up
+                </Link>
+              </Button>
+              <Button
+                asChild
+                className="flex-1 h-11 rounded-2xl bg-white/15 text-white font-bold hover:bg-white/25 border border-white/20 shadow-none text-sm"
+              >
+                <Link href="/bundles">
+                  <Wifi className="w-4 h-4 mr-1.5" /> Buy Data
+                </Link>
+              </Button>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* ── Stats Row ── */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+            <p className="text-xs text-muted-foreground font-medium mb-1">Total Orders</p>
+            <p className="text-2xl font-extrabold text-gray-900">{orders?.length ?? 0}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">All time</p>
+          </div>
+          <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+            <p className="text-xs text-muted-foreground font-medium mb-1">Completed</p>
+            <p className="text-2xl font-extrabold text-emerald-600">{completedCount}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Successful</p>
+          </div>
+        </div>
+
+        {/* ── Quick Actions ── */}
+        <div>
+          <h2 className="text-base font-bold text-gray-900 mb-4">Quick Actions</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            {quickActions.map((action) => (
+              <Link key={action.href} href={action.href}>
+                <motion.div
+                  whileTap={{ scale: 0.96 }}
+                  whileHover={{ y: -3 }}
+                  className={`bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all cursor-pointer group`}
+                >
+                  <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${action.gradient} shadow-lg ${action.shadow} flex items-center justify-center mb-3`}>
+                    <action.icon className="w-6 h-6 text-white" />
+                  </div>
+                  <p className="font-bold text-gray-900 text-sm leading-tight">{action.label}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5 leading-tight">{action.sublabel}</p>
+                </motion.div>
+              </Link>
+            ))}
+          </div>
+        </div>
+
+        {/* ── Recent Transactions ── */}
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-base font-bold text-gray-900">Recent Transactions</h2>
+            <Link href="/orders" className="text-sm font-semibold text-primary flex items-center gap-1 hover:gap-2 transition-all">
+              See all <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
-          
-          <div className="bg-white border border-border rounded-2xl overflow-hidden shadow-sm">
-            {isLoadingOrders ? (
-              <div className="p-8 text-center text-muted-foreground animate-pulse">Loading orders...</div>
-            ) : recentOrders.length === 0 ? (
-              <div className="p-12 text-center">
-                <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
-                  <History className="w-8 h-8 text-muted-foreground" />
-                </div>
-                <h3 className="text-lg font-bold">No orders yet</h3>
-                <p className="text-muted-foreground mb-6">You haven't made any purchases yet.</p>
-                <Button asChild className="rounded-xl">
-                  <Link href="/bundles">Browse Bundles</Link>
-                </Button>
+
+          {isLoadingOrders ? (
+            <div className="space-y-3">
+              {[1, 2, 3].map(i => (
+                <div key={i} className="h-16 bg-gray-100 rounded-2xl animate-pulse" />
+              ))}
+            </div>
+          ) : recentOrders.length === 0 ? (
+            <div className="bg-white border border-gray-100 rounded-3xl p-10 text-center shadow-sm">
+              <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <Package className="w-8 h-8 text-primary" />
               </div>
-            ) : (
-              <div className="divide-y divide-border">
-                {recentOrders.map((order) => (
-                  <div key={order.id} className="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-secondary rounded-xl flex items-center justify-center shrink-0">
-                        {order.type === 'bundle' ? <Wifi className="w-5 h-5 text-primary" /> : <ShieldCheck className="w-5 h-5 text-indigo-600" />}
-                      </div>
-                      <div>
-                        <p className="font-bold capitalize">{order.type.replace('_', ' ')}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {format(new Date(order.createdAt), "MMM d, yyyy 'at' h:mm a")}
-                        </p>
-                      </div>
+              <h3 className="font-bold text-gray-900 mb-1">No transactions yet</h3>
+              <p className="text-muted-foreground text-sm mb-5">Make your first purchase to see it here.</p>
+              <Button asChild className="rounded-2xl px-6">
+                <Link href="/bundles">Buy Data Bundle</Link>
+              </Button>
+            </div>
+          ) : (
+            <div className="bg-white border border-gray-100 rounded-3xl overflow-hidden shadow-sm divide-y divide-gray-50">
+              {recentOrders.map((order) => {
+                const status = statusConfig[order.status] ?? statusConfig.pending;
+                const StatusIcon = status.icon;
+                return (
+                  <div key={order.id} className="flex items-center gap-4 px-5 py-4 hover:bg-gray-50/50 transition-colors">
+                    {/* Icon */}
+                    <div className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 ${
+                      order.type === "bundle"
+                        ? "bg-blue-50"
+                        : order.type === "afa"
+                        ? "bg-amber-50"
+                        : "bg-emerald-50"
+                    }`}>
+                      {order.type === "bundle" ? (
+                        <Wifi className="w-5 h-5 text-primary" />
+                      ) : order.type === "afa" ? (
+                        <ShieldCheck className="w-5 h-5 text-amber-600" />
+                      ) : (
+                        <Users className="w-5 h-5 text-emerald-600" />
+                      )}
                     </div>
-                    <div className="text-right">
-                      <p className="font-bold text-foreground">{formatGHS(order.amount)}</p>
-                      <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-                        order.status === 'completed' ? 'bg-emerald-100 text-emerald-700' :
-                        order.status === 'pending' || order.status === 'processing' ? 'bg-orange-100 text-orange-700' :
-                        'bg-red-100 text-red-700'
-                      }`}>
-                        {order.status}
+
+                    {/* Info */}
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold text-gray-900 text-sm capitalize leading-tight">
+                        {order.type === "bundle" ? "Data Bundle" : order.type === "afa" ? "AFA Registration" : "Agent Registration"}
+                      </p>
+                      <p className="text-xs text-muted-foreground truncate">
+                        {format(new Date(order.createdAt), "MMM d, yyyy · h:mm a")}
+                      </p>
+                    </div>
+
+                    {/* Amount + status */}
+                    <div className="text-right shrink-0">
+                      <p className="font-extrabold text-gray-900 text-sm">{formatGHS(order.amount)}</p>
+                      <span className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full border ${status.color}`}>
+                        <StatusIcon className="w-3 h-3" />
+                        {status.label}
                       </span>
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </div>
+
       </div>
     </DashboardLayout>
   );
