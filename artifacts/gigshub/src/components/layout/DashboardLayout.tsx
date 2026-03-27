@@ -60,8 +60,8 @@ function BottomNav() {
         {activeIndex >= 0 && (
           <motion.div
             className="absolute top-2 bottom-2 rounded-full bg-gray-100/90"
-            style={{ width: `${100 / bottomTabs.length}%` }}
-            animate={{ left: `${activeIndex * (100 / bottomTabs.length)}%` }}
+            style={{ width: "17%" }}
+            animate={{ left: `calc(${activeIndex} * 25% + 4%)` }}
             transition={{ type: "spring", stiffness: 500, damping: 36, mass: 0.5 }}
           />
         )}
