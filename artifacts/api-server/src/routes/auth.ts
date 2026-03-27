@@ -23,13 +23,23 @@ router.post("/register", async (req, res) => {
       return res.status(400).json({ error: "duplicate_error", message: "Email already registered" });
     }
     const passwordHash = await bcrypt.hash(password, 10);
-    const [user] = await db.insert(usersTable).values({ name, email, phone, passwordHash, role: "user" }).returning();
-    await db.insert(walletsTable).values({ userId: user.id, balance: "0", currency: "GHS" });
-    const token = jwt.sign({ userId: user.id, role: user.role }, JWT_SECRET, { expiresIn: "7d" });
-    return res.status(201).json({
-      token,
-      user: { id: String(user.id), name: user.name, email: user.email, phone: user.phone, role: user.role, createdAt: user.createdAt.toISOString() },
-    });
+    try {
+      const [user] = await db.insert(usersTable).values({ name, email, phone, passwordHash, role: "user" }).returning();
+      await db.insert(walletsTable).values({ userId: user.id, balance: "0", currency: "GHS" });
+      const token = jwt.sign({ userId: user.id, role: user.role }, JWT_SECRET, { expiresIn: "7d" });
+      return res.status(201).json({
+        token,
+        user: { id: String(user.id), name: user.name, email: user.email, phone: user.phone, role: user.role, createdAt: user.createdAt.toISOString() },
+      });
+    } catch (insertErr: any) {
+      if (insertErr?.message?.includes("users_phone_unique") || insertErr?.cause?.message?.includes("users_phone_unique")) {
+        return res.status(400).json({ error: "duplicate_error", message: "Phone number already registered" });
+      }
+      if (insertErr?.message?.includes("users_email_unique") || insertErr?.cause?.message?.includes("users_email_unique")) {
+        return res.status(400).json({ error: "duplicate_error", message: "Email already registered" });
+      }
+      throw insertErr;
+    }
   } catch (err) {
     req.log.error(err, "register error");
     return res.status(500).json({ error: "internal_error", message: "Registration failed" });
