@@ -121,7 +121,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
       {/* ── Mobile Bottom Navigation ── */}
       <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden flex justify-center pb-3 px-4">
-        <div className="w-full max-w-sm bg-white/90 backdrop-blur-md border border-gray-200 shadow-md rounded-2xl h-[4.25rem] flex items-center justify-around px-2">
+        <div className="w-full max-w-sm bg-white/90 backdrop-blur-md border border-gray-200 shadow-md rounded-full h-[4.25rem] flex items-center justify-around px-4">
           {bottomTabs.map((tab) => (
             <BottomTab key={tab.href} href={tab.href} icon={tab.icon} label={tab.label} />
           ))}
