@@ -1,11 +1,12 @@
 import { Link, useRoute } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
-import { Wallet, Sun, Users, Menu, UserCircle, LogOut, X, LayoutDashboard, ShoppingBag, Bell } from "lucide-react";
+import { Wallet, Sun, Users, Menu, LogOut, X, LayoutDashboard, ShoppingBag, Bell } from "lucide-react";
 import { useGetWallet } from "@workspace/api-client-react";
 import { formatGHS, cn } from "@/lib/utils";
 import logoUrl from "@assets/logo.png";
 import { useState } from "react";
+import { UserAvatar } from "@/components/ui/UserAvatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -83,15 +84,16 @@ export function Navbar() {
                 {/* User dropdown */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="h-8 w-8 rounded-full bg-primary/10 hover:bg-primary/20 transition-colors p-0">
-                      <UserCircle className="h-5 w-5 text-primary" />
-                    </Button>
+                    <button className="ring-2 ring-transparent hover:ring-primary/30 rounded-full transition-all focus:outline-none focus:ring-primary/50">
+                      <UserAvatar name={user?.name} size={34} />
+                    </button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56 p-2 rounded-xl mt-2">
-                    <div className="flex items-center justify-start gap-2 p-2">
-                      <div className="flex flex-col space-y-0.5 leading-none">
-                        <p className="font-medium text-sm">{user?.name}</p>
-                        <p className="w-[200px] truncate text-xs text-muted-foreground">{user?.email}</p>
+                  <DropdownMenuContent align="end" className="w-60 p-2 rounded-xl mt-2">
+                    <div className="flex items-center gap-3 p-2">
+                      <UserAvatar name={user?.name} size={40} />
+                      <div className="flex flex-col space-y-0.5 leading-none min-w-0">
+                        <p className="font-semibold text-sm truncate">{user?.name}</p>
+                        <p className="w-[160px] truncate text-xs text-muted-foreground">{user?.email}</p>
                       </div>
                     </div>
                     <DropdownMenuSeparator />

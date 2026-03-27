@@ -11,6 +11,7 @@ import {
 import { format } from "date-fns";
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { UserAvatar } from "@/components/ui/UserAvatar";
 
 const statusConfig: Record<string, { label: string; color: string; icon: React.ElementType }> = {
   completed: { label: "Completed", color: "text-emerald-600 bg-emerald-50 border-emerald-100", icon: CheckCircle2 },
@@ -75,8 +76,8 @@ export default function Dashboard() {
               {user?.name?.split(" ")[0]} 👋
             </h1>
           </div>
-          <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-[#0077C7] to-[#0099FF] flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-blue-200">
-            {user?.name?.[0]?.toUpperCase() ?? "G"}
+          <div className="ring-2 ring-white shadow-lg shadow-blue-100 rounded-full">
+            <UserAvatar name={user?.name} size={44} />
           </div>
         </div>
 
