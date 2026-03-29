@@ -79,7 +79,7 @@ function BottomNav() {
             {/* Inner: liquid blob morphs */}
             <motion.div
               animate={blobControls}
-              className="w-full h-full rounded-full bg-gray-100"
+              className="w-full h-full rounded-full bg-[#0077C7]/15"
               style={{ originX: "50%", originY: "50%" }}
             />
           </motion.div>
@@ -102,7 +102,7 @@ function BottomNav() {
                 <Icon
                   className={cn(
                     "w-[22px] h-[22px] transition-colors duration-150",
-                    isActive ? "text-gray-900" : "text-gray-400"
+                    isActive ? "text-[#0077C7]" : "text-gray-400"
                   )}
                   strokeWidth={isActive ? 2.2 : 1.8}
                 />
