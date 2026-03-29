@@ -122,3 +122,26 @@
     @apply tracking-tight font-bold;
   }
 }
+
+/* ── Bottom nav shimmer wave ─────────────────────────────── */
+@keyframes shimmer-sweep {
+  0%   { transform: translateX(-100%) skewX(-12deg); opacity: 0; }
+  20%  { opacity: 1; }
+  80%  { opacity: 0.6; }
+  100% { transform: translateX(350%) skewX(-12deg); opacity: 0; }
+}
+
+.shimmer-wave {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.55) 50%,
+    rgba(200, 235, 255, 0.35) 55%,
+    transparent 70%
+  );
+  width: 60%;
+  animation: shimmer-sweep 3.8s ease-in-out infinite;
+  pointer-events: none;
+}
