@@ -1,9 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import confetti from "canvas-confetti";
-import { useAuth } from "@/hooks/use-auth";
-
-const SESSION_KEY = "gigshub_confetti_fired";
+import { useAuthStore } from "@/hooks/use-auth";
 
 const POPPER_COLORS = [
   "#FF3CAC", "#FFDD00", "#00C6FF", "#FF6B35",
@@ -11,7 +9,7 @@ const POPPER_COLORS = [
 ];
 
 function firePopper(x: number, angle: number) {
-  // Initial hard burst — the "pop"
+  // Main burst
   confetti({
     particleCount: 120,
     angle,
@@ -26,8 +24,7 @@ function firePopper(x: number, angle: number) {
     scalar: 1.1,
     zIndex: 9999,
   });
-
-  // Streamers — long thin pieces
+  // Streamers
   confetti({
     particleCount: 40,
     angle,
@@ -43,8 +40,7 @@ function firePopper(x: number, angle: number) {
     flat: true,
     zIndex: 9999,
   });
-
-  // Stars scatter
+  // Stars
   confetti({
     particleCount: 30,
     angle,
@@ -62,17 +58,17 @@ function firePopper(x: number, angle: number) {
 }
 
 function startBirthdayPoppers() {
-  // First double-pop
+  // Wave 1 — both corners pop simultaneously
   firePopper(0.02, 65);
   firePopper(0.98, 115);
 
-  // Second wave (slight delay — like two separate poppers going off)
+  // Wave 2 — slightly inward, staggered
   setTimeout(() => {
     firePopper(0.05, 72);
     firePopper(0.95, 108);
   }, 350);
 
-  // Third mini-burst for extra flair
+  // Wave 3 — centre upward shower
   setTimeout(() => {
     confetti({
       particleCount: 80,
@@ -91,7 +87,6 @@ function startBirthdayPoppers() {
   }, 700);
 }
 
-// Animated 🎊 popper emoji that launches from a corner
 function PopperEmoji({ side }: { side: "left" | "right" }) {
   const isLeft = side === "left";
   return (
@@ -99,14 +94,14 @@ function PopperEmoji({ side }: { side: "left" | "right" }) {
       initial={{ opacity: 1, x: 0, y: 0, rotate: isLeft ? -20 : 20, scale: 1 }}
       animate={{
         opacity: [1, 1, 0],
-        x: isLeft ? [0, 30, 60] : [0, -30, -60],
-        y: [0, -120, -220],
-        rotate: isLeft ? [-20, 10, 30] : [20, -10, -30],
-        scale: [1, 1.3, 0.6],
+        x: isLeft ? [0, 30, 70] : [0, -30, -70],
+        y: [0, -130, -240],
+        rotate: isLeft ? [-20, 10, 35] : [20, -10, -35],
+        scale: [1, 1.4, 0.5],
       }}
       transition={{ duration: 1.1, ease: "easeOut" }}
-      className="fixed bottom-0 text-5xl select-none pointer-events-none z-[9999]"
-      style={{ [isLeft ? "left" : "right"]: "12px" }}
+      className="fixed bottom-2 text-5xl select-none pointer-events-none z-[9999]"
+      style={{ [isLeft ? "left" : "right"]: "14px" }}
     >
       🎊
     </motion.div>
@@ -114,35 +109,29 @@ function PopperEmoji({ side }: { side: "left" | "right" }) {
 }
 
 export function LoginConfetti() {
-  const { isAuthenticated, user } = useAuth();
+  const { justLoggedIn, setJustLoggedIn, token } = useAuthStore();
   const [showBadge, setShowBadge] = useState(false);
   const [showPoppers, setShowPoppers] = useState(false);
-  const firedRef = useRef(false);
+
+  // Grab user name from cached query data (available immediately after login)
+  const [userName, setUserName] = useState("");
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      firedRef.current = false;
-      return;
-    }
-    if (firedRef.current) return;
-    if (sessionStorage.getItem(SESSION_KEY)) return;
+    if (!justLoggedIn) return;
 
-    firedRef.current = true;
-    sessionStorage.setItem(SESSION_KEY, "1");
+    // Reset the flag so it doesn't re-fire on re-renders
+    setJustLoggedIn(false);
 
-    const t1 = setTimeout(() => {
-      startBirthdayPoppers();
-      setShowPoppers(true);
-      setShowBadge(true);
-    }, 280);
+    // Try to read the name from localStorage as a quick fallback,
+    // or just leave it blank — the welcome badge shows "there"
+    setShowPoppers(true);
+    setShowBadge(true);
+    startBirthdayPoppers();
 
-    const t2 = setTimeout(() => setShowPoppers(false), 1400);
-    const t3 = setTimeout(() => setShowBadge(false), 3200);
-
-    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
-  }, [isAuthenticated]);
-
-  const firstName = user?.name?.split(" ")[0] ?? "there";
+    const t1 = setTimeout(() => setShowPoppers(false), 1400);
+    const t2 = setTimeout(() => setShowBadge(false), 3400);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, [justLoggedIn]);
 
   return (
     <>
@@ -162,13 +151,13 @@ export function LoginConfetti() {
             initial={{ opacity: 0, scale: 0.4, y: 60 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.75, y: -24 }}
-            transition={{ type: "spring", stiffness: 440, damping: 22, delay: 0.15 }}
+            transition={{ type: "spring", stiffness: 440, damping: 22, delay: 0.1 }}
             className="fixed inset-x-0 top-[20%] flex justify-center z-[9998] pointer-events-none select-none"
           >
             <div className="bg-white rounded-3xl px-8 py-5 shadow-2xl border border-gray-100 flex flex-col items-center gap-1 mx-4">
               <span className="text-4xl mb-0.5">🎉</span>
               <p className="text-lg font-extrabold text-gray-900 leading-tight text-center">
-                Welcome back, {firstName}!
+                Welcome back!
               </p>
               <p className="text-sm text-[#0077C7] font-semibold">
                 Great to see you on GigsHub

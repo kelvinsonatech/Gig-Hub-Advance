@@ -1,5 +1,4 @@
 import { create } from "zustand";
-import { useEffect } from "react";
 import { useGetMe, useLogin, useRegister, type LoginRequest, type RegisterRequest } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -7,12 +6,15 @@ import { navigate } from "wouter/use-browser-location";
 
 interface AuthState {
   token: string | null;
+  justLoggedIn: boolean;
   setToken: (token: string | null) => void;
+  setJustLoggedIn: (v: boolean) => void;
   logout: () => void;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
   token: localStorage.getItem("gigshub_token"),
+  justLoggedIn: false,
   setToken: (token) => {
     if (token) {
       localStorage.setItem("gigshub_token", token);
@@ -21,15 +23,16 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
     set({ token });
   },
+  setJustLoggedIn: (v) => set({ justLoggedIn: v }),
   logout: () => {
     localStorage.removeItem("gigshub_token");
-    set({ token: null });
+    set({ token: null, justLoggedIn: false });
     navigate("/login");
   },
 }));
 
 export function useAuth() {
-  const { token, setToken, logout } = useAuthStore();
+  const { token, justLoggedIn, setToken, setJustLoggedIn, logout } = useAuthStore();
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -45,17 +48,18 @@ export function useAuth() {
       onSuccess: (data) => {
         setToken(data.token);
         queryClient.setQueryData(["/api/auth/me"], data.user);
+        setJustLoggedIn(true);
         toast({ title: "Welcome back!", description: "You have successfully signed in." });
         navigate("/dashboard");
       },
       onError: (error: any) => {
-        toast({ 
+        toast({
           variant: "destructive",
-          title: "Sign in failed", 
-          description: error?.message || "Invalid credentials. Please try again." 
+          title: "Sign in failed",
+          description: error?.message || "Invalid credentials. Please try again.",
         });
-      }
-    }
+      },
+    },
   });
 
   const registerMutation = useRegister({
@@ -63,22 +67,24 @@ export function useAuth() {
       onSuccess: (data) => {
         setToken(data.token);
         queryClient.setQueryData(["/api/auth/me"], data.user);
+        setJustLoggedIn(true);
         toast({ title: "Account created!", description: "Welcome to GigsHub." });
         navigate("/dashboard");
       },
       onError: (error: any) => {
-        toast({ 
+        toast({
           variant: "destructive",
-          title: "Registration failed", 
-          description: error?.message || "Something went wrong. Please try again." 
+          title: "Registration failed",
+          description: error?.message || "Something went wrong. Please try again.",
         });
-      }
-    }
+      },
+    },
   });
 
   return {
     user,
     token,
+    justLoggedIn,
     isAuthenticated: !!token && !!user,
     isLoading: isLoadingUser,
     login: loginMutation.mutate,
