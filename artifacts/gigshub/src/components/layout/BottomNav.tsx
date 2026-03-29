@@ -57,22 +57,22 @@ export function BottomNav() {
     if (goingRight) {
       setBlobLeft(srcLeft);
       setBlobWidth(stretchW);
-      setBlobTransition("width 0.14s ease-out");
+      setBlobTransition("width 0.10s cubic-bezier(0.25,0.46,0.45,0.94)");
 
       timerRef.current = setTimeout(() => {
         setBlobLeft(dstLeft);
         setBlobWidth(TAB_SIZE);
-        setBlobTransition("left 0.18s ease-in, width 0.18s ease-in");
-      }, 140);
+        setBlobTransition("left 0.16s cubic-bezier(0.34,1.3,0.64,1), width 0.16s cubic-bezier(0.34,1.3,0.64,1)");
+      }, 100);
     } else {
       setBlobLeft(dstLeft);
       setBlobWidth(stretchW);
-      setBlobTransition("left 0.14s ease-out, width 0.14s ease-out");
+      setBlobTransition("left 0.10s cubic-bezier(0.25,0.46,0.45,0.94), width 0.10s cubic-bezier(0.25,0.46,0.45,0.94)");
 
       timerRef.current = setTimeout(() => {
         setBlobWidth(TAB_SIZE);
-        setBlobTransition("width 0.18s ease-in");
-      }, 140);
+        setBlobTransition("width 0.16s cubic-bezier(0.34,1.3,0.64,1)");
+      }, 100);
     }
 
     return () => { if (timerRef.current) clearTimeout(timerRef.current); };
