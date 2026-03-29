@@ -27,14 +27,14 @@ export function Navbar() {
       <Link
         href={href}
         className={cn(
-          "relative text-sm font-medium px-3 py-1.5 rounded-full transition-colors",
-          isActive ? "text-foreground font-semibold" : "text-muted-foreground hover:text-foreground"
+          "relative text-sm font-semibold px-4 py-1.5 rounded-full transition-colors",
+          isActive ? "text-white" : "text-muted-foreground hover:text-foreground"
         )}
       >
         {isActive && (
           <motion.span
             layoutId="nav-capsule"
-            className="absolute inset-0 bg-muted rounded-full"
+            className="absolute inset-0 bg-primary rounded-full shadow-md shadow-primary/40"
             style={{ borderRadius: 9999 }}
             transition={{ type: "spring", stiffness: 500, damping: 38, mass: 0.4 }}
           />
