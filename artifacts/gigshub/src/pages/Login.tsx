@@ -22,7 +22,7 @@ export default function Login() {
       <div className="w-full max-w-md bg-white rounded-3xl shadow-xl shadow-black/5 border border-border p-8">
         <div className="text-center mb-8">
           <Link href="/">
-            <img src={logoUrl} alt="GigsHub" className="h-10 mx-auto mb-6 cursor-pointer" />
+            <img src={logoUrl} alt="TurboGH" className="h-10 mx-auto mb-6 cursor-pointer" />
           </Link>
           <h1 className="text-2xl font-bold text-foreground">Welcome back</h1>
           <p className="text-muted-foreground mt-2">Enter your details to sign in to your account</p>

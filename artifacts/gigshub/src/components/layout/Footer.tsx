@@ -18,7 +18,7 @@ export function Footer() {
 
           {/* Brand */}
           <div className="space-y-4 lg:col-span-1">
-            <img src={logoUrl} alt="GigsHub Logo" className="h-9 brightness-0 invert" />
+            <img src={logoUrl} alt="TurboGH Logo" className="h-9 brightness-0 invert" />
             <p className="text-white/60 text-sm leading-relaxed max-w-xs">
               Ghana's premium digital services marketplace. Instant data bundles, AFA registration, and more — 24/7.
             </p>
