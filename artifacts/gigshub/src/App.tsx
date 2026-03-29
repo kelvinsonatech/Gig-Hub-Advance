@@ -6,6 +6,7 @@ import NotFound from "@/pages/not-found";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { InstallPrompt } from "@/components/InstallPrompt";
+import { LoginConfetti } from "@/components/LoginConfetti";
 
 // Pages
 import Home from "@/pages/Home";
@@ -80,6 +81,7 @@ function App() {
       <TooltipProvider>
         <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
           <Router />
+          <LoginConfetti />
           <InstallPrompt />
         </WouterRouter>
         <Toaster />
