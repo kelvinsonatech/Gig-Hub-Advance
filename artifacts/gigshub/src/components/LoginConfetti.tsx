@@ -70,29 +70,33 @@ function PopperEmoji({ side }: { side: "left" | "right" }) {
 }
 
 export function LoginConfetti() {
-  const { justLoggedIn, setJustLoggedIn, token } = useAuthStore();
+  const { justLoggedIn, setJustLoggedIn } = useAuthStore();
   const [showBadge, setShowBadge] = useState(false);
   const [showPoppers, setShowPoppers] = useState(false);
-
-  // Grab user name from cached query data (available immediately after login)
-  const [userName, setUserName] = useState("");
+  const t1 = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const t2 = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (!justLoggedIn) return;
-
-    // Reset the flag so it doesn't re-fire on re-renders
     setJustLoggedIn(false);
 
-    // Try to read the name from localStorage as a quick fallback,
-    // or just leave it blank — the welcome badge shows "there"
     setShowPoppers(true);
     setShowBadge(true);
     startBirthdayPoppers();
 
-    const t1 = setTimeout(() => setShowPoppers(false), 1400);
-    const t2 = setTimeout(() => setShowBadge(false), 3400);
-    return () => { clearTimeout(t1); clearTimeout(t2); };
+    // Store timers in refs so the cleanup from this effect re-running
+    // (caused by setJustLoggedIn(false)) does NOT cancel them
+    t1.current = setTimeout(() => setShowPoppers(false), 1400);
+    t2.current = setTimeout(() => setShowBadge(false), 3200);
   }, [justLoggedIn]);
+
+  // Only clear on actual unmount
+  useEffect(() => {
+    return () => {
+      if (t1.current) clearTimeout(t1.current);
+      if (t2.current) clearTimeout(t2.current);
+    };
+  }, []);
 
   return (
     <>
