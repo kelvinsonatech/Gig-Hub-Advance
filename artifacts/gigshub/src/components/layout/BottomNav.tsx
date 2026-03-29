@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useRef } from "react";
 import { Link, useLocation } from "wouter";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -24,59 +24,11 @@ export function BottomNav() {
   const { isAuthenticated } = useAuth();
   const [location] = useLocation();
   const activeIndex = bottomTabs.findIndex(t => t.href === location);
-  const prevIndexRef = useRef(activeIndex);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const initIndex = activeIndex >= 0 ? activeIndex : 0;
-  const [blobLeft,       setBlobLeft]       = useState(tabLeft(initIndex));
-  const [blobWidth,      setBlobWidth]      = useState(TAB_SIZE);
-  const [blobTransition, setBlobTransition] = useState("none");
-
-  useEffect(() => {
-    const prev = prevIndexRef.current;
-    const curr = activeIndex;
-
-    if (curr < 0) return;
-
-    if (prev < 0 || prev === curr) {
-      prevIndexRef.current = curr;
-      setBlobLeft(tabLeft(curr));
-      setBlobWidth(TAB_SIZE);
-      setBlobTransition("none");
-      return;
-    }
-
-    const srcLeft    = tabLeft(prev);
-    const dstLeft    = tabLeft(curr);
-    const stretchW   = Math.abs(dstLeft - srcLeft) + TAB_SIZE;
-    const goingRight = curr > prev;
-    prevIndexRef.current = curr;
-
-    if (timerRef.current) clearTimeout(timerRef.current);
-
-    if (goingRight) {
-      setBlobLeft(srcLeft);
-      setBlobWidth(stretchW);
-      setBlobTransition("width 0.10s cubic-bezier(0.25,0.46,0.45,0.94)");
-
-      timerRef.current = setTimeout(() => {
-        setBlobLeft(dstLeft);
-        setBlobWidth(TAB_SIZE);
-        setBlobTransition("left 0.16s cubic-bezier(0.34,1.3,0.64,1), width 0.16s cubic-bezier(0.34,1.3,0.64,1)");
-      }, 100);
-    } else {
-      setBlobLeft(dstLeft);
-      setBlobWidth(stretchW);
-      setBlobTransition("left 0.10s cubic-bezier(0.25,0.46,0.45,0.94), width 0.10s cubic-bezier(0.25,0.46,0.45,0.94)");
-
-      timerRef.current = setTimeout(() => {
-        setBlobWidth(TAB_SIZE);
-        setBlobTransition("width 0.16s cubic-bezier(0.34,1.3,0.64,1)");
-      }, 100);
-    }
-
-    return () => { if (timerRef.current) clearTimeout(timerRef.current); };
-  }, [activeIndex]);
+  // Keep last known tab so blob doesn't jump when on non-tab pages
+  const lastIndexRef = useRef(activeIndex >= 0 ? activeIndex : 0);
+  if (activeIndex >= 0) lastIndexRef.current = activeIndex;
+  const blobIndex = lastIndexRef.current;
 
   if (!isAuthenticated) return null;
 
@@ -84,18 +36,25 @@ export function BottomNav() {
     <nav className="fixed bottom-0 left-0 right-0 z-50 flex justify-center pb-4 px-6">
       <div className="relative flex items-center bg-white border border-gray-200 shadow-lg rounded-full px-3 h-[62px]">
 
-        {/* Liquid blob */}
-        <div
+        {/* Spring-driven blob — framer handles interruption & overshoot naturally */}
+        <motion.div
           aria-hidden
+          initial={false}
+          animate={{
+            left:    tabLeft(blobIndex),
+            opacity: activeIndex >= 0 ? 1 : 0,
+          }}
+          transition={{
+            left:    { type: "spring", stiffness: 900, damping: 40, mass: 0.35 },
+            opacity: { duration: 0.15 },
+          }}
           style={{
             position:     "absolute",
-            left:         blobLeft,
-            width:        blobWidth,
+            width:        TAB_SIZE,
             height:       TAB_SIZE,
             top:          8,
             background:   "rgba(0, 119, 199, 0.15)",
             borderRadius: 23,
-            transition:   blobTransition,
           }}
         />
 
@@ -109,8 +68,8 @@ export function BottomNav() {
               style={{ marginLeft: i === 0 ? 0 : 12 }}
             >
               <motion.div
-                animate={{ scale: isActive ? 1.1 : 1 }}
-                transition={{ type: "spring", stiffness: 520, damping: 26 }}
+                animate={{ scale: isActive ? 1.12 : 1 }}
+                transition={{ type: "spring", stiffness: 600, damping: 28 }}
               >
                 <Icon
                   className={cn(
