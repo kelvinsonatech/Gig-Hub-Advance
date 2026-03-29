@@ -1,5 +1,5 @@
 import { Link, useRoute } from "wouter";
-import { motion } from "framer-motion";
+import { motion, LayoutGroup } from "framer-motion";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Wallet, Sun, Users, Menu, LogOut, X, LayoutDashboard, ShoppingBag, Bell } from "lucide-react";
@@ -56,21 +56,23 @@ export function Navbar() {
           </Link>
 
           {/* Center Nav Links */}
-          <nav className="hidden md:flex items-center gap-1">
-            <NavLink href="/">Home</NavLink>
-            {isAuthenticated ? (
-              <>
-                <NavLink href="/bundles">Data Bundles</NavLink>
-                <NavLink href="/services">Services</NavLink>
-                <NavLink href="/dashboard">Dashboard</NavLink>
-              </>
-            ) : (
-              <>
-                <NavLink href="/bundles">Data Bundles</NavLink>
-                <NavLink href="/services">Services</NavLink>
-              </>
-            )}
-          </nav>
+          <LayoutGroup id="navbar">
+            <nav className="hidden md:flex items-center gap-1">
+              <NavLink href="/">Home</NavLink>
+              {isAuthenticated ? (
+                <>
+                  <NavLink href="/bundles">Data Bundles</NavLink>
+                  <NavLink href="/services">Services</NavLink>
+                  <NavLink href="/dashboard">Dashboard</NavLink>
+                </>
+              ) : (
+                <>
+                  <NavLink href="/bundles">Data Bundles</NavLink>
+                  <NavLink href="/services">Services</NavLink>
+                </>
+              )}
+            </nav>
+          </LayoutGroup>
 
           {/* Right side actions */}
           <div className="flex items-center gap-2">
