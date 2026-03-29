@@ -53,7 +53,7 @@ export function BottomNav() {
             width:        TAB_SIZE,
             height:       TAB_SIZE,
             top:          8,
-            background:   "rgba(0, 119, 199, 0.15)",
+            background:   "rgba(255, 128, 0, 0.15)",
             borderRadius: 23,
           }}
         />
@@ -74,7 +74,7 @@ export function BottomNav() {
                 <Icon
                   className={cn(
                     "w-[22px] h-[22px] transition-colors duration-150",
-                    isActive ? "text-[#0077C7]" : "text-gray-400"
+                    isActive ? "text-primary" : "text-gray-400"
                   )}
                   strokeWidth={isActive ? 2.2 : 1.8}
                 />
