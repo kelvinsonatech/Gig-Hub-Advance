@@ -28,64 +28,65 @@ const bottomTabs = [
   { href: "/wallet",    icon: LayoutGrid  },
 ];
 
+// Each tab slot = 46px wide + 12px margin = 58px stride; container has px-3 (12px) left padding
+const TAB_SIZE = 46;
+const TAB_STRIDE = 58;
+const NAV_PAD = 12;
+
+function tabLeft(index: number) {
+  return NAV_PAD + index * TAB_STRIDE;
+}
+
 function BottomNav() {
   const [location] = useLocation();
   const activeIndex = bottomTabs.findIndex(t => t.href === location);
   const prevIndexRef = useRef(activeIndex);
-  const blobControls = useAnimationControls();
+  const controls = useAnimationControls();
 
   useEffect(() => {
     const prev = prevIndexRef.current;
-    if (prev === activeIndex) return;
+    if (prev === activeIndex || prev < 0) return;
+
     const dir = activeIndex > prev ? 1 : -1;
-    const dist = Math.abs(activeIndex - prev);
+    const srcLeft = tabLeft(prev);
+    const dstLeft = tabLeft(activeIndex);
+    const stretchWidth = Math.abs(dstLeft - srcLeft) + TAB_SIZE;
     prevIndexRef.current = activeIndex;
 
-    // Stretch → splat → bounce → settle
-    blobControls.start({
-      scaleX: [1, 1 + 0.42 * dist, 0.82, 1.1, 0.97, 1],
-      scaleY: [1, 0.72,             1.22, 0.9, 1.04, 1],
-      borderRadius: [
-        "50%",
-        dir > 0
-          ? "34% 66% 66% 34% / 50% 50% 50% 50%"
-          : "66% 34% 34% 66% / 50% 50% 50% 50%",
-        "54% 46% 46% 54% / 48% 52% 52% 48%",
-        "50%",
-        "50%",
-        "50%",
-      ],
-      transition: {
-        duration: 0.52,
-        times: [0, 0.22, 0.52, 0.72, 0.88, 1],
-        ease: "easeOut",
-      },
-    });
+    if (dir > 0) {
+      // Moving right — right edge shoots forward, then left edge catches up
+      controls.start({
+        left:         [srcLeft,      srcLeft,      dstLeft],
+        width:        [TAB_SIZE,     stretchWidth, TAB_SIZE],
+        borderRadius: ["23px", "12px", "23px"],
+        transition: { duration: 0.44, times: [0, 0.46, 1], ease: "easeInOut" },
+      });
+    } else {
+      // Moving left — left edge shoots back, right edge catches up
+      controls.start({
+        left:         [srcLeft,      dstLeft,      dstLeft],
+        width:        [TAB_SIZE,     stretchWidth, TAB_SIZE],
+        borderRadius: ["23px", "12px", "23px"],
+        transition: { duration: 0.44, times: [0, 0.46, 1], ease: "easeInOut" },
+      });
+    }
   }, [activeIndex]);
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden flex justify-center pb-4 px-6">
       <div className="relative flex items-center bg-white border border-gray-200 shadow-lg rounded-full px-3 h-[62px]">
 
-        {/* Outer: slides to new position with spring */}
+        {/* Liquid blob — stretches width to bridge tabs, then snaps back to circle */}
         {activeIndex >= 0 && (
           <motion.div
-            className="absolute"
-            style={{ width: 46, height: 46, top: 8, left: 12 }}
-            animate={{ x: activeIndex * 58 }}
-            initial={false}
-            transition={{ type: "spring", stiffness: 480, damping: 34, mass: 0.5 }}
-          >
-            {/* Inner: liquid blob morphs */}
-            <motion.div
-              animate={blobControls}
-              className="w-full h-full rounded-full bg-[#0077C7]/15"
-              style={{ originX: "50%", originY: "50%" }}
-            />
-          </motion.div>
+            animate={controls}
+            initial={{ left: tabLeft(activeIndex), width: TAB_SIZE }}
+            className="absolute bg-[#0077C7]/15 rounded-full"
+            style={{ height: TAB_SIZE, top: 8 }}
+          />
         )}
 
-        {/* Tab items */}
+        {/* Tab icons */}
         {bottomTabs.map(({ href, icon: Icon }, i) => {
           const isActive = location === href;
           return (
