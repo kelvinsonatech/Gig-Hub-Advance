@@ -41,15 +41,15 @@ export function BottomNav() {
       controls.start({
         left:         [srcLeft,      srcLeft,      dstLeft],
         width:        [TAB_SIZE,     stretchWidth, TAB_SIZE],
-        borderRadius: ["23px", "12px", "23px"],
-        transition: { duration: 0.44, times: [0, 0.46, 1], ease: "easeInOut" },
+        borderRadius: ["23px", "8px",  "23px"],
+        transition: { duration: 0.32, times: [0, 0.38, 1], ease: ["easeOut", "easeIn"] },
       });
     } else {
       controls.start({
         left:         [srcLeft,      dstLeft,      dstLeft],
         width:        [TAB_SIZE,     stretchWidth, TAB_SIZE],
-        borderRadius: ["23px", "12px", "23px"],
-        transition: { duration: 0.44, times: [0, 0.46, 1], ease: "easeInOut" },
+        borderRadius: ["23px", "8px",  "23px"],
+        transition: { duration: 0.32, times: [0, 0.38, 1], ease: ["easeOut", "easeIn"] },
       });
     }
   }, [activeIndex]);
@@ -80,7 +80,7 @@ export function BottomNav() {
             >
               <motion.div
                 animate={{ scale: isActive ? 1.1 : 1 }}
-                transition={{ type: "spring", stiffness: 400, damping: 22 }}
+                transition={{ type: "spring", stiffness: 520, damping: 26 }}
               >
                 <Icon
                   className={cn(
