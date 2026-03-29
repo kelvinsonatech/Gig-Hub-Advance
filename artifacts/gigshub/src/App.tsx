@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
+import { BottomNav } from "@/components/layout/BottomNav";
 import { InstallPrompt } from "@/components/InstallPrompt";
 import { LoginConfetti } from "@/components/LoginConfetti";
 
@@ -51,6 +52,7 @@ function Layout({ children }: { children: React.ReactNode }) {
         {children}
       </main>
       <Footer />
+      <BottomNav />
     </div>
   );
 }
