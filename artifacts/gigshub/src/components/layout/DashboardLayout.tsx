@@ -73,7 +73,7 @@ function BottomNav() {
   }, [activeIndex]);
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden flex justify-center pb-4 px-6">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 flex justify-center pb-4 px-6">
       <div className="relative flex items-center bg-white border border-gray-200 shadow-lg rounded-full px-3 h-[62px]">
 
         {/* Liquid blob — stretches width to bridge tabs, then snaps back to circle */}
@@ -143,7 +143,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   return (
     <>
-      <div className="container mx-auto px-4 py-8 max-w-7xl flex flex-col md:flex-row gap-8 min-h-[calc(100vh-4rem)] pb-20 md:pb-8">
+      <div className="container mx-auto px-4 py-8 max-w-7xl flex flex-col md:flex-row gap-8 min-h-[calc(100vh-4rem)] pb-24">
         {/* Sidebar — desktop only */}
         <aside className="hidden md:block md:w-64 shrink-0 space-y-6">
           <nav className="space-y-2">
