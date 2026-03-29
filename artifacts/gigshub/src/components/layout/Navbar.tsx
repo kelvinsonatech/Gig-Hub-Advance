@@ -45,7 +45,7 @@ export function Navbar() {
 
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 flex-shrink-0 group">
-            <img src={logoUrl} alt="TurboGH" className="h-8 group-hover:scale-105 transition-transform" />
+            <img src={logoUrl} alt="TurboGH" className="h-10 group-hover:scale-105 transition-transform" />
           </Link>
 
           {/* Center Nav Links */}
