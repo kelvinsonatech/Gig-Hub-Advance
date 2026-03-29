@@ -3,15 +3,16 @@ import { Link, useRoute, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import {
-  LayoutDashboard,
-  Wifi,
+  Home,
+  Store,
+  ShoppingCart,
+  LayoutGrid,
   CreditCard,
-  ShoppingBag,
   History,
   UserPlus,
   ShieldCheck,
   Settings,
-  Grid2x2,
+  Wifi,
 } from "lucide-react";
 import { Redirect } from "wouter";
 
@@ -20,57 +21,56 @@ interface DashboardLayoutProps {
 }
 
 const bottomTabs = [
-  { href: "/dashboard", icon: LayoutDashboard, label: "Home" },
-  { href: "/bundles",   icon: Wifi,             label: "Data"   },
-  { href: "/orders",    icon: ShoppingBag,      label: "Orders" },
-  { href: "/wallet",    icon: Grid2x2,          label: "Wallet" },
+  { href: "/dashboard", icon: Home        },
+  { href: "/bundles",   icon: Store       },
+  { href: "/orders",    icon: ShoppingCart },
+  { href: "/wallet",    icon: LayoutGrid  },
 ];
-
-function BottomTab({ href, icon: Icon, label }: { href: string; icon: any; label: string }) {
-  const [location] = useLocation();
-  const isActive = location === href;
-  return (
-    <Link href={href} className="flex-1 flex flex-col items-center justify-center gap-0.5 relative z-10">
-      <motion.div
-        animate={{ scale: isActive ? 1.1 : 1 }}
-        transition={{ type: "spring", stiffness: 420, damping: 24 }}
-      >
-        <Icon className={cn("w-5 h-5", isActive ? "text-[#0077C7]" : "text-gray-700")} />
-      </motion.div>
-      <span className={cn(
-        "text-[11px] font-semibold leading-none transition-colors duration-150",
-        isActive ? "text-[#0077C7]" : "text-gray-700"
-      )}>
-        {label}
-      </span>
-    </Link>
-  );
-}
 
 function BottomNav() {
   const [location] = useLocation();
   const activeIndex = bottomTabs.findIndex(t => t.href === location);
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden flex justify-center pb-3 px-4">
-      <div className="relative w-full max-w-sm bg-white/90 backdrop-blur-md border border-gray-200 shadow-md rounded-full h-[4.25rem] overflow-hidden">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden flex justify-center pb-4 px-6">
+      <div className="relative flex items-center bg-white border border-gray-200 shadow-lg rounded-full px-3 h-[62px]">
 
-        {/* Sliding pill indicator */}
+        {/* Sliding circle indicator — starts at px-3 offset, moves 58px per tab */}
         {activeIndex >= 0 && (
           <motion.div
-            className="absolute top-2 bottom-2 rounded-full bg-[#0077C7]/15"
-            style={{ width: "17%" }}
-            animate={{ left: `calc(${activeIndex} * 25% + 4%)` }}
-            transition={{ type: "spring", stiffness: 500, damping: 36, mass: 0.5 }}
+            className="absolute rounded-full bg-gray-100"
+            style={{ width: 46, height: 46, top: 8, left: 12 }}
+            animate={{ x: activeIndex * 58 }}
+            initial={false}
+            transition={{ type: "spring", stiffness: 480, damping: 34, mass: 0.5 }}
           />
         )}
 
         {/* Tab items */}
-        <div className="absolute inset-0 flex items-center px-1">
-          {bottomTabs.map((tab) => (
-            <BottomTab key={tab.href} href={tab.href} icon={tab.icon} label={tab.label} />
-          ))}
-        </div>
+        {bottomTabs.map(({ href, icon: Icon }, i) => {
+          const isActive = location === href;
+          return (
+            <Link
+              key={href}
+              href={href}
+              className="relative z-10 w-[46px] h-[46px] flex items-center justify-center rounded-full"
+              style={{ marginLeft: i === 0 ? 0 : 12 }}
+            >
+              <motion.div
+                animate={{ scale: isActive ? 1.12 : 1 }}
+                transition={{ type: "spring", stiffness: 400, damping: 22 }}
+              >
+                <Icon
+                  className={cn(
+                    "w-[22px] h-[22px] transition-colors duration-150",
+                    isActive ? "text-gray-900" : "text-gray-400"
+                  )}
+                  strokeWidth={isActive ? 2.2 : 1.8}
+                />
+              </motion.div>
+            </Link>
+          );
+        })}
       </div>
     </nav>
   );
@@ -107,7 +107,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         {/* Sidebar — desktop only */}
         <aside className="hidden md:block md:w-64 shrink-0 space-y-6">
           <nav className="space-y-2">
-            <SidebarLink href="/dashboard" icon={LayoutDashboard}>Overview</SidebarLink>
+            <SidebarLink href="/dashboard" icon={Home}>Overview</SidebarLink>
             <SidebarLink href="/bundles" icon={Wifi}>Buy Data</SidebarLink>
             <SidebarLink href="/wallet" icon={CreditCard}>Wallet & Top-up</SidebarLink>
             <SidebarLink href="/orders" icon={History}>Order History</SidebarLink>
