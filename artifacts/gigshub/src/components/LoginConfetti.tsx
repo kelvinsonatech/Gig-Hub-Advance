@@ -5,91 +5,118 @@ import { useAuth } from "@/hooks/use-auth";
 
 const SESSION_KEY = "gigshub_confetti_fired";
 
-const BIRTHDAY_COLORS = [
-  "#0077C7", "#00AAFF", "#FF6B6B", "#FFD93D",
-  "#6BCB77", "#C77DFF", "#FF9F43", "#FF6EB4",
+const POPPER_COLORS = [
+  "#FF3CAC", "#FFDD00", "#00C6FF", "#FF6B35",
+  "#A855F7", "#00E676", "#FF1744", "#0077C7",
 ];
 
-function fireCannons() {
-  const duration = 3200;
-  const end = Date.now() + duration;
-
-  const defaults = {
-    colors: BIRTHDAY_COLORS,
+function firePopper(x: number, angle: number) {
+  // Initial hard burst — the "pop"
+  confetti({
+    particleCount: 120,
+    angle,
+    spread: 55,
+    origin: { x, y: 1 },
+    colors: POPPER_COLORS,
+    startVelocity: 72,
+    gravity: 0.9,
+    decay: 0.93,
+    ticks: 280,
+    shapes: ["square", "circle"],
+    scalar: 1.1,
     zIndex: 9999,
-    disableForReducedMotion: true,
-  };
-
-  // Left cannon burst
-  confetti({
-    ...defaults,
-    particleCount: 80,
-    angle: 60,
-    spread: 65,
-    origin: { x: 0, y: 0.85 },
-    startVelocity: 55,
-    shapes: ["star", "circle"],
-    scalar: 1.1,
   });
 
-  // Right cannon burst
+  // Streamers — long thin pieces
   confetti({
-    ...defaults,
-    particleCount: 80,
-    angle: 120,
-    spread: 65,
-    origin: { x: 1, y: 0.85 },
-    startVelocity: 55,
-    shapes: ["star", "circle"],
-    scalar: 1.1,
+    particleCount: 40,
+    angle,
+    spread: 38,
+    origin: { x, y: 1 },
+    colors: POPPER_COLORS,
+    startVelocity: 80,
+    gravity: 0.75,
+    decay: 0.95,
+    ticks: 320,
+    shapes: ["square"],
+    scalar: 0.4,
+    flat: true,
+    zIndex: 9999,
   });
 
-  // Centre top shower (delayed)
+  // Stars scatter
+  confetti({
+    particleCount: 30,
+    angle,
+    spread: 70,
+    origin: { x, y: 1 },
+    colors: POPPER_COLORS,
+    startVelocity: 60,
+    gravity: 1.1,
+    decay: 0.91,
+    ticks: 240,
+    shapes: ["star"],
+    scalar: 1.4,
+    zIndex: 9999,
+  });
+}
+
+function startBirthdayPoppers() {
+  // First double-pop
+  firePopper(0.02, 65);
+  firePopper(0.98, 115);
+
+  // Second wave (slight delay — like two separate poppers going off)
+  setTimeout(() => {
+    firePopper(0.05, 72);
+    firePopper(0.95, 108);
+  }, 350);
+
+  // Third mini-burst for extra flair
   setTimeout(() => {
     confetti({
-      ...defaults,
-      particleCount: 60,
+      particleCount: 80,
       angle: 90,
-      spread: 120,
-      origin: { x: 0.5, y: 0 },
-      startVelocity: 28,
-      gravity: 0.9,
-      ticks: 240,
-      shapes: ["star"],
-      scalar: 1.3,
+      spread: 140,
+      origin: { x: 0.5, y: 1 },
+      colors: POPPER_COLORS,
+      startVelocity: 55,
+      gravity: 0.8,
+      decay: 0.93,
+      ticks: 260,
+      shapes: ["star", "circle"],
+      scalar: 1.2,
+      zIndex: 9999,
     });
-  }, 400);
+  }, 700);
+}
 
-  // Continuous trickle until duration ends
-  const interval = setInterval(() => {
-    if (Date.now() > end) {
-      clearInterval(interval);
-      return;
-    }
-    confetti({
-      ...defaults,
-      particleCount: 6,
-      angle: 60,
-      spread: 55,
-      origin: { x: 0, y: 0.75 },
-      startVelocity: 40,
-      scalar: 0.9,
-    });
-    confetti({
-      ...defaults,
-      particleCount: 6,
-      angle: 120,
-      spread: 55,
-      origin: { x: 1, y: 0.75 },
-      startVelocity: 40,
-      scalar: 0.9,
-    });
-  }, 260);
+// Animated 🎊 popper emoji that launches from a corner
+function PopperEmoji({ side }: { side: "left" | "right" }) {
+  const isLeft = side === "left";
+  return (
+    <motion.div
+      initial={{ opacity: 1, x: 0, y: 0, rotate: isLeft ? -20 : 20, scale: 1 }}
+      animate={{
+        opacity: [1, 1, 0],
+        x: isLeft ? [0, 30, 60] : [0, -30, -60],
+        y: [0, -120, -220],
+        rotate: isLeft ? [-20, 10, 30] : [20, -10, -30],
+        scale: [1, 1.3, 0.6],
+      }}
+      transition={{ duration: 1.1, ease: "easeOut" }}
+      className="fixed bottom-0 text-5xl select-none pointer-events-none z-[9999]"
+      style={{ [isLeft ? "left" : "right"]: "12px" }}
+    >
+      🎊
+    </motion.div>
+  );
 }
 
 export function LoginConfetti() {
   const { isAuthenticated, user } = useAuth();
   const [showBadge, setShowBadge] = useState(false);
+  const [showPoppers, setShowPoppers] = useState(false);
   const firedRef = useRef(false);
 
   useEffect(() => {
@@ -103,46 +130,53 @@ export function LoginConfetti() {
     firedRef.current = true;
     sessionStorage.setItem(SESSION_KEY, "1");
 
-    // Tiny delay so the dashboard has painted first
     const t1 = setTimeout(() => {
-      fireCannons();
+      startBirthdayPoppers();
+      setShowPoppers(true);
       setShowBadge(true);
-    }, 300);
+    }, 280);
 
-    const t2 = setTimeout(() => setShowBadge(false), 3000);
+    const t2 = setTimeout(() => setShowPoppers(false), 1400);
+    const t3 = setTimeout(() => setShowBadge(false), 3200);
 
-    return () => {
-      clearTimeout(t1);
-      clearTimeout(t2);
-    };
+    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
   }, [isAuthenticated]);
 
   const firstName = user?.name?.split(" ")[0] ?? "there";
 
   return (
-    <AnimatePresence>
-      {showBadge && (
-        <motion.div
-          key="badge"
-          initial={{ opacity: 0, scale: 0.5, y: 40 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.8, y: -20 }}
-          transition={{ type: "spring", stiffness: 420, damping: 24 }}
-          className="fixed inset-x-0 top-[22%] flex justify-center z-[9998] pointer-events-none select-none"
-        >
-          <div className="flex flex-col items-center gap-1">
-            <div className="bg-white rounded-3xl px-8 py-5 shadow-2xl border border-gray-100 flex flex-col items-center gap-1">
-              <span className="text-4xl">🎉</span>
-              <p className="text-lg font-extrabold text-gray-900 leading-tight">
+    <>
+      <AnimatePresence>
+        {showPoppers && (
+          <>
+            <PopperEmoji key="left" side="left" />
+            <PopperEmoji key="right" side="right" />
+          </>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showBadge && (
+          <motion.div
+            key="badge"
+            initial={{ opacity: 0, scale: 0.4, y: 60 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.75, y: -24 }}
+            transition={{ type: "spring", stiffness: 440, damping: 22, delay: 0.15 }}
+            className="fixed inset-x-0 top-[20%] flex justify-center z-[9998] pointer-events-none select-none"
+          >
+            <div className="bg-white rounded-3xl px-8 py-5 shadow-2xl border border-gray-100 flex flex-col items-center gap-1 mx-4">
+              <span className="text-4xl mb-0.5">🎉</span>
+              <p className="text-lg font-extrabold text-gray-900 leading-tight text-center">
                 Welcome back, {firstName}!
               </p>
               <p className="text-sm text-[#0077C7] font-semibold">
                 Great to see you on GigsHub
               </p>
             </div>
-          </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
 }
