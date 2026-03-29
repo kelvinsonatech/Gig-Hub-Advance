@@ -44,7 +44,7 @@ export function Navbar() {
         <div className="w-full max-w-4xl bg-white/90 backdrop-blur-md border border-gray-200 shadow-md rounded-full px-5 h-14 flex items-center justify-between">
 
           {/* Logo */}
-          <Link href="/" className="flex items-center flex-shrink-0 group">
+          <Link href="/" className="flex items-center flex-shrink-0 group -ml-3">
             <img src={logoUrl} alt="TurboGH" className="w-36 h-auto group-hover:scale-105 transition-transform" />
           </Link>
 
