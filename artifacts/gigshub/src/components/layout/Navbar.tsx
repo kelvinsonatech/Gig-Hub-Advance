@@ -41,10 +41,10 @@ export function Navbar() {
     <>
       {/* Floating pill navbar */}
       <header className="sticky top-0 z-50 w-full flex justify-center pt-3 pb-2 px-4">
-        <div className="w-full max-w-4xl bg-white/90 backdrop-blur-md border border-gray-200 shadow-md rounded-full px-5 h-14 flex items-center justify-between">
+        <div className="w-full max-w-4xl bg-white/90 backdrop-blur-md border border-gray-200 shadow-md rounded-full pl-2 pr-5 h-14 flex items-center justify-between">
 
           {/* Logo */}
-          <Link href="/" className="flex items-center flex-shrink-0 group -ml-7">
+          <Link href="/" className="flex items-center flex-shrink-0 group">
             <img src={logoUrl} alt="TurboGH" className="w-36 h-auto group-hover:scale-105 transition-transform" />
           </Link>
 
