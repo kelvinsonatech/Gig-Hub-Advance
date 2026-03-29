@@ -49,5 +49,5 @@ Thumbs.db
 .local/
 
 # Vercel build artifacts (generated at deploy time)
-api/handler.mjs
-api/handler.mjs.map
+api/handler.js
+api/handler.js.map
