@@ -51,3 +51,4 @@ Thumbs.db
 # Vercel build artifacts (generated at deploy time)
 api/handler.js
 api/handler.js.map
+.vercel/output/

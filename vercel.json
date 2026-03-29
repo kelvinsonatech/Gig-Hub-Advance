@@ -1,34 +1,6 @@
 {
   "version": 2,
   "installCommand": "pnpm install --frozen-lockfile",
-  "buildCommand": "BASE_PATH=/ NODE_ENV=production pnpm --filter @workspace/gigshub build && pnpm --filter @workspace/api-server run build:vercel",
-  "outputDirectory": "artifacts/gigshub/dist/public",
-  "framework": null,
-  "rewrites": [
-    { "source": "/api/:path*", "destination": "/api/handler" },
-    { "source": "/(.*)",       "destination": "/index.html" }
-  ],
-  "headers": [
-    {
-      "source": "/assets/(.*)",
-      "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
-      ]
-    },
-    {
-      "source": "/(.*\\.js|.*\\.css|.*\\.woff2?|.*\\.png|.*\\.svg|.*\\.ico)",
-      "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
-      ]
-    },
-    {
-      "source": "/manifest.json",
-      "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=3600" }
-      ]
-    }
-  ],
-  "env": {
-    "NODE_ENV": "production"
-  }
+  "buildCommand": "node build-vercel.mjs",
+  "framework": null
 }
