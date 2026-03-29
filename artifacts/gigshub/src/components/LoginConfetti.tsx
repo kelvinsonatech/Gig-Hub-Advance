@@ -11,80 +11,41 @@ const POPPER_COLORS = [
 function firePopper(x: number, angle: number) {
   // Main burst
   confetti({
-    particleCount: 120,
+    particleCount: 55,
     angle,
-    spread: 55,
+    spread: 50,
     origin: { x, y: 1 },
     colors: POPPER_COLORS,
-    startVelocity: 72,
-    gravity: 0.9,
-    decay: 0.93,
-    ticks: 280,
+    startVelocity: 58,
+    gravity: 1.0,
+    decay: 0.92,
+    ticks: 220,
     shapes: ["square", "circle"],
-    scalar: 1.1,
+    scalar: 1.0,
     zIndex: 9999,
   });
   // Streamers
   confetti({
-    particleCount: 40,
+    particleCount: 18,
     angle,
-    spread: 38,
+    spread: 35,
     origin: { x, y: 1 },
     colors: POPPER_COLORS,
-    startVelocity: 80,
-    gravity: 0.75,
-    decay: 0.95,
-    ticks: 320,
+    startVelocity: 62,
+    gravity: 0.8,
+    decay: 0.94,
+    ticks: 240,
     shapes: ["square"],
     scalar: 0.4,
     flat: true,
     zIndex: 9999,
   });
-  // Stars
-  confetti({
-    particleCount: 30,
-    angle,
-    spread: 70,
-    origin: { x, y: 1 },
-    colors: POPPER_COLORS,
-    startVelocity: 60,
-    gravity: 1.1,
-    decay: 0.91,
-    ticks: 240,
-    shapes: ["star"],
-    scalar: 1.4,
-    zIndex: 9999,
-  });
 }
 
 function startBirthdayPoppers() {
-  // Wave 1 — both corners pop simultaneously
+  // Single wave — both corners pop simultaneously
   firePopper(0.02, 65);
   firePopper(0.98, 115);
-
-  // Wave 2 — slightly inward, staggered
-  setTimeout(() => {
-    firePopper(0.05, 72);
-    firePopper(0.95, 108);
-  }, 350);
-
-  // Wave 3 — centre upward shower
-  setTimeout(() => {
-    confetti({
-      particleCount: 80,
-      angle: 90,
-      spread: 140,
-      origin: { x: 0.5, y: 1 },
-      colors: POPPER_COLORS,
-      startVelocity: 55,
-      gravity: 0.8,
-      decay: 0.93,
-      ticks: 260,
-      shapes: ["star", "circle"],
-      scalar: 1.2,
-      zIndex: 9999,
-    });
-  }, 700);
 }
 
 function PopperEmoji({ side }: { side: "left" | "right" }) {
