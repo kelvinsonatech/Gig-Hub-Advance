@@ -1,0 +1,21 @@
+# Dev tooling / Replit-specific
+.local/
+.replit
+replit.nix
+.upm/
+
+# Test & mock artifacts
+artifacts/mockup-sandbox/
+
+# Build caches (Vercel rebuilds these)
+artifacts/gigshub/dist/
+artifacts/api-server/dist/
+
+# Logs
+*.log
+
+# Attached assets not needed at runtime (logo is bundled by Vite)
+attached_assets/
+
+# Scripts
+scripts/
