@@ -4,14 +4,14 @@ import { Facebook, Twitter, Instagram, Mail, Phone, MapPin } from "lucide-react"
 
 export function Footer() {
   return (
-    <footer className="relative overflow-hidden bg-gradient-to-br from-[#1a0900] via-[#2d1400] to-[#3d1c00] text-white pt-16 pb-8">
+    <footer className="relative overflow-hidden bg-gradient-to-br from-[#001630] via-[#002a5c] to-[#003f82] text-white pt-16 pb-8">
       {/* Subtle dot pattern */}
       <div
         className="absolute inset-0 opacity-[0.04]"
         style={{ backgroundImage: "radial-gradient(circle, white 1px, transparent 1px)", backgroundSize: "24px 24px" }}
       />
       {/* Glow */}
-      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[700px] h-[200px] bg-orange-500/20 rounded-full blur-3xl" />
+      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[700px] h-[200px] bg-[#0077C7]/20 rounded-full blur-3xl" />
 
       <div className="relative container mx-auto px-6 max-w-7xl">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-14">
