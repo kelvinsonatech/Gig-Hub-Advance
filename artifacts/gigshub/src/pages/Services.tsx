@@ -66,7 +66,7 @@ export default function Services() {
 
               <Link href="/agent-registration">
                 <div className="bg-white border border-border rounded-2xl p-6 hover:shadow-lg transition-all group cursor-pointer h-full">
-                  <div className="w-12 h-12 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  <div className="w-12 h-12 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                     <UserPlus className="w-6 h-6" />
                   </div>
                   <h3 className="text-xl font-bold mb-2">Agent Registration</h3>

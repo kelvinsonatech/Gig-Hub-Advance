@@ -13,7 +13,7 @@ async function fetchStats() {
 }
 
 const statCards = [
-  { key: "bundles", label: "Data Bundles", icon: Package, color: "bg-blue-500" },
+  { key: "bundles", label: "Data Bundles", icon: Package, color: "bg-orange-500" },
   { key: "services", label: "Services", icon: Wrench, color: "bg-green-500" },
   { key: "orders", label: "Total Orders", icon: ShoppingBag, color: "bg-orange-500" },
   { key: "users", label: "Users", icon: Users, color: "bg-purple-500" },

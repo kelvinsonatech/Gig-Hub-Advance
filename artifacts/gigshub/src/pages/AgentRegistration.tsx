@@ -50,7 +50,7 @@ export default function AgentRegistration() {
     <DashboardLayout>
       <div className="max-w-2xl mx-auto space-y-8">
         <header className="text-center mb-10">
-          <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <div className="w-16 h-16 bg-orange-100 text-orange-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
             <UserPlus className="w-8 h-8" />
           </div>
           <h1 className="text-3xl font-bold text-foreground">Become an Agent</h1>

@@ -16,7 +16,7 @@ import { UserAvatar } from "@/components/ui/UserAvatar";
 const statusConfig: Record<string, { label: string; color: string; icon: React.ElementType }> = {
   completed: { label: "Completed", color: "text-emerald-600 bg-emerald-50 border-emerald-100", icon: CheckCircle2 },
   pending: { label: "Pending", color: "text-amber-600 bg-amber-50 border-amber-100", icon: Clock },
-  processing: { label: "Processing", color: "text-blue-600 bg-blue-50 border-blue-100", icon: Clock },
+  processing: { label: "Processing", color: "text-orange-600 bg-orange-50 border-orange-100", icon: Clock },
   failed: { label: "Failed", color: "text-red-600 bg-red-50 border-red-100", icon: XCircle },
 };
 
@@ -76,7 +76,7 @@ export default function Dashboard() {
               {user?.name?.split(" ")[0]} 👋
             </h1>
           </div>
-          <div className="ring-2 ring-white shadow-lg shadow-blue-100 rounded-full">
+          <div className="ring-2 ring-white shadow-lg shadow-orange-100 rounded-full">
             <UserAvatar name={user?.name} size={44} />
           </div>
         </div>
@@ -198,7 +198,7 @@ export default function Dashboard() {
             </div>
           ) : recentOrders.length === 0 ? (
             <div className="bg-white border border-gray-100 rounded-3xl p-10 text-center shadow-sm">
-              <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-orange-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <Package className="w-8 h-8 text-primary" />
               </div>
               <h3 className="font-bold text-gray-900 mb-1">No transactions yet</h3>
@@ -217,7 +217,7 @@ export default function Dashboard() {
                     {/* Icon */}
                     <div className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 ${
                       order.type === "bundle"
-                        ? "bg-blue-50"
+                        ? "bg-orange-50"
                         : order.type === "afa"
                         ? "bg-amber-50"
                         : "bg-emerald-50"

@@ -14,7 +14,7 @@ export function UserAvatar({ name = "User", size = 40, className = "" }: UserAva
       alt={`${name}'s avatar`}
       width={size}
       height={size}
-      className={`rounded-full object-cover bg-blue-50 ${className}`}
+      className={`rounded-full object-cover bg-orange-50 ${className}`}
       style={{ width: size, height: size, minWidth: size }}
     />
   );
