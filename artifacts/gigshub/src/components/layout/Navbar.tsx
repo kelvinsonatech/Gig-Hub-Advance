@@ -1,4 +1,5 @@
 import { Link, useRoute } from "wouter";
+import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Wallet, Sun, Users, Menu, LogOut, X, LayoutDashboard, ShoppingBag, Bell } from "lucide-react";
@@ -26,13 +27,19 @@ export function Navbar() {
       <Link
         href={href}
         className={cn(
-          "text-sm font-medium transition-colors px-3 py-1.5 rounded-full",
-          isActive
-            ? "text-foreground bg-muted font-semibold"
-            : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
+          "relative text-sm font-medium px-3 py-1.5 rounded-full transition-colors",
+          isActive ? "text-foreground font-semibold" : "text-muted-foreground hover:text-foreground"
         )}
       >
-        {children}
+        {isActive && (
+          <motion.span
+            layoutId="nav-capsule"
+            className="absolute inset-0 bg-muted rounded-full"
+            style={{ borderRadius: 9999 }}
+            transition={{ type: "spring", stiffness: 500, damping: 38, mass: 0.4 }}
+          />
+        )}
+        <span className="relative z-10">{children}</span>
       </Link>
     );
   };
