@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
+import { InstallPrompt } from "@/components/InstallPrompt";
 
 // Pages
 import Home from "@/pages/Home";
@@ -79,6 +80,7 @@ function App() {
       <TooltipProvider>
         <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
           <Router />
+          <InstallPrompt />
         </WouterRouter>
         <Toaster />
       </TooltipProvider>
