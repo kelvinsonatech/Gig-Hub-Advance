@@ -1,3 +1,4 @@
+import React from "react";
 import { Link, useRoute } from "wouter";
 import { motion, LayoutGroup } from "framer-motion";
 import { useAuth } from "@/hooks/use-auth";
@@ -16,33 +17,33 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
+function NavLink({ href, children }: { href: string; children: React.ReactNode }) {
+  const [isActive] = useRoute(href);
+  return (
+    <Link
+      href={href}
+      className={cn(
+        "relative text-sm font-semibold px-4 py-1.5 rounded-full transition-colors",
+        isActive ? "text-white" : "text-muted-foreground hover:text-foreground"
+      )}
+    >
+      {isActive && (
+        <motion.span
+          layoutId="nav-capsule"
+          className="absolute inset-0 bg-primary rounded-full shadow-md shadow-primary/40"
+          style={{ borderRadius: 9999 }}
+          transition={{ type: "spring", stiffness: 500, damping: 38, mass: 0.4 }}
+        />
+      )}
+      <span className="relative z-10">{children}</span>
+    </Link>
+  );
+}
+
 export function Navbar() {
   const { user, isAuthenticated, logout } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { data: wallet } = useGetWallet({ query: { enabled: isAuthenticated } });
-
-  const NavLink = ({ href, children }: { href: string; children: React.ReactNode }) => {
-    const [isActive] = useRoute(href);
-    return (
-      <Link
-        href={href}
-        className={cn(
-          "relative text-sm font-semibold px-4 py-1.5 rounded-full transition-colors",
-          isActive ? "text-white" : "text-muted-foreground hover:text-foreground"
-        )}
-      >
-        {isActive && (
-          <motion.span
-            layoutId="nav-capsule"
-            className="absolute inset-0 bg-primary rounded-full shadow-md shadow-primary/40"
-            style={{ borderRadius: 9999 }}
-            transition={{ type: "spring", stiffness: 500, damping: 38, mass: 0.4 }}
-          />
-        )}
-        <span className="relative z-10">{children}</span>
-      </Link>
-    );
-  };
 
   return (
     <>
