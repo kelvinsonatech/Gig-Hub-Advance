@@ -15,12 +15,12 @@ export default function Home() {
       {/* ─── HERO ─── */}
       <section className="relative min-h-[90vh] flex items-center overflow-hidden">
         {/* Gradient background matching original */}
-        <div className="absolute inset-0 bg-gradient-to-br from-white via-orange-50/60 to-[#fff0e0]" />
+        <div className="absolute inset-0 bg-gradient-to-br from-white via-blue-50/60 to-[#d6eeff]" />
         {/* Subtle dot grid */}
         <div
           className="absolute inset-0 opacity-[0.035]"
           style={{
-            backgroundImage: "radial-gradient(circle, #FF8000 1px, transparent 1px)",
+            backgroundImage: "radial-gradient(circle, #0077C7 1px, transparent 1px)",
             backgroundSize: "28px 28px",
           }}
         />
@@ -242,7 +242,7 @@ export default function Home() {
             <motion.div
               whileHover={{ y: -6 }}
               transition={{ type: "spring", stiffness: 300 }}
-              className="relative overflow-hidden rounded-3xl p-8 bg-gradient-to-br from-orange-50 via-orange-50/30 to-white border border-orange-100 shadow-sm hover:shadow-xl hover:shadow-orange-100 transition-shadow cursor-pointer group"
+              className="relative overflow-hidden rounded-3xl p-8 bg-gradient-to-br from-blue-50 via-blue-50/30 to-white border border-blue-100 shadow-sm hover:shadow-xl hover:shadow-blue-100 transition-shadow cursor-pointer group"
             >
               <Link href="/bundles">
                 <div className="w-16 h-16 rounded-full bg-[#004b87] flex items-center justify-center font-black text-white text-sm shadow-lg shadow-blue-400/30 mb-6">AT</div>
@@ -251,7 +251,7 @@ export default function Home() {
                 <span className="inline-flex items-center text-[#004b87] font-semibold text-sm group-hover:gap-3 gap-2 transition-all">
                   View Bundles <ArrowRight className="w-4 h-4" />
                 </span>
-                <div className="absolute -bottom-8 -right-8 w-28 h-28 rounded-full bg-orange-200/20 blur-2xl" />
+                <div className="absolute -bottom-8 -right-8 w-28 h-28 rounded-full bg-blue-200/20 blur-2xl" />
               </Link>
             </motion.div>
 
