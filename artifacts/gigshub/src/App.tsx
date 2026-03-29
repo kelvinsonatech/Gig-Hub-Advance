@@ -1,5 +1,7 @@
-import { Switch, Route, Router as WouterRouter } from "wouter";
+import { useEffect } from "react";
+import { Switch, Route, Router as WouterRouter, useLocation } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { AnimatePresence, motion } from "framer-motion";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
@@ -40,9 +42,20 @@ const queryClient = new QueryClient({
     queries: {
       retry: false,
       refetchOnWindowFocus: false,
+      staleTime: 30_000,      // cache for 30s — eliminates loading flicker on back navigation
+      gcTime: 5 * 60_000,    // keep unused data for 5 min
     },
   },
 });
+
+// Scroll to top instantly on every route change
+function ScrollToTop() {
+  const [location] = useLocation();
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
+  }, [location]);
+  return null;
+}
 
 function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -58,21 +71,34 @@ function Layout({ children }: { children: React.ReactNode }) {
 }
 
 function Router() {
+  const [location] = useLocation();
+
   return (
     <Layout>
-      <Switch>
-        <Route path="/" component={Home} />
-        <Route path="/login" component={Login} />
-        <Route path="/register" component={Register} />
-        <Route path="/dashboard" component={Dashboard} />
-        <Route path="/bundles" component={Bundles} />
-        <Route path="/services" component={Services} />
-        <Route path="/wallet" component={Wallet} />
-        <Route path="/orders" component={Orders} />
-        <Route path="/afa-registration" component={AFARegistration} />
-        <Route path="/agent-registration" component={AgentRegistration} />
-        <Route component={NotFound} />
-      </Switch>
+      <ScrollToTop />
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.div
+          key={location}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -4 }}
+          transition={{ duration: 0.18, ease: [0.25, 0.46, 0.45, 0.94] }}
+        >
+          <Switch location={location}>
+            <Route path="/" component={Home} />
+            <Route path="/login" component={Login} />
+            <Route path="/register" component={Register} />
+            <Route path="/dashboard" component={Dashboard} />
+            <Route path="/bundles" component={Bundles} />
+            <Route path="/services" component={Services} />
+            <Route path="/wallet" component={Wallet} />
+            <Route path="/orders" component={Orders} />
+            <Route path="/afa-registration" component={AFARegistration} />
+            <Route path="/agent-registration" component={AgentRegistration} />
+            <Route component={NotFound} />
+          </Switch>
+        </motion.div>
+      </AnimatePresence>
     </Layout>
   );
 }
