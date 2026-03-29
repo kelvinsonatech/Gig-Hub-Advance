@@ -79,7 +79,7 @@ export default function Bundles() {
     if (code === 'MTN')    return { bg: '#FFCC00', text: '#000', glow: 'shadow-yellow-200', badge: 'bg-[#FFCC00] text-black', btn: 'bg-[#FFCC00] hover:bg-[#e6b800] text-black border-0' };
     if (code === 'AT')     return { bg: '#004b87', text: '#fff', glow: 'shadow-blue-200',   badge: 'bg-[#004b87] text-white', btn: 'bg-[#004b87] hover:bg-[#003a6e] text-white border-0' };
     if (code === 'TELECEL') return { bg: '#CC0000', text: '#fff', glow: 'shadow-red-200',    badge: 'bg-[#CC0000] text-white', btn: 'bg-[#CC0000] hover:bg-[#a80000] text-white border-0' };
-    return { bg: '#0077C7', text: '#fff', glow: 'shadow-blue-200', badge: 'bg-primary text-white', btn: 'bg-primary hover:bg-primary/90 text-white border-0' };
+    return { bg: '#0077C7', text: '#fff', glow: 'shadow-blue-200', badge: 'bg-[#0077C7] text-white', btn: 'bg-[#0077C7] hover:bg-[#005fa3] text-white border-0' };
   };
 
   return (
@@ -87,7 +87,7 @@ export default function Bundles() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 pb-28 md:pb-10 space-y-8">
 
         {/* Header */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#0077C7] to-[#0099FF] p-8 text-white shadow-xl shadow-primary/20">
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#0077C7] to-[#0099FF] p-8 text-white shadow-xl shadow-blue-300/30">
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3" />
           <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
