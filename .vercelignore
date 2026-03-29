@@ -14,8 +14,5 @@ artifacts/api-server/dist/
 # Logs
 *.log
 
-# Attached assets not needed at runtime (logo is bundled by Vite)
-attached_assets/
-
 # Scripts
 scripts/
