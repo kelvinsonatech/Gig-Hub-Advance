@@ -63,7 +63,7 @@ export default function Home() {
               <Button
                 size="lg"
                 asChild
-                className="rounded-2xl h-14 px-8 text-base font-semibold shadow-xl shadow-primary/30 hover:shadow-2xl hover:-translate-y-1 transition-all bg-gradient-to-r from-[#0077C7] to-[#0099FF]"
+                className="rounded-2xl h-14 px-8 text-base font-semibold shadow-xl shadow-blue-300/40 hover:shadow-2xl hover:-translate-y-1 transition-all bg-gradient-to-r from-[#0077C7] to-[#0099FF]"
               >
                 <Link href="/bundles">
                   <Wifi className="mr-2 w-5 h-5" /> Buy Data Now <ArrowRight className="ml-2 w-5 h-5" />
