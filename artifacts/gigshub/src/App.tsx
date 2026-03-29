@@ -10,6 +10,7 @@ import { Footer } from "@/components/layout/Footer";
 import { BottomNav } from "@/components/layout/BottomNav";
 import { InstallPrompt } from "@/components/InstallPrompt";
 import { LoginConfetti } from "@/components/LoginConfetti";
+import { AdminLayout } from "@/pages/admin/AdminLayout";
 
 // Pages
 import Home from "@/pages/Home";
@@ -22,6 +23,11 @@ import Wallet from "@/pages/Wallet";
 import Orders from "@/pages/Orders";
 import AFARegistration from "@/pages/AFARegistration";
 import AgentRegistration from "@/pages/AgentRegistration";
+
+// Admin pages
+import AdminDashboard from "@/pages/admin/AdminDashboard";
+import AdminBundles from "@/pages/admin/AdminBundles";
+import AdminServices from "@/pages/admin/AdminServices";
 
 // Intercept fetch to automatically add Authorization Bearer token to all requests
 const originalFetch = window.fetch;
@@ -42,13 +48,12 @@ const queryClient = new QueryClient({
     queries: {
       retry: false,
       refetchOnWindowFocus: false,
-      staleTime: 30_000,      // cache for 30s — eliminates loading flicker on back navigation
-      gcTime: 5 * 60_000,    // keep unused data for 5 min
+      staleTime: 30_000,
+      gcTime: 5 * 60_000,
     },
   },
 });
 
-// Scroll to top instantly on every route change
 function ScrollToTop() {
   const [location] = useLocation();
   useEffect(() => {
@@ -57,13 +62,11 @@ function ScrollToTop() {
   return null;
 }
 
-function Layout({ children }: { children: React.ReactNode }) {
+function PublicLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen flex flex-col font-sans">
       <Navbar />
-      <main className="flex-1">
-        {children}
-      </main>
+      <main className="flex-1">{children}</main>
       <Footer />
       <BottomNav />
     </div>
@@ -72,9 +75,24 @@ function Layout({ children }: { children: React.ReactNode }) {
 
 function Router() {
   const [location] = useLocation();
+  const isAdmin = location.startsWith("/admin");
+
+  if (isAdmin) {
+    return (
+      <AdminLayout>
+        <ScrollToTop />
+        <Switch location={location}>
+          <Route path="/admin" component={AdminDashboard} />
+          <Route path="/admin/bundles" component={AdminBundles} />
+          <Route path="/admin/services" component={AdminServices} />
+          <Route component={NotFound} />
+        </Switch>
+      </AdminLayout>
+    );
+  }
 
   return (
-    <Layout>
+    <PublicLayout>
       <ScrollToTop />
       <AnimatePresence mode="wait" initial={false}>
         <motion.div
@@ -99,7 +117,7 @@ function Router() {
           </Switch>
         </motion.div>
       </AnimatePresence>
-    </Layout>
+    </PublicLayout>
   );
 }
 

@@ -6,6 +6,7 @@ import bundlesRouter from "./bundles";
 import servicesRouter from "./services";
 import ordersRouter from "./orders";
 import walletRouter from "./wallet";
+import adminRouter from "./admin";
 
 const router: IRouter = Router();
 
@@ -16,5 +17,6 @@ router.use("/bundles", bundlesRouter);
 router.use("/services", servicesRouter);
 router.use("/orders", ordersRouter);
 router.use("/wallet", walletRouter);
+router.use("/admin", adminRouter);
 
 export default router;

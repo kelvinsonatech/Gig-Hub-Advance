@@ -33,6 +33,9 @@ catalogs:
     '@vitejs/plugin-react':
       specifier: ^5.0.4
       version: 5.1.4
+    bcryptjs:
+      specifier: ^3.0.3
+      version: 3.0.3
     class-variance-authority:
       specifier: ^0.7.1
       version: 0.7.1
@@ -661,6 +664,12 @@ importers:
       '@workspace/db':
         specifier: workspace:*
         version: link:../lib/db
+      bcryptjs:
+        specifier: 'catalog:'
+        version: 3.0.3
+      drizzle-orm:
+        specifier: 'catalog:'
+        version: 0.45.1(@types/pg@8.18.0)(pg@8.20.0)
     devDependencies:
       '@types/node':
         specifier: 'catalog:'

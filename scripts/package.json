@@ -6,10 +6,13 @@
   "scripts": {
     "hello": "tsx ./src/hello.ts",
     "seed": "tsx ./src/seed.ts",
+    "create-admin": "tsx ./src/create-admin.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@workspace/db": "workspace:*"
+    "@workspace/db": "workspace:*",
+    "bcryptjs": "catalog:",
+    "drizzle-orm": "catalog:"
   },
   "devDependencies": {
     "@types/node": "catalog:",
