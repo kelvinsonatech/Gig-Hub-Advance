@@ -1,7 +1,8 @@
 import { useAuth } from "@/hooks/use-auth";
 import { Link, useRoute, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
-import { motion } from "framer-motion";
+import { motion, useAnimationControls } from "framer-motion";
+import { useEffect, useRef } from "react";
 import {
   Home,
   Store,
@@ -30,20 +31,58 @@ const bottomTabs = [
 function BottomNav() {
   const [location] = useLocation();
   const activeIndex = bottomTabs.findIndex(t => t.href === location);
+  const prevIndexRef = useRef(activeIndex);
+  const blobControls = useAnimationControls();
+
+  useEffect(() => {
+    const prev = prevIndexRef.current;
+    if (prev === activeIndex) return;
+    const dir = activeIndex > prev ? 1 : -1;
+    const dist = Math.abs(activeIndex - prev);
+    prevIndexRef.current = activeIndex;
+
+    // Stretch → splat → bounce → settle
+    blobControls.start({
+      scaleX: [1, 1 + 0.42 * dist, 0.82, 1.1, 0.97, 1],
+      scaleY: [1, 0.72,             1.22, 0.9, 1.04, 1],
+      borderRadius: [
+        "50%",
+        dir > 0
+          ? "34% 66% 66% 34% / 50% 50% 50% 50%"
+          : "66% 34% 34% 66% / 50% 50% 50% 50%",
+        "54% 46% 46% 54% / 48% 52% 52% 48%",
+        "50%",
+        "50%",
+        "50%",
+      ],
+      transition: {
+        duration: 0.52,
+        times: [0, 0.22, 0.52, 0.72, 0.88, 1],
+        ease: "easeOut",
+      },
+    });
+  }, [activeIndex]);
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden flex justify-center pb-4 px-6">
       <div className="relative flex items-center bg-white border border-gray-200 shadow-lg rounded-full px-3 h-[62px]">
 
-        {/* Sliding circle indicator — starts at px-3 offset, moves 58px per tab */}
+        {/* Outer: slides to new position with spring */}
         {activeIndex >= 0 && (
           <motion.div
-            className="absolute rounded-full bg-gray-100"
+            className="absolute"
             style={{ width: 46, height: 46, top: 8, left: 12 }}
             animate={{ x: activeIndex * 58 }}
             initial={false}
             transition={{ type: "spring", stiffness: 480, damping: 34, mass: 0.5 }}
-          />
+          >
+            {/* Inner: liquid blob morphs */}
+            <motion.div
+              animate={blobControls}
+              className="w-full h-full rounded-full bg-gray-100"
+              style={{ originX: "50%", originY: "50%" }}
+            />
+          </motion.div>
         )}
 
         {/* Tab items */}
@@ -57,7 +96,7 @@ function BottomNav() {
               style={{ marginLeft: i === 0 ? 0 : 12 }}
             >
               <motion.div
-                animate={{ scale: isActive ? 1.12 : 1 }}
+                animate={{ scale: isActive ? 1.1 : 1 }}
                 transition={{ type: "spring", stiffness: 400, damping: 22 }}
               >
                 <Icon
