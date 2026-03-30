@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { db } from "@workspace/db";
-import { bundlesTable, servicesTable, networksTable, ordersTable, usersTable } from "@workspace/db";
+import { bundlesTable, servicesTable, networksTable, ordersTable, usersTable, notificationsTable } from "@workspace/db";
 import { eq, count } from "drizzle-orm";
 import { requireAuth, requireAdmin } from "../middleware/auth";
 
@@ -208,6 +208,62 @@ router.get("/networks", async (req, res) => {
   } catch (err) {
     req.log.error(err, "admin get networks error");
     return res.status(500).json({ error: "internal_error", message: "Failed to get networks" });
+  }
+});
+
+// ── Notifications ──────────────────────────────────────────────────────────────
+router.post("/notifications", async (req, res) => {
+  try {
+    const { title, message, imageUrl, userId } = req.body;
+    if (!title || !message) {
+      return res.status(400).json({ error: "validation_error", message: "Title and message are required" });
+    }
+    const [notification] = await db.insert(notificationsTable).values({
+      title,
+      message,
+      imageUrl: imageUrl || null,
+      userId: userId ? parseInt(userId) : null,
+    }).returning();
+    return res.status(201).json({
+      id: String(notification.id),
+      title: notification.title,
+      message: notification.message,
+      imageUrl: notification.imageUrl ?? null,
+      isRead: notification.isRead,
+      createdAt: notification.createdAt.toISOString(),
+    });
+  } catch (err) {
+    req.log.error(err, "admin send notification error");
+    return res.status(500).json({ error: "internal_error", message: "Failed to send notification" });
+  }
+});
+
+router.get("/notifications", async (req, res) => {
+  try {
+    const rows = await db.select().from(notificationsTable).orderBy(notificationsTable.id);
+    return res.json(rows.map(n => ({
+      id: String(n.id),
+      title: n.title,
+      message: n.message,
+      imageUrl: n.imageUrl ?? null,
+      isRead: n.isRead,
+      userId: n.userId ? String(n.userId) : null,
+      createdAt: n.createdAt.toISOString(),
+    })));
+  } catch (err) {
+    req.log.error(err, "admin get notifications error");
+    return res.status(500).json({ error: "internal_error", message: "Failed to get notifications" });
+  }
+});
+
+router.delete("/notifications/:id", async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    await db.delete(notificationsTable).where(eq(notificationsTable.id, id));
+    return res.json({ success: true });
+  } catch (err) {
+    req.log.error(err, "admin delete notification error");
+    return res.status(500).json({ error: "internal_error", message: "Failed to delete notification" });
   }
 });
 

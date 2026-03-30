@@ -27,6 +27,7 @@ import AgentRegistration from "@/pages/AgentRegistration";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import AdminBundles from "@/pages/admin/AdminBundles";
 import AdminServices from "@/pages/admin/AdminServices";
+import AdminNotifications from "@/pages/admin/AdminNotifications";
 
 // Intercept fetch to automatically add Authorization Bearer token to all requests
 const originalFetch = window.fetch;
@@ -84,6 +85,7 @@ function Router() {
           <Route path="/admin" component={AdminDashboard} />
           <Route path="/admin/bundles" component={AdminBundles} />
           <Route path="/admin/services" component={AdminServices} />
+          <Route path="/admin/notifications" component={AdminNotifications} />
           <Route component={NotFound} />
         </Switch>
       </AdminLayout>

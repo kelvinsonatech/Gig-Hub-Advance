@@ -7,6 +7,7 @@ import {
   LogOut,
   ChevronRight,
   ShieldCheck,
+  Bell,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -14,6 +15,7 @@ const navItems = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/bundles", label: "Data Bundles", icon: Package },
   { href: "/admin/services", label: "Services", icon: Wrench },
+  { href: "/admin/notifications", label: "Notifications", icon: Bell },
 ];
 
 export function AdminLayout({ children }: { children: React.ReactNode }) {
