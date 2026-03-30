@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Switch, Route, Router as WouterRouter, useLocation } from "wouter";
+import { Switch, Route, Router as WouterRouter, useLocation, Redirect } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
 import { Toaster } from "@/components/ui/toaster";
@@ -11,6 +11,7 @@ import { BottomNav } from "@/components/layout/BottomNav";
 import { InstallPrompt } from "@/components/InstallPrompt";
 import { LoginConfetti } from "@/components/LoginConfetti";
 import { AdminLayout } from "@/pages/admin/AdminLayout";
+import { useAuthStore } from "@/hooks/use-auth";
 
 // Pages
 import Home from "@/pages/Home";
@@ -53,6 +54,12 @@ const queryClient = new QueryClient({
     },
   },
 });
+
+function ProtectedRoute({ component: Component }: { component: React.ComponentType }) {
+  const token = useAuthStore((s) => s.token);
+  if (!token) return <Redirect to="/login" />;
+  return <Component />;
+}
 
 function ScrollToTop() {
   const [location] = useLocation();
@@ -106,13 +113,13 @@ function Router() {
             <Route path="/" component={Home} />
             <Route path="/login" component={Login} />
             <Route path="/register" component={Register} />
-            <Route path="/dashboard" component={Dashboard} />
-            <Route path="/bundles" component={Bundles} />
-            <Route path="/services" component={Services} />
-            <Route path="/wallet" component={Wallet} />
-            <Route path="/orders" component={Orders} />
-            <Route path="/afa-registration" component={AFARegistration} />
-            <Route path="/agent-registration" component={AgentRegistration} />
+            <Route path="/dashboard">{() => <ProtectedRoute component={Dashboard} />}</Route>
+            <Route path="/bundles">{() => <ProtectedRoute component={Bundles} />}</Route>
+            <Route path="/services">{() => <ProtectedRoute component={Services} />}</Route>
+            <Route path="/wallet">{() => <ProtectedRoute component={Wallet} />}</Route>
+            <Route path="/orders">{() => <ProtectedRoute component={Orders} />}</Route>
+            <Route path="/afa-registration">{() => <ProtectedRoute component={AFARegistration} />}</Route>
+            <Route path="/agent-registration">{() => <ProtectedRoute component={AgentRegistration} />}</Route>
             <Route component={NotFound} />
           </Switch>
         </motion.div>
