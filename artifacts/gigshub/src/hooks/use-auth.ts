@@ -68,7 +68,7 @@ export function useAuth() {
         setToken(data.token);
         queryClient.setQueryData(["/api/auth/me"], data.user);
         setJustLoggedIn(true);
-        toast({ title: "Account created!", description: "Welcome to GigsHub." });
+        toast({ title: "Account created!", description: "Welcome to TurboGH." });
         navigate("/dashboard");
       },
       onError: (error: any) => {
