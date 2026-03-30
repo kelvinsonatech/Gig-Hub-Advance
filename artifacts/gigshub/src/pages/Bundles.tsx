@@ -1,11 +1,10 @@
 import { useState } from "react";
 import { useGetBundles, useGetNetworks, useCreateOrder, useGetWallet, type Bundle } from "@workspace/api-client-react";
-import { keepPreviousData } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatGHS, cn } from "@/lib/utils";
-import { Wifi, Phone, CreditCard, Loader2, ShoppingBag } from "lucide-react";
+import { Wifi, Phone, CreditCard, Loader2, ShoppingBag, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
@@ -29,12 +28,12 @@ export default function Bundles() {
   const [selectedNetworkId, setSelectedNetworkId] = useState<string | null>(null);
   const activeNetwork = selectedNetworkId ?? networks?.[0]?.id ?? null;
 
-  const { data: bundles, isLoading: loadingBundles } = useGetBundles(
+  const { data: bundles, isLoading: loadingBundles, isFetching: fetchingBundles } = useGetBundles(
     { networkId: activeNetwork || undefined },
-    { query: { enabled: !!activeNetwork, placeholderData: keepPreviousData } }
+    { query: { enabled: !!activeNetwork } }
   );
 
-  const showBundlesSkeleton = loadingNetworks || (!!activeNetwork && loadingBundles);
+  const showBundlesSkeleton = loadingNetworks || (!!activeNetwork && (loadingBundles || fetchingBundles));
 
   const [selectedBundle, setSelectedBundle] = useState<Bundle | null>(null);
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -135,11 +134,14 @@ export default function Bundles() {
                   key={network.id}
                   onClick={() => setSelectedNetworkId(network.id)}
                   className={cn(
-                    "px-4 sm:px-6 py-2 sm:py-3 rounded-xl sm:rounded-2xl font-bold text-sm sm:text-base transition-all duration-200 border-2",
+                    "flex items-center gap-2 px-4 sm:px-6 py-2 sm:py-3 rounded-xl sm:rounded-2xl font-bold text-sm sm:text-base transition-all duration-200 border-2",
                     !isActive && "bg-white text-gray-600 border-gray-200 hover:border-gray-300 shadow-sm"
                   )}
                   style={isActive ? { background: accent.bg, color: accent.text, borderColor: "transparent" } : {}}
                 >
+                  {isActive && fetchingBundles && (
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin opacity-70" />
+                  )}
                   {network.name}
                 </button>
               );
