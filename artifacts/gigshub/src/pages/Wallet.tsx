@@ -48,22 +48,22 @@ export default function Wallet() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-8">
+      <div className="space-y-5 sm:space-y-8">
         <header>
-          <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
-            <WalletIcon className="w-8 h-8 text-primary" /> Wallet
+          <h1 className="text-xl sm:text-3xl font-bold text-foreground flex items-center gap-2">
+            <WalletIcon className="w-6 h-6 sm:w-8 sm:h-8 text-primary" /> Wallet
           </h1>
-          <p className="text-muted-foreground mt-1">Manage your funds and view transaction history.</p>
+          <p className="text-muted-foreground mt-0.5 text-sm sm:text-base">Manage your funds and view transaction history.</p>
         </header>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-8">
 
           {/* ── Left column: balance card + top-up form ── */}
-          <div className="space-y-5">
+          <div className="space-y-4 sm:space-y-5">
 
             {/* Balance card */}
             <div
-              className="rounded-3xl p-8 text-white shadow-2xl relative overflow-hidden isolate"
+              className="rounded-2xl sm:rounded-3xl p-5 sm:p-8 text-white shadow-2xl relative overflow-hidden isolate"
               style={{
                 backgroundImage: `url("https://occ-0-8407-2219.1.nflxso.net/dnm/api/v6/6AYY37jfdO6hpXcMjf9Yu5cnmO0/AAAABUV_jDjJ4_X_PSYgTJthNlfoStaN1fqwW1vcTx8bKIwYizu5-VL1365SJPeFB1FIig2dpPVvYdgfODQ9DEKR8t9Ak3G5NIa1HeWv.jpg?r=513")`,
                 backgroundSize: "cover",
@@ -80,7 +80,7 @@ export default function Wallet() {
                 {isLoading ? (
                   <div className="h-12 w-48 bg-white/10 animate-pulse rounded-lg mt-2" />
                 ) : (
-                  <h2 className="text-5xl font-extrabold tracking-tight mt-2 drop-shadow-lg">
+                  <h2 className="text-4xl sm:text-5xl font-extrabold tracking-tight mt-2 drop-shadow-lg">
                     {formatGHS(wallet?.balance)}
                   </h2>
                 )}
@@ -94,8 +94,8 @@ export default function Wallet() {
             </div>
 
             {/* Add Funds form */}
-            <div className="bg-white border border-border rounded-3xl p-6 shadow-sm">
-              <div className="flex items-center gap-2.5 mb-6">
+            <div className="bg-white border border-border rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-sm">
+              <div className="flex items-center gap-2.5 mb-4 sm:mb-6">
                 <div className="w-9 h-9 rounded-2xl bg-primary/10 flex items-center justify-center">
                   <Zap className="w-4.5 h-4.5 text-primary" />
                 </div>
@@ -105,7 +105,7 @@ export default function Wallet() {
                 </div>
               </div>
 
-              <form onSubmit={handleTopup} className="space-y-5">
+              <form onSubmit={handleTopup} className="space-y-4 sm:space-y-5">
 
                 {/* Amount input */}
                 <div className="space-y-2">
@@ -118,7 +118,7 @@ export default function Wallet() {
                       min="1"
                       step="1"
                       placeholder="0.00"
-                      className="pl-9 h-14 rounded-2xl text-2xl font-extrabold border-2 focus-visible:ring-primary/30 tracking-tight"
+                      className="pl-9 h-12 sm:h-14 rounded-2xl text-xl sm:text-2xl font-extrabold border-2 focus-visible:ring-primary/30 tracking-tight"
                       value={amount}
                       onChange={(e) => setAmount(e.target.value)}
                       required
@@ -198,8 +198,8 @@ export default function Wallet() {
           </div>
 
           {/* ── Right column: Transaction History ── */}
-          <div className="bg-white border border-border rounded-3xl p-6 shadow-sm flex flex-col">
-            <h3 className="text-xl font-bold mb-6">Recent Transactions</h3>
+          <div className="bg-white border border-border rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-sm flex flex-col">
+            <h3 className="text-base sm:text-xl font-bold mb-4 sm:mb-6">Recent Transactions</h3>
 
             <div className="flex-1 overflow-y-auto pr-1 space-y-3 max-h-[560px]">
               {isLoading ? (

@@ -62,7 +62,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
       {/* Main Content */}
       <main className="flex-1 min-w-0">
-        <div className="bg-white rounded-2xl md:rounded-3xl p-4 sm:p-5 md:p-8 shadow-sm border border-border/50 min-h-[600px]">
+        <div className="md:bg-white md:rounded-3xl md:p-8 md:shadow-sm md:border md:border-border/50 min-h-[600px]">
           {children}
         </div>
       </main>
