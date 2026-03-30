@@ -4,12 +4,16 @@ import * as schema from "./schema";
 
 const { Pool } = pg;
 
-const connectionString = process.env.SUPABASE_DATABASE_URL ?? process.env.DATABASE_URL;
+const isDev = process.env.NODE_ENV === "development";
+
+const connectionString = isDev
+  ? (process.env.DATABASE_URL ?? process.env.SUPABASE_DATABASE_URL)
+  : (process.env.SUPABASE_DATABASE_URL ?? process.env.DATABASE_URL);
 
 if (!connectionString) {
   console.error(
-    "[db] SUPABASE_DATABASE_URL or DATABASE_URL is not set. " +
-    "Database operations will fail. Set the environment variable in your deployment."
+    "[db] No database connection string found. " +
+    "Set DATABASE_URL (local) or SUPABASE_DATABASE_URL (production)."
   );
 }
 
