@@ -26,14 +26,14 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4 py-12">
-      <div className="w-full max-w-md bg-white rounded-3xl shadow-xl shadow-black/5 border border-border p-8">
-        <div className="text-center mb-8">
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 p-3 sm:p-4 sm:py-12">
+      <div className="w-full max-w-md bg-white rounded-3xl shadow-xl shadow-black/5 border border-border p-5 sm:p-8">
+        <div className="text-center mb-6 sm:mb-8">
           <Link href="/">
-            <img src={logoUrl} alt="TurboGH" className="w-44 h-auto mx-auto mb-6 cursor-pointer" />
+            <img src={logoUrl} alt="TurboGH" className="w-36 sm:w-44 h-auto mx-auto mb-4 sm:mb-6 cursor-pointer" />
           </Link>
-          <h1 className="text-2xl font-bold text-foreground">Create an account</h1>
-          <p className="text-muted-foreground mt-2">Join GigsHub for the best digital services</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Create an account</h1>
+          <p className="text-muted-foreground mt-1.5 text-sm sm:text-base">Join GigsHub for the best digital services</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -110,7 +110,7 @@ export default function Register() {
           </Button>
         </form>
 
-        <div className="mt-8 text-center text-sm text-muted-foreground">
+        <div className="mt-6 sm:mt-8 text-center text-sm text-muted-foreground">
           Already have an account?{" "}
           <Link href="/login" className="text-primary font-semibold hover:underline">
             Sign in <ArrowRight className="inline w-4 h-4" />

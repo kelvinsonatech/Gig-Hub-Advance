@@ -18,17 +18,17 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
-      <div className="w-full max-w-md bg-white rounded-3xl shadow-xl shadow-black/5 border border-border p-8">
-        <div className="text-center mb-8">
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 p-3 sm:p-4">
+      <div className="w-full max-w-md bg-white rounded-3xl shadow-xl shadow-black/5 border border-border p-5 sm:p-8">
+        <div className="text-center mb-6 sm:mb-8">
           <Link href="/">
-            <img src={logoUrl} alt="TurboGH" className="w-44 h-auto mx-auto mb-6 cursor-pointer" />
+            <img src={logoUrl} alt="TurboGH" className="w-36 sm:w-44 h-auto mx-auto mb-4 sm:mb-6 cursor-pointer" />
           </Link>
-          <h1 className="text-2xl font-bold text-foreground">Welcome back</h1>
-          <p className="text-muted-foreground mt-2">Enter your details to sign in to your account</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Welcome back</h1>
+          <p className="text-muted-foreground mt-1.5 text-sm sm:text-base">Enter your details to sign in to your account</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
           <div className="space-y-2">
             <Label htmlFor="email">Email Address</Label>
             <div className="relative">
@@ -73,7 +73,7 @@ export default function Login() {
           </Button>
         </form>
 
-        <div className="mt-8 text-center text-sm text-muted-foreground">
+        <div className="mt-6 sm:mt-8 text-center text-sm text-muted-foreground">
           Don't have an account?{" "}
           <Link href="/register" className="text-primary font-semibold hover:underline">
             Sign up for free <ArrowRight className="inline w-4 h-4" />
