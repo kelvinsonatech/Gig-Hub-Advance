@@ -85,7 +85,7 @@ export function useAuth() {
     user,
     token,
     justLoggedIn,
-    isAuthenticated: !!token && !!user,
+    isAuthenticated: !!token && (isLoadingUser || !!user),
     isLoading: isLoadingUser,
     login: loginMutation.mutate,
     isLoggingIn: loginMutation.isPending,
