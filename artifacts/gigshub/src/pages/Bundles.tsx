@@ -164,7 +164,7 @@ export default function Bundles() {
               return (
                 <div
                   key={bundle.id}
-                  className="bg-white border border-gray-100 rounded-2xl sm:rounded-3xl p-4 sm:p-6 hover:shadow-xl hover:-translate-y-1 transition-all flex flex-col justify-between relative overflow-hidden"
+                  className="bg-white border border-gray-100 rounded-2xl sm:rounded-3xl p-4 sm:p-6 hover:shadow-xl hover:-translate-y-1 transition-[box-shadow,transform] duration-200 flex flex-col justify-between relative overflow-hidden"
                 >
                   {bundle.popular && (
                     <div className="absolute top-0 right-0 bg-emerald-500 text-white text-[9px] sm:text-[10px] font-bold px-2 sm:px-3 py-1 rounded-bl-xl sm:rounded-bl-2xl z-10 tracking-wider">
