@@ -84,7 +84,7 @@ export default function Bundles() {
 
   return (
     <div className="min-h-screen bg-gray-50/50">
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-5 sm:py-10 pb-28 md:pb-10 space-y-4 sm:space-y-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-7 sm:py-12 pb-28 md:pb-12 space-y-6 sm:space-y-10">
 
         {/* Header */}
         <div
@@ -147,7 +147,7 @@ export default function Bundles() {
         )}
 
         {/* Bundles Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
           {loadingBundles ? (
             [1, 2, 3, 4, 5, 6, 7, 8].map(i => (
               <div key={i} className="h-52 bg-gray-200 rounded-3xl animate-pulse" />
@@ -164,7 +164,7 @@ export default function Bundles() {
               return (
                 <div
                   key={bundle.id}
-                  className="bg-white border border-gray-100 rounded-2xl sm:rounded-3xl p-4 sm:p-6 hover:shadow-xl hover:-translate-y-1 transition-[box-shadow,transform] duration-200 flex flex-col justify-between relative overflow-hidden"
+                  className="bg-white border border-gray-100 rounded-2xl sm:rounded-3xl p-5 sm:p-6 hover:shadow-xl hover:-translate-y-1 transition-[box-shadow,transform] duration-200 flex flex-col justify-between relative overflow-hidden"
                 >
                   {bundle.popular && (
                     <div className="absolute top-0 right-0 bg-emerald-500 text-white text-[9px] sm:text-[10px] font-bold px-2 sm:px-3 py-1 rounded-bl-xl sm:rounded-bl-2xl z-10 tracking-wider">
