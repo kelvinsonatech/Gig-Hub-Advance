@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useGetBundles, useGetNetworks, useCreateOrder, useGetWallet, type Bundle } from "@workspace/api-client-react";
+import { keepPreviousData } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,16 +29,18 @@ export default function Bundles() {
   const [activeNetwork, setActiveNetwork] = useState<string | null>(null);
   const { data: bundles, isLoading: loadingBundles } = useGetBundles(
     { networkId: activeNetwork || undefined },
-    { query: { enabled: true } }
+    { query: { enabled: !!activeNetwork, placeholderData: keepPreviousData } }
   );
 
   const [selectedBundle, setSelectedBundle] = useState<Bundle | null>(null);
   const [phoneNumber, setPhoneNumber] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  if (networks && !activeNetwork && networks.length > 0) {
-    setActiveNetwork(networks[0].id);
-  }
+  useEffect(() => {
+    if (networks && networks.length > 0 && !activeNetwork) {
+      setActiveNetwork(networks[0].id);
+    }
+  }, [networks, activeNetwork]);
 
   const createOrder = useCreateOrder({
     mutation: {
@@ -187,7 +190,7 @@ export default function Bundles() {
                   </div>
 
                   <Button
-                    className={cn("w-full rounded-lg sm:rounded-xl h-9 sm:h-11 font-bold text-xs sm:text-sm shadow-md transition-all", accent.btn)}
+                    className={cn("w-full rounded-lg sm:rounded-xl h-9 sm:h-11 font-bold text-xs sm:text-sm shadow-md", accent.btn)}
                     onClick={() => handleBuyClick(bundle)}
                   >
                     Buy — {formatGHS(bundle.price)}
