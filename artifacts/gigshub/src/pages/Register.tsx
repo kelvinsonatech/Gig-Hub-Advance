@@ -27,7 +27,7 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 p-3 sm:p-4 sm:py-12">
+    <div className="min-h-screen flex items-start sm:items-center justify-center bg-slate-50 pt-6 sm:py-12 px-3 sm:p-4">
       <div className="w-full max-w-md bg-white rounded-3xl shadow-xl shadow-black/5 border border-border p-5 sm:p-8">
         <div className="text-center mb-6 sm:mb-8">
           <Link href="/">
