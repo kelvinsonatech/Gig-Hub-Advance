@@ -66,18 +66,18 @@ export default function Dashboard() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
 
         {/* ── Greeting ── */}
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm text-muted-foreground font-medium">Good day,</p>
-            <h1 className="text-2xl font-extrabold text-gray-900 leading-tight">
+            <p className="text-xs text-muted-foreground font-medium">Good day,</p>
+            <h1 className="text-xl sm:text-2xl font-extrabold text-gray-900 leading-tight">
               {user?.name?.split(" ")[0]} 👋
             </h1>
           </div>
           <div className="ring-2 ring-white shadow-lg shadow-orange-100 rounded-full">
-            <UserAvatar name={user?.name} size={44} />
+            <UserAvatar name={user?.name} size={40} />
           </div>
         </div>
 
@@ -85,7 +85,7 @@ export default function Dashboard() {
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative overflow-hidden rounded-3xl p-6 text-white shadow-2xl"
+          className="relative overflow-hidden rounded-2xl md:rounded-3xl p-5 md:p-6 text-white shadow-2xl"
           style={{
             backgroundImage: `url("https://occ-0-8407-2219.1.nflxso.net/dnm/api/v6/6AYY37jfdO6hpXcMjf9Yu5cnmO0/AAAABUV_jDjJ4_X_PSYgTJthNlfoStaN1fqwW1vcTx8bKIwYizu5-VL1365SJPeFB1FIig2dpPVvYdgfODQ9DEKR8t9Ak3G5NIa1HeWv.jpg?r=513")`,
             backgroundSize: "cover",
@@ -113,37 +113,37 @@ export default function Dashboard() {
               </button>
             </div>
 
-            <div className="mb-6">
-              <p className="text-white/60 text-xs font-medium uppercase tracking-widest mb-1">Available Balance</p>
+            <div className="mb-5">
+              <p className="text-white/60 text-[10px] font-semibold uppercase tracking-widest mb-1">Available Balance</p>
               {isLoadingWallet ? (
-                <div className="h-10 w-44 bg-white/20 animate-pulse rounded-xl" />
+                <div className="h-9 w-40 bg-white/20 animate-pulse rounded-xl" />
               ) : (
-                <h2 className="text-4xl font-extrabold tracking-tight">
+                <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight">
                   {balanceHidden ? "GHS ••••••" : formatGHS(wallet?.balance)}
                 </h2>
               )}
               {user?.phone && (
-                <p className="text-white/50 text-sm mt-1 font-mono">
+                <p className="text-white/50 text-xs mt-1 font-mono">
                   {user.phone.replace(/(\d{3})(\d{3})(\d{4})/, "$1 $2 $3")}
                 </p>
               )}
             </div>
 
-            <div className="flex gap-3">
+            <div className="flex gap-2.5">
               <Button
                 asChild
-                className="flex-1 h-11 rounded-2xl bg-white text-primary font-bold hover:bg-gray-50 shadow-lg border-0 text-sm"
+                className="flex-1 h-10 rounded-xl bg-white text-primary font-bold hover:bg-gray-50 shadow-lg border-0 text-sm"
               >
                 <Link href="/wallet">
-                  <Plus className="w-4 h-4 mr-1.5" /> Top Up
+                  <Plus className="w-4 h-4 mr-1" /> Top Up
                 </Link>
               </Button>
               <Button
                 asChild
-                className="flex-1 h-11 rounded-2xl bg-white/15 text-white font-bold hover:bg-white/25 border border-white/20 shadow-none text-sm"
+                className="flex-1 h-10 rounded-xl bg-white/15 text-white font-bold hover:bg-white/25 border border-white/20 shadow-none text-sm"
               >
                 <Link href="/bundles">
-                  <Wifi className="w-4 h-4 mr-1.5" /> Buy Data
+                  <Wifi className="w-4 h-4 mr-1" /> Buy Data
                 </Link>
               </Button>
             </div>
@@ -202,7 +202,7 @@ export default function Dashboard() {
               ))}
             </div>
           ) : recentOrders.length === 0 ? (
-            <div className="bg-white border border-gray-100 rounded-3xl p-10 text-center shadow-sm">
+            <div className="bg-white border border-gray-100 rounded-3xl p-6 sm:p-10 text-center shadow-sm">
               <div className="w-16 h-16 bg-orange-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <Package className="w-8 h-8 text-primary" />
               </div>
@@ -218,7 +218,7 @@ export default function Dashboard() {
                 const status = statusConfig[order.status] ?? statusConfig.pending;
                 const StatusIcon = status.icon;
                 return (
-                  <div key={order.id} className="flex items-center gap-4 px-5 py-4 hover:bg-gray-50/50 transition-colors">
+                  <div key={order.id} className="flex items-center gap-3 px-3 sm:px-5 py-3 sm:py-4 hover:bg-gray-50/50 transition-colors">
                     {/* Icon */}
                     <div className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 ${
                       order.type === "bundle"
