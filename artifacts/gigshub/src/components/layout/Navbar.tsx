@@ -52,14 +52,13 @@ export function Navbar() {
         <div className="w-full max-w-4xl bg-white/90 backdrop-blur-md border border-gray-200 shadow-md rounded-full pl-2 pr-5 h-14 flex items-center justify-between">
 
           {/* Logo */}
-          <Link href="/" className="flex items-center flex-shrink-0 group">
+          <Link href={isAuthenticated ? "/dashboard" : "/login"} className="flex items-center flex-shrink-0 group">
             <img src={logoUrl} alt="TurboGH" className="w-36 h-auto group-hover:scale-105 transition-transform" />
           </Link>
 
           {/* Center Nav Links */}
           <LayoutGroup id="navbar">
             <nav className="hidden md:flex items-center gap-1">
-              <NavLink href="/">Home</NavLink>
               {isAuthenticated ? (
                 <>
                   <NavLink href="/bundles">Data Bundles</NavLink>
@@ -175,7 +174,6 @@ export function Navbar() {
         {isMobileMenuOpen && (
           <div className="absolute top-[68px] left-4 right-4 max-w-4xl mx-auto bg-white border border-gray-200 rounded-2xl shadow-xl p-4 space-y-3 z-40">
             <nav className="flex flex-col gap-1">
-              <Link href="/" className="text-foreground font-medium p-2 hover:bg-muted rounded-xl text-sm" onClick={() => setIsMobileMenuOpen(false)}>Home</Link>
               <Link href="/bundles" className="text-foreground font-medium p-2 hover:bg-muted rounded-xl text-sm" onClick={() => setIsMobileMenuOpen(false)}>Data Bundles</Link>
               <Link href="/services" className="text-foreground font-medium p-2 hover:bg-muted rounded-xl text-sm" onClick={() => setIsMobileMenuOpen(false)}>Services</Link>
               {isAuthenticated && (
