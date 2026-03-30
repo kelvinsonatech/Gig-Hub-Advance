@@ -85,12 +85,17 @@ export default function Dashboard() {
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#0077C7] via-[#0088e0] to-[#00AAFF] p-6 text-white shadow-2xl shadow-blue-300/40"
+          className="relative overflow-hidden rounded-3xl p-6 text-white shadow-2xl"
+          style={{
+            backgroundImage: `url("https://occ-0-8407-2219.1.nflxso.net/dnm/api/v6/6AYY37jfdO6hpXcMjf9Yu5cnmO0/AAAABUV_jDjJ4_X_PSYgTJthNlfoStaN1fqwW1vcTx8bKIwYizu5-VL1365SJPeFB1FIig2dpPVvYdgfODQ9DEKR8t9Ak3G5NIa1HeWv.jpg?r=513")`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+          }}
         >
-          {/* decorative circles */}
-          <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full bg-white/10" />
-          <div className="absolute -bottom-16 -left-8 w-48 h-48 rounded-full bg-black/10" />
-          <div className="absolute top-4 right-20 w-20 h-20 rounded-full bg-white/5" />
+          {/* Dark overlay */}
+          <div className="absolute inset-0 bg-gradient-to-br from-black/70 via-black/50 to-orange-950/60 rounded-3xl" />
+          {/* Orange glow orb */}
+          <div className="absolute bottom-0 right-0 w-56 h-56 bg-primary/30 rounded-full blur-3xl translate-x-1/4 translate-y-1/4" />
 
           <div className="relative z-10">
             <div className="flex items-center justify-between mb-6">
@@ -127,7 +132,7 @@ export default function Dashboard() {
             <div className="flex gap-3">
               <Button
                 asChild
-                className="flex-1 h-11 rounded-2xl bg-white text-[#0077C7] font-bold hover:bg-gray-50 shadow-lg border-0 text-sm"
+                className="flex-1 h-11 rounded-2xl bg-white text-primary font-bold hover:bg-gray-50 shadow-lg border-0 text-sm"
               >
                 <Link href="/wallet">
                   <Plus className="w-4 h-4 mr-1.5" /> Top Up
