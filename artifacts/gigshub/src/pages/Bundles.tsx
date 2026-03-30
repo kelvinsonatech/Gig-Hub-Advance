@@ -87,8 +87,16 @@ export default function Bundles() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 pb-28 md:pb-10 space-y-8">
 
         {/* Header */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#0077C7] to-[#0099FF] p-8 text-white shadow-xl shadow-blue-300/30">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3" />
+        <div
+          className="relative overflow-hidden rounded-3xl p-8 text-white shadow-2xl"
+          style={{
+            backgroundImage: `url("https://occ-0-8407-2219.1.nflxso.net/dnm/api/v6/6AYY37jfdO6hpXcMjf9Yu5cnmO0/AAAABUV_jDjJ4_X_PSYgTJthNlfoStaN1fqwW1vcTx8bKIwYizu5-VL1365SJPeFB1FIig2dpPVvYdgfODQ9DEKR8t9Ak3G5NIa1HeWv.jpg?r=513")`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+          }}
+        >
+          <div className="absolute inset-0 bg-gradient-to-br from-black/70 via-black/50 to-orange-950/60 rounded-3xl" />
+          <div className="absolute bottom-0 right-0 w-56 h-56 bg-primary/30 rounded-full blur-3xl translate-x-1/4 translate-y-1/4" />
           <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <div className="flex items-center gap-3 mb-2">
@@ -100,8 +108,8 @@ export default function Bundles() {
               <p className="text-white/70">Select your network and choose the perfect data package.</p>
             </div>
             {isAuthenticated && wallet && (
-              <div className="flex items-center gap-3 bg-white/10 border border-white/20 rounded-2xl px-5 py-3 shrink-0">
-                <CreditCard className="w-5 h-5 text-white/70" />
+              <div className="flex items-center gap-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl px-5 py-3 shrink-0">
+                <CreditCard className="w-5 h-5 text-primary" />
                 <div>
                   <p className="text-white/60 text-xs font-medium">Wallet Balance</p>
                   <p className="font-extrabold text-lg tracking-tight">{formatGHS(wallet.balance)}</p>
