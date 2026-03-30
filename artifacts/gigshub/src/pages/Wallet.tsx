@@ -51,16 +51,39 @@ export default function Wallet() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Balance & Topup Form */}
           <div className="space-y-6">
-            <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl p-8 text-white shadow-xl relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3" />
-              <p className="text-slate-300 font-medium mb-2">Available Balance</p>
-              {isLoading ? (
-                <div className="h-12 w-48 bg-white/10 animate-pulse rounded-lg" />
-              ) : (
-                <h2 className="text-5xl font-extrabold tracking-tight">
-                  {formatGHS(wallet?.balance)}
-                </h2>
-              )}
+            <div
+              className="rounded-3xl p-8 text-white shadow-2xl relative overflow-hidden"
+              style={{
+                backgroundImage: `url("https://occ-0-8407-2219.1.nflxso.net/dnm/api/v6/6AYY37jfdO6hpXcMjf9Yu5cnmO0/AAAABUV_jDjJ4_X_PSYgTJthNlfoStaN1fqwW1vcTx8bKIwYizu5-VL1365SJPeFB1FIig2dpPVvYdgfODQ9DEKR8t9Ak3G5NIa1HeWv.jpg?r=513")`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+              }}
+            >
+              {/* Dark overlay blended over the space image */}
+              <div className="absolute inset-0 bg-gradient-to-br from-black/70 via-black/50 to-orange-950/60 rounded-3xl" />
+              {/* Subtle orange glow orb */}
+              <div className="absolute bottom-0 right-0 w-56 h-56 bg-primary/30 rounded-full blur-3xl translate-x-1/4 translate-y-1/4" />
+
+              {/* Content */}
+              <div className="relative z-10">
+                <div className="flex items-center gap-2 mb-1">
+                  <WalletIcon className="w-4 h-4 text-primary" />
+                  <p className="text-white/70 text-sm font-medium tracking-wide uppercase">Available Balance</p>
+                </div>
+                {isLoading ? (
+                  <div className="h-12 w-48 bg-white/10 animate-pulse rounded-lg mt-2" />
+                ) : (
+                  <h2 className="text-5xl font-extrabold tracking-tight mt-2 drop-shadow-lg">
+                    {formatGHS(wallet?.balance)}
+                  </h2>
+                )}
+                <div className="mt-6 flex items-center gap-2">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full text-xs font-semibold text-white/80">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    Active Wallet
+                  </span>
+                </div>
+              </div>
             </div>
 
             <div className="bg-white border border-border rounded-3xl p-6 shadow-sm">
