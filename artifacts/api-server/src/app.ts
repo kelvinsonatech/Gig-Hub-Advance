@@ -3,6 +3,7 @@ import cors from "cors";
 import pinoHttp from "pino-http";
 import router from "./routes";
 import { logger } from "./lib/logger";
+import { db } from "@workspace/db";
 
 const app: Express = express();
 
@@ -28,6 +29,16 @@ app.use(
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+app.use("/api", (req, res, next) => {
+  if (!db) {
+    return res.status(503).json({
+      error: "service_unavailable",
+      message: "Database not configured. Set SUPABASE_DATABASE_URL or DATABASE_URL in environment variables.",
+    });
+  }
+  next();
+});
 
 app.use("/api", router);
 
