@@ -112,7 +112,7 @@ function NotificationsPanel({ onClose }: { onClose: () => void }) {
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: -8, scale: 0.97 }}
       transition={{ duration: 0.15 }}
-      className="absolute top-[68px] right-4 w-[340px] max-w-[calc(100vw-2rem)] bg-white border border-gray-200 rounded-2xl shadow-xl overflow-hidden z-50"
+      className="fixed top-[72px] right-4 left-4 sm:left-auto sm:w-[340px] bg-white border border-gray-200 rounded-2xl shadow-xl overflow-hidden z-[60]"
     >
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
