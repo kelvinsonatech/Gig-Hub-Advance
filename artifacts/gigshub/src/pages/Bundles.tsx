@@ -84,11 +84,11 @@ export default function Bundles() {
 
   return (
     <div className="min-h-screen bg-gray-50/50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 pb-28 md:pb-10 space-y-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-5 sm:py-10 pb-28 md:pb-10 space-y-4 sm:space-y-8">
 
         {/* Header */}
         <div
-          className="relative overflow-hidden rounded-3xl p-8 text-white shadow-2xl isolate"
+          className="relative overflow-hidden rounded-2xl sm:rounded-3xl p-5 sm:p-8 text-white shadow-2xl isolate"
           style={{
             backgroundImage: `url("https://occ-0-8407-2219.1.nflxso.net/dnm/api/v6/6AYY37jfdO6hpXcMjf9Yu5cnmO0/AAAABUV_jDjJ4_X_PSYgTJthNlfoStaN1fqwW1vcTx8bKIwYizu5-VL1365SJPeFB1FIig2dpPVvYdgfODQ9DEKR8t9Ak3G5NIa1HeWv.jpg?r=513")`,
             backgroundSize: "cover",
@@ -97,22 +97,22 @@ export default function Bundles() {
         >
           <div className="absolute inset-0 bg-gradient-to-br from-black/70 via-black/50 to-orange-950/60" />
           <div className="absolute bottom-0 right-0 w-56 h-56 bg-primary/30 rounded-full blur-3xl translate-x-1/4 translate-y-1/4" />
-          <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
             <div>
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
-                  <Wifi className="w-5 h-5 text-white" />
+              <div className="flex items-center gap-2.5 mb-1.5">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
+                  <Wifi className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                 </div>
-                <h1 className="text-2xl font-extrabold">Buy Data Bundles</h1>
+                <h1 className="text-xl sm:text-2xl font-extrabold">Buy Data Bundles</h1>
               </div>
-              <p className="text-white/70">Select your network and choose the perfect data package.</p>
+              <p className="text-white/70 text-sm sm:text-base">Select your network and choose the perfect data package.</p>
             </div>
             {isAuthenticated && wallet && (
-              <div className="flex items-center gap-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl px-5 py-3 shrink-0">
-                <CreditCard className="w-5 h-5 text-primary" />
+              <div className="flex items-center gap-2.5 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl sm:rounded-2xl px-4 py-2.5 sm:px-5 sm:py-3 shrink-0 w-fit">
+                <CreditCard className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
                 <div>
-                  <p className="text-white/60 text-xs font-medium">Wallet Balance</p>
-                  <p className="font-extrabold text-lg tracking-tight">{formatGHS(wallet.balance)}</p>
+                  <p className="text-white/60 text-[10px] sm:text-xs font-medium">Wallet Balance</p>
+                  <p className="font-extrabold text-base sm:text-lg tracking-tight">{formatGHS(wallet.balance)}</p>
                 </div>
               </div>
             )}
@@ -134,7 +134,7 @@ export default function Bundles() {
                   key={network.id}
                   onClick={() => setActiveNetwork(network.id)}
                   className={cn(
-                    "px-6 py-3 rounded-2xl font-bold text-base transition-all duration-200 border-2",
+                    "px-4 sm:px-6 py-2 sm:py-3 rounded-xl sm:rounded-2xl font-bold text-sm sm:text-base transition-all duration-200 border-2",
                     !isActive && "bg-white text-gray-600 border-gray-200 hover:border-gray-300 shadow-sm"
                   )}
                   style={isActive ? { background: accent.bg, color: accent.text, borderColor: "transparent" } : {}}
@@ -147,7 +147,7 @@ export default function Bundles() {
         )}
 
         {/* Bundles Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
           {loadingBundles ? (
             [1, 2, 3, 4, 5, 6, 7, 8].map(i => (
               <div key={i} className="h-52 bg-gray-200 rounded-3xl animate-pulse" />
@@ -164,30 +164,30 @@ export default function Bundles() {
               return (
                 <div
                   key={bundle.id}
-                  className="bg-white border border-gray-100 rounded-3xl p-6 hover:shadow-xl hover:-translate-y-1 transition-all flex flex-col justify-between relative overflow-hidden"
+                  className="bg-white border border-gray-100 rounded-2xl sm:rounded-3xl p-4 sm:p-6 hover:shadow-xl hover:-translate-y-1 transition-all flex flex-col justify-between relative overflow-hidden"
                 >
                   {bundle.popular && (
-                    <div className="absolute top-0 right-0 bg-emerald-500 text-white text-[10px] font-bold px-3 py-1 rounded-bl-2xl z-10 tracking-wider">
+                    <div className="absolute top-0 right-0 bg-emerald-500 text-white text-[9px] sm:text-[10px] font-bold px-2 sm:px-3 py-1 rounded-bl-xl sm:rounded-bl-2xl z-10 tracking-wider">
                       POPULAR
                     </div>
                   )}
-                  <div className="absolute top-0 left-0 right-0 h-1 rounded-t-3xl" style={{ background: accent.bg }} />
+                  <div className="absolute top-0 left-0 right-0 h-1 rounded-t-2xl sm:rounded-t-3xl" style={{ background: accent.bg }} />
 
                   <div>
-                    <div className="flex justify-between items-start mb-4 mt-2">
-                      <span className={cn("px-2.5 py-1 rounded-lg text-xs font-bold", accent.badge)}>
+                    <div className="flex justify-between items-start mb-3 mt-1.5">
+                      <span className={cn("px-2 py-0.5 rounded-md text-[10px] sm:text-xs font-bold", accent.badge)}>
                         {net?.code}
                       </span>
-                      <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider bg-gray-50 px-2 py-1 rounded-lg">
+                      <span className="text-[9px] sm:text-xs font-medium text-muted-foreground uppercase tracking-wider bg-gray-50 px-1.5 py-0.5 rounded-md">
                         {bundle.type}
                       </span>
                     </div>
-                    <h3 className="text-3xl font-extrabold text-gray-900 mb-1">{bundle.data}</h3>
-                    <p className="text-sm font-medium text-muted-foreground mb-5">Valid: {bundle.validity}</p>
+                    <h3 className="text-2xl sm:text-3xl font-extrabold text-gray-900 mb-0.5">{bundle.data}</h3>
+                    <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-4">Valid: {bundle.validity}</p>
                   </div>
 
                   <Button
-                    className={cn("w-full rounded-xl h-11 font-bold text-sm shadow-md transition-all", accent.btn)}
+                    className={cn("w-full rounded-lg sm:rounded-xl h-9 sm:h-11 font-bold text-xs sm:text-sm shadow-md transition-all", accent.btn)}
                     onClick={() => handleBuyClick(bundle)}
                   >
                     Buy — {formatGHS(bundle.price)}
