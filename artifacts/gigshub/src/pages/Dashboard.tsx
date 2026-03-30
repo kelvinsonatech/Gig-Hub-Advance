@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import {
   Wifi, ShieldCheck, Plus, ArrowRight, Users, Eye, EyeOff,
-  TrendingUp, Package, CheckCircle2, Clock, XCircle,
+  TrendingUp, Package, CheckCircle2, Clock, XCircle, ChevronRight,
 } from "lucide-react";
 import { format } from "date-fns";
 import { useState } from "react";
@@ -166,20 +166,23 @@ export default function Dashboard() {
 
         {/* ── Quick Actions ── */}
         <div>
-          <h2 className="text-base font-bold text-gray-900 mb-4">Quick Actions</h2>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <h2 className="text-base font-bold text-gray-900 mb-3">Quick Actions</h2>
+          <div className="grid grid-cols-2 gap-3">
             {quickActions.map((action) => (
               <Link key={action.href} href={action.href}>
                 <motion.div
-                  whileTap={{ scale: 0.96 }}
-                  whileHover={{ y: -3 }}
-                  className={`bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all cursor-pointer group`}
+                  whileTap={{ scale: 0.97 }}
+                  whileHover={{ y: -2 }}
+                  className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all cursor-pointer flex items-center gap-3"
                 >
-                  <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${action.gradient} shadow-lg ${action.shadow} flex items-center justify-center mb-3`}>
-                    <action.icon className="w-6 h-6 text-white" />
+                  <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${action.gradient} shadow-md ${action.shadow} flex items-center justify-center shrink-0`}>
+                    <action.icon className="w-5 h-5 text-white" />
                   </div>
-                  <p className="font-bold text-gray-900 text-sm leading-tight">{action.label}</p>
-                  <p className="text-xs text-muted-foreground mt-0.5 leading-tight">{action.sublabel}</p>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-gray-900 text-sm leading-tight truncate">{action.label}</p>
+                    <p className="text-[11px] text-muted-foreground mt-0.5 leading-tight truncate">{action.sublabel}</p>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-gray-300 shrink-0" />
                 </motion.div>
               </Link>
             ))}
