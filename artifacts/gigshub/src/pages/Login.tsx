@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "wouter";
+import { Link, Redirect } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,9 +8,10 @@ import { Mail, Lock, ArrowRight, Loader2 } from "lucide-react";
 import logoUrl from "@assets/logo.png";
 
 export default function Login() {
-  const { login, isLoggingIn } = useAuth();
+  const { login, isLoggingIn, isAuthenticated } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  if (isAuthenticated) return <Redirect to="/dashboard" />;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
