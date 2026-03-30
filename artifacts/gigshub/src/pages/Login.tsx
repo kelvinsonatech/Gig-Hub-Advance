@@ -18,25 +18,25 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
-      <div className="w-full max-w-md bg-white rounded-3xl shadow-xl shadow-black/5 border border-border p-8">
-        <div className="text-center mb-8">
+    <div className="min-h-screen flex items-center justify-center bg-white sm:bg-slate-50 px-5 sm:p-4">
+      <div className="w-full max-w-md bg-white sm:rounded-3xl sm:shadow-xl sm:shadow-black/5 sm:border sm:border-border py-10 sm:p-8">
+        <div className="text-center mb-7">
           <Link href="/">
-            <img src={logoUrl} alt="TurboGH" className="w-44 h-auto mx-auto mb-6 cursor-pointer" />
+            <img src={logoUrl} alt="TurboGH" className="w-40 h-auto mx-auto mb-5 cursor-pointer" />
           </Link>
-          <h1 className="text-2xl font-bold text-foreground">Welcome back</h1>
-          <p className="text-muted-foreground mt-2">Enter your details to sign in to your account</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Welcome back</h1>
+          <p className="text-muted-foreground mt-1.5 text-sm">Enter your details to sign in to your account</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div className="space-y-2">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-1.5">
             <Label htmlFor="email">Email Address</Label>
             <div className="relative">
               <Mail className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
-              <Input 
-                id="email" 
-                type="email" 
-                placeholder="you@example.com" 
+              <Input
+                id="email"
+                type="email"
+                placeholder="you@example.com"
                 className="pl-10 h-12 rounded-xl"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -44,18 +44,18 @@ export default function Login() {
               />
             </div>
           </div>
-          
-          <div className="space-y-2">
+
+          <div className="space-y-1.5">
             <div className="flex items-center justify-between">
               <Label htmlFor="password">Password</Label>
               <Link href="/forgot-password" className="text-sm text-primary hover:underline font-medium">Forgot password?</Link>
             </div>
             <div className="relative">
               <Lock className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
-              <Input 
-                id="password" 
-                type="password" 
-                placeholder="••••••••" 
+              <Input
+                id="password"
+                type="password"
+                placeholder="••••••••"
                 className="pl-10 h-12 rounded-xl"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -64,16 +64,16 @@ export default function Login() {
             </div>
           </div>
 
-          <Button 
-            type="submit" 
-            className="w-full h-12 rounded-xl text-base shadow-md shadow-primary/20 hover:shadow-lg transition-all hover:-translate-y-0.5" 
+          <Button
+            type="submit"
+            className="w-full h-12 rounded-xl text-base shadow-md shadow-primary/20 hover:shadow-lg transition-[box-shadow,transform] hover:-translate-y-0.5 mt-2"
             disabled={isLoggingIn}
           >
             {isLoggingIn ? <Loader2 className="w-5 h-5 animate-spin" /> : "Sign In"}
           </Button>
         </form>
 
-        <div className="mt-8 text-center text-sm text-muted-foreground">
+        <div className="mt-7 text-center text-sm text-muted-foreground">
           Don't have an account?{" "}
           <Link href="/register" className="text-primary font-semibold hover:underline">
             Sign up for free <ArrowRight className="inline w-4 h-4" />
