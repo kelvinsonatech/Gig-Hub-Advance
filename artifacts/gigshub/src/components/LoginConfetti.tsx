@@ -125,7 +125,7 @@ export function LoginConfetti() {
                 Welcome back!
               </p>
               <p className="text-sm text-[#0077C7] font-semibold">
-                Great to see you on GigsHub
+                Great to see you on TurboGH
               </p>
             </div>
           </motion.div>
