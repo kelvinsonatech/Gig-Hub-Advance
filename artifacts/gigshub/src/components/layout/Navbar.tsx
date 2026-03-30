@@ -40,13 +40,41 @@ function NavLink({ href, children }: { href: string; children: React.ReactNode }
   );
 }
 
+function MobileNavLink({ href, children, onClick }: { href: string; children: React.ReactNode; onClick: () => void }) {
+  const [isActive] = useRoute(href);
+  return (
+    <Link
+      href={href}
+      onClick={onClick}
+      className={cn(
+        "p-2 rounded-xl text-sm font-medium transition-colors",
+        isActive
+          ? "bg-primary/10 text-primary font-semibold"
+          : "text-foreground hover:bg-muted"
+      )}
+    >
+      {children}
+    </Link>
+  );
+}
+
 export function Navbar() {
   const { user, isAuthenticated, logout } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { data: wallet } = useGetWallet({ query: { enabled: isAuthenticated } });
 
+  const close = () => setIsMobileMenuOpen(false);
+
   return (
     <>
+      {/* Backdrop to close menu on outside tap */}
+      {isMobileMenuOpen && (
+        <div
+          className="fixed inset-0 z-30 md:hidden"
+          onClick={close}
+        />
+      )}
+
       {/* Floating pill navbar */}
       <header className="sticky top-0 z-50 w-full flex justify-center pt-3 pb-2 px-4">
         <div className="w-full max-w-4xl bg-white/90 backdrop-blur-md border border-gray-200 shadow-md rounded-full pl-2 pr-5 h-14 flex items-center justify-between">
@@ -131,12 +159,10 @@ export function Navbar() {
               </>
             ) : (
               <div className="hidden sm:flex items-center gap-2">
-                {/* Theme / settings icon */}
                 <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full text-muted-foreground hover:text-foreground">
                   <Sun className="w-4 h-4" />
                 </Button>
 
-                {/* Join Community */}
                 <Button
                   variant="outline"
                   asChild
@@ -148,7 +174,6 @@ export function Navbar() {
                   </Link>
                 </Button>
 
-                {/* Sign In */}
                 <Button
                   asChild
                   className="h-8 rounded-full text-xs font-medium px-4 bg-primary hover:bg-primary/90 shadow-sm"
@@ -174,22 +199,22 @@ export function Navbar() {
         {isMobileMenuOpen && (
           <div className="absolute top-[68px] left-4 right-4 max-w-4xl mx-auto bg-white border border-gray-200 rounded-2xl shadow-xl p-4 space-y-3 z-40">
             <nav className="flex flex-col gap-1">
-              <Link href="/bundles" className="text-foreground font-medium p-2 hover:bg-muted rounded-xl text-sm" onClick={() => setIsMobileMenuOpen(false)}>Data Bundles</Link>
-              <Link href="/services" className="text-foreground font-medium p-2 hover:bg-muted rounded-xl text-sm" onClick={() => setIsMobileMenuOpen(false)}>Services</Link>
+              <MobileNavLink href="/bundles" onClick={close}>Data Bundles</MobileNavLink>
+              <MobileNavLink href="/services" onClick={close}>Services</MobileNavLink>
               {isAuthenticated && (
-                <Link href="/dashboard" className="text-primary font-semibold p-2 bg-primary/5 rounded-xl text-sm" onClick={() => setIsMobileMenuOpen(false)}>Dashboard</Link>
+                <MobileNavLink href="/dashboard" onClick={close}>Dashboard</MobileNavLink>
               )}
             </nav>
 
             {!isAuthenticated ? (
               <div className="flex flex-col gap-2 pt-3 border-t border-border">
                 <Button variant="outline" asChild className="w-full rounded-xl justify-center">
-                  <Link href="/register" onClick={() => setIsMobileMenuOpen(false)}>
+                  <Link href="/register" onClick={close}>
                     <Users className="mr-2 w-4 h-4" /> Join Community
                   </Link>
                 </Button>
                 <Button asChild className="w-full rounded-xl justify-center">
-                  <Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>Sign In</Link>
+                  <Link href="/login" onClick={close}>Sign In</Link>
                 </Button>
               </div>
             ) : (
@@ -199,9 +224,9 @@ export function Navbar() {
                   <span>{formatGHS(wallet?.balance)}</span>
                 </div>
                 <Button variant="outline" asChild className="w-full rounded-xl justify-center">
-                  <Link href="/wallet" onClick={() => setIsMobileMenuOpen(false)}>Wallet & Top Up</Link>
+                  <Link href="/wallet" onClick={close}>Wallet & Top Up</Link>
                 </Button>
-                <Button variant="ghost" className="w-full rounded-xl justify-center text-destructive" onClick={() => { logout(); setIsMobileMenuOpen(false); }}>
+                <Button variant="ghost" className="w-full rounded-xl justify-center text-destructive" onClick={() => { logout(); close(); }}>
                   <LogOut className="mr-2 h-4 w-4" /> Log out
                 </Button>
               </div>
