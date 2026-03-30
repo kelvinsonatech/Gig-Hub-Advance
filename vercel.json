@@ -1,10 +1,5 @@
 {
   "version": 2,
   "installCommand": "pnpm install --frozen-lockfile",
-  "buildCommand": "pnpm --filter @workspace/api-server run build:vercel && pnpm --filter @workspace/gigshub run build",
-  "outputDirectory": "artifacts/gigshub/dist/public",
-  "framework": null,
-  "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/handler" }
-  ]
+  "buildCommand": "node build-vercel.mjs"
 }
