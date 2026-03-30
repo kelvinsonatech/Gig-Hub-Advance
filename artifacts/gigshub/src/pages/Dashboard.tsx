@@ -103,7 +103,7 @@ export default function Dashboard() {
                 <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
                   <TrendingUp className="w-4 h-4 text-white" />
                 </div>
-                <span className="text-white/80 text-sm font-medium">GigsHub Wallet</span>
+                <span className="text-white/80 text-sm font-medium">TurboGH Wallet</span>
               </div>
               <button
                 onClick={() => setBalanceHidden(v => !v)}
