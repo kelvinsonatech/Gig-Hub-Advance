@@ -49,7 +49,7 @@ export default function Login() {
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="password">Password</Label>
-              <Link href="/forgot-password" className="text-sm text-primary hover:underline font-medium">Forgot password?</Link>
+              <span className="text-sm text-muted-foreground font-medium">Forgot password?</span>
             </div>
             <div className="relative">
               <Lock className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
@@ -67,7 +67,7 @@ export default function Login() {
 
           <Button 
             type="submit" 
-            className="w-full h-12 rounded-xl text-base shadow-md shadow-primary/20 hover:shadow-lg transition-all hover:-translate-y-0.5" 
+            className="w-full h-12 rounded-xl text-base shadow-md shadow-primary/20" 
             disabled={isLoggingIn}
           >
             {isLoggingIn ? <Loader2 className="w-5 h-5 animate-spin" /> : "Sign In"}

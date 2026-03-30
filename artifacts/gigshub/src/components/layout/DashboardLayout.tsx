@@ -1,5 +1,5 @@
 import { useAuth } from "@/hooks/use-auth";
-import { Link, useRoute } from "wouter";
+import { Link, useRoute, Redirect } from "wouter";
 import { cn } from "@/lib/utils";
 import {
   Home,
@@ -10,10 +10,27 @@ import {
   Settings,
   Wifi,
 } from "lucide-react";
-import { Redirect } from "wouter";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
+}
+
+function SidebarLink({ href, icon: Icon, children }: { href: string; icon: any; children: React.ReactNode }) {
+  const [isActive] = useRoute(href);
+  return (
+    <Link
+      href={href}
+      className={cn(
+        "flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors group",
+        isActive
+          ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
+          : "text-muted-foreground hover:bg-primary/5 hover:text-foreground"
+      )}
+    >
+      <Icon className={cn("w-5 h-5", isActive ? "text-primary-foreground" : "text-muted-foreground group-hover:text-primary")} />
+      {children}
+    </Link>
+  );
 }
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
@@ -22,24 +39,6 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   if (!isLoading && !isAuthenticated) {
     return <Redirect to="/login" />;
   }
-
-  const SidebarLink = ({ href, icon: Icon, children }: { href: string; icon: any; children: React.ReactNode }) => {
-    const [isActive] = useRoute(href);
-    return (
-      <Link
-        href={href}
-        className={cn(
-          "flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all group",
-          isActive
-            ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
-            : "text-muted-foreground hover:bg-primary/5 hover:text-foreground"
-        )}
-      >
-        <Icon className={cn("w-5 h-5", isActive ? "text-primary-foreground" : "text-muted-foreground group-hover:text-primary")} />
-        {children}
-      </Link>
-    );
-  };
 
   return (
     <div className="mx-auto px-3 sm:px-4 py-4 md:py-8 max-w-7xl flex flex-col md:flex-row gap-6 md:gap-8 min-h-[calc(100vh-4rem)] pb-24">

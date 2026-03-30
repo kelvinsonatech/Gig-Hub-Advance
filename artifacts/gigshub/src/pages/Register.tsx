@@ -34,7 +34,7 @@ export default function Register() {
             <img src={logoUrl} alt="TurboGH" className="w-36 sm:w-44 h-auto mx-auto mb-4 sm:mb-6 cursor-pointer" />
           </Link>
           <h1 className="text-xl sm:text-2xl font-bold text-foreground">Create an account</h1>
-          <p className="text-muted-foreground mt-1.5 text-sm sm:text-base">Join GigsHub for the best digital services</p>
+          <p className="text-muted-foreground mt-1.5 text-sm sm:text-base">Join TurboGH for the best digital services</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -104,7 +104,7 @@ export default function Register() {
 
           <Button 
             type="submit" 
-            className="w-full h-12 rounded-xl text-base shadow-md shadow-primary/20 hover:shadow-lg transition-all mt-4" 
+            className="w-full h-12 rounded-xl text-base shadow-md shadow-primary/20 mt-4" 
             disabled={isRegistering}
           >
             {isRegistering ? <Loader2 className="w-5 h-5 animate-spin" /> : "Create Account"}
