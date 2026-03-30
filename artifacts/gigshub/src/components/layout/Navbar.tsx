@@ -403,12 +403,6 @@ export function Navbar() {
           </div>
         )}
 
-        {/* Notifications panel (mobile — renders outside pill) */}
-        <AnimatePresence>
-          {showNotifications && (
-            <NotificationsPanel onClose={() => setShowNotifications(false)} />
-          )}
-        </AnimatePresence>
       </header>
     </>
   );
