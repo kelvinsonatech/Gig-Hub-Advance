@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useGetBundles, useGetNetworks, useCreateOrder, useGetWallet, type Bundle } from "@workspace/api-client-react";
 import { keepPreviousData } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -26,21 +26,19 @@ export default function Bundles() {
   const { data: networks, isLoading: loadingNetworks } = useGetNetworks();
   const { data: wallet } = useGetWallet({ query: { enabled: isAuthenticated } });
 
-  const [activeNetwork, setActiveNetwork] = useState<string | null>(null);
+  const [selectedNetworkId, setSelectedNetworkId] = useState<string | null>(null);
+  const activeNetwork = selectedNetworkId ?? networks?.[0]?.id ?? null;
+
   const { data: bundles, isLoading: loadingBundles } = useGetBundles(
     { networkId: activeNetwork || undefined },
     { query: { enabled: !!activeNetwork, placeholderData: keepPreviousData } }
   );
 
+  const showBundlesSkeleton = loadingNetworks || (!!activeNetwork && loadingBundles);
+
   const [selectedBundle, setSelectedBundle] = useState<Bundle | null>(null);
   const [phoneNumber, setPhoneNumber] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
-
-  useEffect(() => {
-    if (networks && networks.length > 0 && !activeNetwork) {
-      setActiveNetwork(networks[0].id);
-    }
-  }, [networks, activeNetwork]);
 
   const createOrder = useCreateOrder({
     mutation: {
@@ -135,7 +133,7 @@ export default function Bundles() {
               return (
                 <button
                   key={network.id}
-                  onClick={() => setActiveNetwork(network.id)}
+                  onClick={() => setSelectedNetworkId(network.id)}
                   className={cn(
                     "px-4 sm:px-6 py-2 sm:py-3 rounded-xl sm:rounded-2xl font-bold text-sm sm:text-base transition-all duration-200 border-2",
                     !isActive && "bg-white text-gray-600 border-gray-200 hover:border-gray-300 shadow-sm"
@@ -151,7 +149,7 @@ export default function Bundles() {
 
         {/* Bundles Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-          {loadingBundles ? (
+          {showBundlesSkeleton ? (
             [1, 2, 3, 4, 5, 6, 7, 8].map(i => (
               <div key={i} className="h-52 bg-gray-200 rounded-3xl animate-pulse" />
             ))
