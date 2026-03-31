@@ -14,6 +14,7 @@ router.get("/", async (req, res) => {
       category: s.category,
       price: parseFloat(s.price),
       iconUrl: s.iconUrl,
+      brandColor: s.brandColor,
     })));
   } catch (err) {
     req.log.error(err, "get services error");

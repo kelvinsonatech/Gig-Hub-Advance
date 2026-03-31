@@ -169,6 +169,7 @@ router.get("/services", async (req, res) => {
       category: s.category,
       price: parseFloat(s.price),
       iconUrl: s.iconUrl,
+      brandColor: s.brandColor,
     })));
   } catch (err) {
     req.log.error(err, "admin get services error");
@@ -178,12 +179,12 @@ router.get("/services", async (req, res) => {
 
 router.post("/services", async (req, res) => {
   try {
-    const { name, description, category, price, iconUrl } = req.body;
+    const { name, description, category, price, iconUrl, brandColor } = req.body;
     if (!name || !description || !category || !price) {
       return res.status(400).json({ error: "validation_error", message: "name, description, category and price are required" });
     }
     const [service] = await db.insert(servicesTable).values({
-      name, description, category, price: String(price), iconUrl,
+      name, description, category, price: String(price), iconUrl, brandColor,
     }).returning();
     return res.status(201).json({
       id: String(service.id),
@@ -192,6 +193,7 @@ router.post("/services", async (req, res) => {
       category: service.category,
       price: parseFloat(service.price),
       iconUrl: service.iconUrl,
+      brandColor: service.brandColor,
     });
   } catch (err) {
     req.log.error(err, "admin create service error");
@@ -202,11 +204,11 @@ router.post("/services", async (req, res) => {
 router.put("/services/:id", async (req, res) => {
   try {
     const id = parseInt(req.params.id);
-    const { name, description, category, price, iconUrl } = req.body;
+    const { name, description, category, price, iconUrl, brandColor } = req.body;
     const [service] = await db.update(servicesTable).set({
       name, description, category,
       price: price ? String(price) : undefined,
-      iconUrl,
+      iconUrl, brandColor,
     }).where(eq(servicesTable.id, id)).returning();
     if (!service) return res.status(404).json({ error: "not_found", message: "Service not found" });
     return res.json({
@@ -216,6 +218,7 @@ router.put("/services/:id", async (req, res) => {
       category: service.category,
       price: parseFloat(service.price),
       iconUrl: service.iconUrl,
+      brandColor: service.brandColor,
     });
   } catch (err) {
     req.log.error(err, "admin update service error");

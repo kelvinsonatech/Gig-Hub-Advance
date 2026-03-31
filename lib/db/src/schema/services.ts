@@ -9,6 +9,7 @@ export const servicesTable = pgTable("services", {
   category: text("category").notNull(),
   price: numeric("price", { precision: 10, scale: 2 }).notNull(),
   iconUrl: text("icon_url"),
+  brandColor: text("brand_color"),
 });
 
 export const insertServiceSchema = createInsertSchema(servicesTable).omit({ id: true });

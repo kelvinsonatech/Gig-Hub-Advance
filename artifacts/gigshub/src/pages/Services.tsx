@@ -256,24 +256,34 @@ export default function Services() {
             {/* Admin-added non-network services */}
             {!isLoading && services
               .filter(s => !["mtn", "airteltigo", "telecel"].includes(s.category))
-              .map((s, i) => (
-                <motion.div
-                  key={s.id}
-                  initial={{ opacity: 0, y: 16 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.54 + i * 0.08, type: "spring", stiffness: 220, damping: 22 }}
-                  whileHover={{ y: -4 }}
-                >
-                  <div className="bg-white border border-gray-100 rounded-2xl p-5 h-full hover:shadow-md transition-all">
-                    <div className="w-11 h-11 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-3">
-                      <Package className="w-5 h-5" />
+              .map((s: any, i: number) => {
+                const color = s.brandColor || "#6366f1";
+                return (
+                  <motion.div
+                    key={s.id}
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.54 + i * 0.08, type: "spring", stiffness: 220, damping: 22 }}
+                    whileHover={{ y: -4 }}
+                  >
+                    <div className="bg-white border border-gray-100 rounded-2xl p-5 h-full hover:shadow-md transition-all">
+                      <div
+                        className="w-11 h-11 rounded-xl flex items-center justify-center mb-3"
+                        style={{ backgroundColor: color + "20" }}
+                      >
+                        {s.iconUrl ? (
+                          <img src={s.iconUrl} alt={s.name} className="w-7 h-7 object-contain rounded-lg" />
+                        ) : (
+                          <Package className="w-5 h-5" style={{ color }} />
+                        )}
+                      </div>
+                      <h3 className="font-bold text-gray-900 text-sm mb-1">{s.name}</h3>
+                      <p className="text-gray-500 text-xs mb-3 leading-relaxed line-clamp-2">{s.description}</p>
+                      <span className="text-xs font-bold" style={{ color }}>From {formatGHS(s.price)}</span>
                     </div>
-                    <h3 className="font-bold text-gray-900 text-sm mb-1">{s.name}</h3>
-                    <p className="text-gray-500 text-xs mb-3 leading-relaxed line-clamp-2">{s.description}</p>
-                    <span className="text-primary font-bold text-xs">From {formatGHS(s.price)}</span>
-                  </div>
-                </motion.div>
-              ))}
+                  </motion.div>
+                );
+              })}
           </div>
         </section>
 

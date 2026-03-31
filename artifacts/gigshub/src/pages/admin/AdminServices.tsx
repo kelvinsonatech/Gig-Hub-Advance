@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Pencil, Trash2, X, Loader2, Wrench } from "lucide-react";
+import { Plus, Pencil, Trash2, X, Loader2, Wrench, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 
@@ -41,6 +41,7 @@ type Service = {
   category: string;
   price: number;
   iconUrl?: string | null;
+  brandColor?: string | null;
 };
 
 type ServiceForm = Omit<Service, "id">;
@@ -51,6 +52,7 @@ const emptyForm = (): ServiceForm => ({
   category: "mtn",
   price: 0,
   iconUrl: "",
+  brandColor: "#6366f1",
 });
 
 export default function AdminServices() {
@@ -104,7 +106,14 @@ export default function AdminServices() {
 
   function openAdd() { setForm(emptyForm()); setEditService(null); setShowForm(true); }
   function openEdit(s: Service) {
-    setForm({ name: s.name, description: s.description, category: s.category, price: s.price, iconUrl: s.iconUrl ?? "" });
+    setForm({
+      name: s.name,
+      description: s.description,
+      category: s.category,
+      price: s.price,
+      iconUrl: s.iconUrl ?? "",
+      brandColor: s.brandColor ?? "#6366f1",
+    });
     setEditService(s);
     setShowForm(true);
   }
@@ -120,6 +129,8 @@ export default function AdminServices() {
   }
 
   const isSaving = createMutation.isPending || updateMutation.isPending;
+
+  const inputCls = "w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#fce7f3] focus:border-[#E91E8C]";
 
   return (
     <div className="p-4 sm:p-8">
@@ -145,6 +156,7 @@ export default function AdminServices() {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {services.map(s => {
             const cat = getCategoryMeta(s.category);
+            const color = s.brandColor || "#6366f1";
             return (
               <div key={s.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
                 <div className="flex items-start justify-between mb-3">
@@ -160,10 +172,24 @@ export default function AdminServices() {
                     </button>
                   </div>
                 </div>
+
+                {/* Icon preview */}
+                <div
+                  className="w-11 h-11 rounded-xl flex items-center justify-center mb-3"
+                  style={{ backgroundColor: color + "20" }}
+                >
+                  {s.iconUrl ? (
+                    <img src={s.iconUrl} alt={s.name} className="w-7 h-7 object-contain rounded-lg" />
+                  ) : (
+                    <Package className="w-5 h-5" style={{ color }} />
+                  )}
+                </div>
+
                 <h3 className="font-semibold text-gray-900 text-sm mt-2">{s.name}</h3>
                 <p className="text-xs text-gray-500 mt-1 line-clamp-2">{s.description}</p>
-                <div className="mt-3">
-                  <span className="text-sm font-bold text-[#E91E8C]">GHS {s.price.toFixed(2)}</span>
+                <div className="mt-3 flex items-center gap-2">
+                  <span className="text-sm font-bold" style={{ color }}>GHS {s.price.toFixed(2)}</span>
+                  <span className="w-3 h-3 rounded-full border border-gray-200 inline-block" style={{ backgroundColor: color }} title="Brand colour" />
                 </div>
               </div>
             );
@@ -174,8 +200,8 @@ export default function AdminServices() {
       {/* Add/Edit modal */}
       {showForm && (
         <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+          <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 sticky top-0 bg-white z-10">
               <h2 className="font-bold text-gray-900">{editService ? "Edit Package" : "Add New Package"}</h2>
               <button onClick={closeForm} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400">
                 <X className="w-4 h-4" />
@@ -189,14 +215,14 @@ export default function AdminServices() {
                   required
                   value={form.category}
                   onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
-                  className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#fce7f3] focus:border-[#E91E8C] bg-white"
+                  className={inputCls + " bg-white"}
                 >
                   {CATEGORIES.map(c => (
                     <option key={c.value} value={c.value}>{c.label}</option>
                   ))}
                 </select>
                 <p className="text-[11px] text-gray-400 mt-1">
-                  MTN/AirtelTigo/Telecel packages appear on the Services page under that network.
+                  MTN/AirtelTigo/Telecel packages appear under that network on the Services page.
                 </p>
               </div>
 
@@ -207,7 +233,7 @@ export default function AdminServices() {
                   placeholder="e.g. 5GB Monthly Bundle"
                   value={form.name}
                   onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-                  className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#fce7f3] focus:border-[#E91E8C]"
+                  className={inputCls}
                 />
               </div>
 
@@ -219,7 +245,7 @@ export default function AdminServices() {
                   placeholder="Brief description of the package"
                   value={form.description}
                   onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
-                  className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#fce7f3] focus:border-[#E91E8C] resize-none"
+                  className={inputCls + " resize-none"}
                 />
               </div>
 
@@ -233,13 +259,65 @@ export default function AdminServices() {
                   placeholder="0.00"
                   value={form.price || ""}
                   onChange={e => setForm(f => ({ ...f, price: parseFloat(e.target.value) || 0 }))}
-                  className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#fce7f3] focus:border-[#E91E8C]"
+                  className={inputCls}
                 />
+              </div>
+
+              {/* Icon URL */}
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1.5">Logo / Icon URL</label>
+                <input
+                  type="url"
+                  placeholder="https://example.com/logo.png"
+                  value={form.iconUrl ?? ""}
+                  onChange={e => setForm(f => ({ ...f, iconUrl: e.target.value }))}
+                  className={inputCls}
+                />
+                <p className="text-[11px] text-gray-400 mt-1">Paste an image URL — it will appear as the package logo.</p>
+                {form.iconUrl && (
+                  <img src={form.iconUrl} alt="Preview" className="mt-2 h-10 w-10 rounded-xl object-contain border border-gray-100" />
+                )}
+              </div>
+
+              {/* Brand Colour */}
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-2">Brand Colour</label>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="color"
+                    value={form.brandColor ?? "#6366f1"}
+                    onChange={e => setForm(f => ({ ...f, brandColor: e.target.value }))}
+                    className="w-10 h-10 rounded-xl border border-gray-200 cursor-pointer p-0.5"
+                  />
+                  {/* Preview of how it will look on the card */}
+                  <div
+                    className="flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-100"
+                    style={{ backgroundColor: (form.brandColor ?? "#6366f1") + "15" }}
+                  >
+                    <div
+                      className="w-8 h-8 rounded-lg flex items-center justify-center"
+                      style={{ backgroundColor: (form.brandColor ?? "#6366f1") + "25" }}
+                    >
+                      {form.iconUrl ? (
+                        <img src={form.iconUrl} alt="" className="w-5 h-5 object-contain rounded" />
+                      ) : (
+                        <Package className="w-4 h-4" style={{ color: form.brandColor ?? "#6366f1" }} />
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold text-gray-800">{form.name || "Package name"}</p>
+                      <p className="text-[11px] font-bold" style={{ color: form.brandColor ?? "#6366f1" }}>
+                        GHS {(form.price || 0).toFixed(2)}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <p className="text-[11px] text-gray-400 mt-1.5">This colour tints the icon background and price on the Services page.</p>
               </div>
 
               <div className="flex gap-3 pt-2">
                 <Button type="button" variant="outline" className="flex-1" onClick={closeForm}>Cancel</Button>
-                <Button type="submit" disabled={isSaving} className="flex-1">
+                <Button type="submit" disabled={isSaving} className="flex-1 bg-[#E91E8C] hover:bg-[#d4197f]">
                   {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : editService ? "Save Changes" : "Add Package"}
                 </Button>
               </div>
