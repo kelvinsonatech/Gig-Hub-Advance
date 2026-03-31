@@ -87,15 +87,18 @@ export default function Dashboard() {
           animate={{ opacity: 1, y: 0 }}
           className="relative overflow-hidden rounded-2xl md:rounded-3xl p-5 md:p-6 text-white shadow-2xl isolate"
           style={{
-            backgroundImage: `url("https://occ-0-8407-2219.1.nflxso.net/dnm/api/v6/6AYY37jfdO6hpXcMjf9Yu5cnmO0/AAAABUV_jDjJ4_X_PSYgTJthNlfoStaN1fqwW1vcTx8bKIwYizu5-VL1365SJPeFB1FIig2dpPVvYdgfODQ9DEKR8t9Ak3G5NIa1HeWv.jpg?r=513")`,
-            backgroundSize: "cover",
-            backgroundPosition: "center",
+            background: "linear-gradient(135deg, #111111 0%, #1c1c1c 45%, #2d1000 100%)",
           }}
         >
-          {/* Dark overlay */}
-          <div className="absolute inset-0 bg-gradient-to-br from-black/70 via-black/50 to-orange-950/60" />
+          {/* Subtle grid texture */}
+          <div className="absolute inset-0 opacity-[0.04]" style={{
+            backgroundImage: "linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)",
+            backgroundSize: "28px 28px",
+          }} />
+          {/* Top-left glow */}
+          <div className="absolute -top-10 -left-10 w-48 h-48 bg-orange-500/20 rounded-full blur-3xl" />
           {/* Orange glow orb */}
-          <div className="absolute bottom-0 right-0 w-56 h-56 bg-primary/30 rounded-full blur-3xl translate-x-1/4 translate-y-1/4" />
+          <div className="absolute bottom-0 right-0 w-56 h-56 bg-primary/25 rounded-full blur-3xl translate-x-1/4 translate-y-1/4" />
 
           <div className="relative z-10">
             <div className="flex items-center justify-between mb-6">
