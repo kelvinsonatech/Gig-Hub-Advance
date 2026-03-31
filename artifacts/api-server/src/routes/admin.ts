@@ -1,8 +1,9 @@
 import { Router, type IRouter } from "express";
 import { db } from "@workspace/db";
-import { bundlesTable, servicesTable, networksTable, ordersTable, usersTable, notificationsTable } from "@workspace/db";
-import { eq, count } from "drizzle-orm";
+import { bundlesTable, servicesTable, networksTable, ordersTable, usersTable, notificationsTable, deviceTokensTable } from "@workspace/db";
+import { eq, count, inArray } from "drizzle-orm";
 import { requireAuth, requireAdmin } from "../middleware/auth";
+import { sendPushToTokens } from "../lib/fcm";
 
 const router: IRouter = Router();
 
@@ -218,12 +219,40 @@ router.post("/notifications", async (req, res) => {
     if (!title || !message) {
       return res.status(400).json({ error: "validation_error", message: "Title and message are required" });
     }
+    const targetUserId = userId ? parseInt(userId) : null;
+
     const [notification] = await db.insert(notificationsTable).values({
       title,
       message,
       imageUrl: imageUrl || null,
-      userId: userId ? parseInt(userId) : null,
+      userId: targetUserId,
     }).returning();
+
+    // Send FCM push notification
+    try {
+      let tokenRows: { token: string; id: number }[] = [];
+      if (targetUserId) {
+        tokenRows = await db
+          .select({ token: deviceTokensTable.token, id: deviceTokensTable.id })
+          .from(deviceTokensTable)
+          .where(eq(deviceTokensTable.userId, targetUserId));
+      } else {
+        tokenRows = await db
+          .select({ token: deviceTokensTable.token, id: deviceTokensTable.id })
+          .from(deviceTokensTable);
+      }
+
+      if (tokenRows.length > 0) {
+        const tokens = tokenRows.map(r => r.token);
+        const { failedTokens } = await sendPushToTokens(tokens, title, message, imageUrl);
+        if (failedTokens.length > 0) {
+          await db.delete(deviceTokensTable).where(inArray(deviceTokensTable.token, failedTokens));
+        }
+      }
+    } catch (fcmErr) {
+      req.log.warn(fcmErr, "FCM push failed (notification still saved)");
+    }
+
     return res.status(201).json({
       id: String(notification.id),
       title: notification.title,

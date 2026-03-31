@@ -11,6 +11,7 @@ import { BottomNav } from "@/components/layout/BottomNav";
 import { InstallPrompt } from "@/components/InstallPrompt";
 import { LoginConfetti } from "@/components/LoginConfetti";
 import { AdminLayout } from "@/pages/admin/AdminLayout";
+import { useFcm } from "@/hooks/use-fcm";
 
 // Pages
 import Login from "@/pages/Login";
@@ -122,6 +123,11 @@ function Router() {
   );
 }
 
+function FcmInit() {
+  useFcm();
+  return null;
+}
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -130,6 +136,7 @@ function App() {
           <Router />
           <LoginConfetti />
           <InstallPrompt />
+          <FcmInit />
         </WouterRouter>
         <Toaster />
       </TooltipProvider>
