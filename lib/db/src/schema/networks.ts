@@ -8,6 +8,7 @@ export const networksTable = pgTable("networks", {
   code: text("code").notNull().unique(),
   color: text("color").notNull(),
   logoUrl: text("logo_url"),
+  tagline: text("tagline"),
 });
 
 export const insertNetworkSchema = createInsertSchema(networksTable).omit({ id: true });

@@ -10,6 +10,7 @@ import {
   Bell,
   Menu,
   X,
+  Radio,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UserAvatar } from "@/components/ui/UserAvatar";
@@ -17,6 +18,7 @@ import logoUrl from "@assets/logo.png";
 
 const navItems = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/admin/networks", label: "Networks", icon: Radio },
   { href: "/admin/bundles", label: "Data Bundles", icon: Package },
   { href: "/admin/services", label: "Services", icon: Wrench },
   { href: "/admin/notifications", label: "Notifications", icon: Bell },

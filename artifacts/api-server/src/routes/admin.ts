@@ -238,13 +238,65 @@ router.delete("/services/:id", async (req, res) => {
 });
 
 // ── Networks ───────────────────────────────────────────────────────────────────
+function serializeNetwork(n: typeof networksTable.$inferSelect) {
+  return {
+    id: String(n.id),
+    name: n.name,
+    code: n.code,
+    color: n.color,
+    logoUrl: n.logoUrl,
+    tagline: n.tagline,
+  };
+}
+
 router.get("/networks", async (req, res) => {
   try {
     const networks = await db.select().from(networksTable).orderBy(networksTable.id);
-    return res.json(networks);
+    return res.json(networks.map(serializeNetwork));
   } catch (err) {
     req.log.error(err, "admin get networks error");
     return res.status(500).json({ error: "internal_error", message: "Failed to get networks" });
+  }
+});
+
+router.post("/networks", async (req, res) => {
+  try {
+    const { name, code, color, logoUrl, tagline } = req.body;
+    if (!name || !code || !color) {
+      return res.status(400).json({ error: "validation_error", message: "name, code and color are required" });
+    }
+    const [network] = await db.insert(networksTable).values({ name, code: code.toUpperCase(), color, logoUrl, tagline }).returning();
+    return res.status(201).json(serializeNetwork(network));
+  } catch (err: any) {
+    if (err?.code === "23505") return res.status(409).json({ error: "conflict", message: "A network with that code already exists" });
+    req.log.error(err, "admin create network error");
+    return res.status(500).json({ error: "internal_error", message: "Failed to create network" });
+  }
+});
+
+router.put("/networks/:id", async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const { name, code, color, logoUrl, tagline } = req.body;
+    const [network] = await db.update(networksTable).set({
+      name, code: code ? code.toUpperCase() : undefined, color, logoUrl, tagline,
+    }).where(eq(networksTable.id, id)).returning();
+    if (!network) return res.status(404).json({ error: "not_found", message: "Network not found" });
+    return res.json(serializeNetwork(network));
+  } catch (err) {
+    req.log.error(err, "admin update network error");
+    return res.status(500).json({ error: "internal_error", message: "Failed to update network" });
+  }
+});
+
+router.delete("/networks/:id", async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    await db.delete(networksTable).where(eq(networksTable.id, id));
+    return res.json({ success: true });
+  } catch (err) {
+    req.log.error(err, "admin delete network error");
+    return res.status(500).json({ error: "internal_error", message: "Failed to delete network" });
   }
 });
 

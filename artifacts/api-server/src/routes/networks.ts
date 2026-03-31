@@ -13,6 +13,7 @@ router.get("/", async (req, res) => {
       code: n.code,
       color: n.color,
       logoUrl: n.logoUrl,
+      tagline: n.tagline,
     })));
   } catch (err) {
     req.log.error(err, "get networks error");

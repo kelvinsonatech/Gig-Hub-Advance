@@ -26,6 +26,7 @@ import AgentRegistration from "@/pages/AgentRegistration";
 
 // Admin pages
 import AdminDashboard from "@/pages/admin/AdminDashboard";
+import AdminNetworks from "@/pages/admin/AdminNetworks";
 import AdminBundles from "@/pages/admin/AdminBundles";
 import AdminServices from "@/pages/admin/AdminServices";
 import AdminNotifications from "@/pages/admin/AdminNotifications";
@@ -84,6 +85,7 @@ function Router() {
         <ScrollToTop />
         <Switch location={location}>
           <Route path="/admin" component={AdminDashboard} />
+          <Route path="/admin/networks" component={AdminNetworks} />
           <Route path="/admin/bundles" component={AdminBundles} />
           <Route path="/admin/services" component={AdminServices} />
           <Route path="/admin/notifications" component={AdminNotifications} />
