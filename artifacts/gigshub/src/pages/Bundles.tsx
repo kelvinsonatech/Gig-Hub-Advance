@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatGHS, cn } from "@/lib/utils";
-import { Wifi, Phone, CreditCard, Loader2, ShoppingBag, RefreshCw } from "lucide-react";
+import { Wifi, Phone, CreditCard, Wallet, Smartphone, Loader2, ShoppingBag, RefreshCw, CheckCircle2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
@@ -49,6 +49,7 @@ export default function Bundles() {
   const [selectedBundle, setSelectedBundle] = useState<Bundle | null>(null);
   const [phoneNumber, setPhoneNumber] = useState("");
   const [phoneTouched, setPhoneTouched] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<"momo" | "wallet">("momo");
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const createOrder = useCreateOrder({
@@ -58,6 +59,7 @@ export default function Bundles() {
         setIsModalOpen(false);
         setPhoneNumber("");
         setPhoneTouched(false);
+        setPaymentMethod("momo");
         queryClient.invalidateQueries({ queryKey: ["/api/wallet"] });
         queryClient.invalidateQueries({ queryKey: ["/api/orders"] });
       },
@@ -78,13 +80,15 @@ export default function Bundles() {
   };
 
   const handlePurchase = () => {
-    if (!selectedBundle || !phoneNumber) return;
-    if (wallet && wallet.balance < selectedBundle.price) {
-      toast({ variant: "destructive", title: "Insufficient balance", description: "Please top up your wallet first." });
-      return;
+    if (!selectedBundle || phoneNumber.replace(/\D/g, "").length < 10) return;
+    if (paymentMethod === "wallet") {
+      if (!wallet || wallet.balance < selectedBundle.price) {
+        toast({ variant: "destructive", title: "Insufficient wallet balance", description: "Please top up your wallet first." });
+        return;
+      }
     }
     createOrder.mutate({
-      data: { type: "bundle", bundleId: selectedBundle.id, phoneNumber }
+      data: { type: "bundle", bundleId: selectedBundle.id, phoneNumber, details: { paymentMethod } }
     });
   };
 
@@ -220,11 +224,12 @@ export default function Bundles() {
         <DialogContent className="sm:max-w-md rounded-3xl">
           <DialogHeader>
             <DialogTitle className="text-2xl">Complete Purchase</DialogTitle>
-            <DialogDescription>Enter the recipient phone number for this data bundle.</DialogDescription>
+            <DialogDescription>Choose how to pay and enter the recipient number.</DialogDescription>
           </DialogHeader>
 
           {selectedBundle && (
-            <div className="space-y-6 my-4">
+            <div className="space-y-5 my-2">
+              {/* Bundle summary */}
               <div className="bg-secondary/50 p-4 rounded-2xl border border-border flex justify-between items-center">
                 <div>
                   <p className="font-bold text-lg">{selectedBundle.data}</p>
@@ -233,7 +238,69 @@ export default function Bundles() {
                 <p className="font-bold text-primary text-xl">{formatGHS(selectedBundle.price)}</p>
               </div>
 
-              <div className="space-y-3">
+              {/* Payment method */}
+              <div className="space-y-2">
+                <Label>Payment Method</Label>
+                <div className="grid grid-cols-2 gap-3">
+                  {/* MoMo */}
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod("momo")}
+                    className={cn(
+                      "relative flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all text-left",
+                      paymentMethod === "momo"
+                        ? "border-orange-400 bg-orange-50 shadow-sm"
+                        : "border-gray-100 bg-white hover:border-gray-200"
+                    )}
+                  >
+                    {paymentMethod === "momo" && (
+                      <CheckCircle2 className="absolute top-2 right-2 w-4 h-4 text-orange-500" />
+                    )}
+                    <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", paymentMethod === "momo" ? "bg-orange-100" : "bg-gray-100")}>
+                      <Smartphone className={cn("w-5 h-5", paymentMethod === "momo" ? "text-orange-500" : "text-gray-400")} />
+                    </div>
+                    <div>
+                      <p className={cn("text-sm font-bold", paymentMethod === "momo" ? "text-orange-700" : "text-gray-700")}>MoMo</p>
+                      <p className="text-[11px] text-gray-400">Mobile Money</p>
+                    </div>
+                  </button>
+
+                  {/* Wallet */}
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod("wallet")}
+                    className={cn(
+                      "relative flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all text-left",
+                      paymentMethod === "wallet"
+                        ? "border-green-400 bg-green-50 shadow-sm"
+                        : "border-gray-100 bg-white hover:border-gray-200"
+                    )}
+                  >
+                    {paymentMethod === "wallet" && (
+                      <CheckCircle2 className="absolute top-2 right-2 w-4 h-4 text-green-500" />
+                    )}
+                    <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", paymentMethod === "wallet" ? "bg-green-100" : "bg-gray-100")}>
+                      <Wallet className={cn("w-5 h-5", paymentMethod === "wallet" ? "text-green-600" : "text-gray-400")} />
+                    </div>
+                    <div>
+                      <p className={cn("text-sm font-bold", paymentMethod === "wallet" ? "text-green-700" : "text-gray-700")}>Wallet</p>
+                      <p className="text-[11px] text-gray-400">
+                        Bal: {wallet ? formatGHS(wallet.balance) : "—"}
+                      </p>
+                    </div>
+                  </button>
+                </div>
+
+                {/* Wallet insufficient warning */}
+                {paymentMethod === "wallet" && wallet && wallet.balance < (selectedBundle?.price ?? 0) && (
+                  <p className="text-xs text-red-500 font-medium mt-1">
+                    Insufficient balance — you need {formatGHS((selectedBundle?.price ?? 0) - wallet.balance)} more.
+                  </p>
+                )}
+              </div>
+
+              {/* Phone number */}
+              <div className="space-y-2">
                 <Label htmlFor="phone">Recipient Phone Number</Label>
                 <div className="relative">
                   <Phone className={`absolute left-3 top-3 h-5 w-5 ${phoneTouched && phoneNumber.replace(/\D/g, "").length < 10 ? "text-red-400" : "text-muted-foreground"}`} />
@@ -261,10 +328,18 @@ export default function Bundles() {
             <Button variant="outline" onClick={() => setIsModalOpen(false)} className="rounded-xl h-12 flex-1">Cancel</Button>
             <Button
               onClick={handlePurchase}
-              disabled={phoneNumber.replace(/\D/g, "").length < 10 || createOrder.isPending}
-              className="rounded-xl h-12 flex-1 shadow-md shadow-primary/20"
+              disabled={phoneNumber.replace(/\D/g, "").length < 10 || createOrder.isPending || (paymentMethod === "wallet" && !!wallet && wallet.balance < (selectedBundle?.price ?? 0))}
+              className={cn(
+                "rounded-xl h-12 flex-1 shadow-md",
+                paymentMethod === "wallet"
+                  ? "bg-green-600 hover:bg-green-700 text-white shadow-green-200"
+                  : "shadow-primary/20"
+              )}
             >
-              {createOrder.isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : "Confirm & Pay"}
+              {createOrder.isPending
+                ? <Loader2 className="w-5 h-5 animate-spin" />
+                : paymentMethod === "wallet" ? "Pay from Wallet" : "Pay with MoMo"
+              }
             </Button>
           </DialogFooter>
         </DialogContent>
