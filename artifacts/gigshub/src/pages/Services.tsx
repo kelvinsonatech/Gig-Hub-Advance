@@ -145,14 +145,14 @@ export default function Services() {
                   />
 
                   {/* Content */}
-                  <div className="relative z-10 p-5 sm:p-6 flex flex-col sm:flex-col">
+                  <div className="relative z-10 p-6 flex flex-col sm:flex-col">
 
                     {/* Mobile: horizontal row | Desktop: vertical stack */}
-                    <div className="flex items-center gap-4 sm:flex-col sm:items-start sm:gap-0">
+                    <div className="flex items-center gap-5 sm:flex-col sm:items-start sm:gap-0">
 
                       {/* Logo + name row */}
-                      <div className="flex items-center gap-4 sm:mb-5 flex-1 min-w-0">
-                        <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-white/90 backdrop-blur-sm shadow-md flex items-center justify-center overflow-hidden shrink-0 ring-1 ring-white/50">
+                      <div className="flex items-center gap-5 sm:mb-5 flex-1 min-w-0">
+                        <div className="w-16 h-16 sm:w-16 sm:h-16 rounded-2xl bg-white/90 backdrop-blur-sm shadow-md flex items-center justify-center overflow-hidden shrink-0 ring-1 ring-white/50">
                           <img
                             src={net.logoUrl}
                             alt={net.name}
@@ -161,8 +161,8 @@ export default function Services() {
                           />
                         </div>
                         <div className="min-w-0">
-                          <h3 className={`font-black text-lg sm:text-xl tracking-tight ${net.titleText}`}>{net.name}</h3>
-                          <p className={`text-xs font-medium truncate ${net.taglineText}`}>{net.tagline}</p>
+                          <h3 className={`font-black text-xl tracking-tight ${net.titleText}`}>{net.name}</h3>
+                          <p className={`text-sm font-medium truncate ${net.taglineText}`}>{net.tagline}</p>
                         </div>
                       </div>
 
