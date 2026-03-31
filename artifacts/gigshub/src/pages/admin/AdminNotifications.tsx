@@ -41,6 +41,7 @@ export default function AdminNotifications() {
   const [imageUrl, setImageUrl] = useState("");
   const [userId, setUserId] = useState("");
   const [success, setSuccess] = useState(false);
+  const [imgError, setImgError] = useState(false);
 
   const { data: notifications = [], isLoading } = useQuery({
     queryKey: ["admin-notifications"],
@@ -116,10 +117,34 @@ export default function AdminNotifications() {
             </label>
             <input
               value={imageUrl}
-              onChange={e => setImageUrl(e.target.value)}
+              onChange={e => { setImageUrl(e.target.value); setImgError(false); }}
               placeholder="https://example.com/image.jpg"
               className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0077C7]/30 focus:border-[#0077C7]"
             />
+            {/* Live preview */}
+            {imageUrl.trim() && (
+              <div className="mt-2.5">
+                {imgError ? (
+                  <div className="flex items-center gap-2 text-xs text-red-500 bg-red-50 border border-red-100 rounded-xl px-3 py-2.5">
+                    <ImageIcon className="w-4 h-4 shrink-0" />
+                    Could not load image — check the URL
+                  </div>
+                ) : (
+                  <div className="relative rounded-xl overflow-hidden border border-gray-200 bg-gray-50">
+                    <img
+                      src={imageUrl.trim()}
+                      alt="Preview"
+                      className="w-full max-h-52 object-contain"
+                      onError={() => setImgError(true)}
+                      onLoad={() => setImgError(false)}
+                    />
+                    <span className="absolute top-2 right-2 text-[10px] font-semibold bg-black/50 text-white px-2 py-0.5 rounded-full">
+                      Preview
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           <div>
