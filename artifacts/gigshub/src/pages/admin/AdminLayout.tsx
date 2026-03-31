@@ -146,7 +146,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
 
           <div className="flex-1 flex items-center justify-center">
             <div className="bg-white border border-gray-100 rounded-2xl shadow-sm px-4 py-1.5 inline-flex items-center">
-              <img src={logoUrl} alt="TurboGH" className="h-10 w-auto" />
+              <img src={logoUrl} alt="TurboGH" className="h-12 w-auto" />
             </div>
           </div>
 
