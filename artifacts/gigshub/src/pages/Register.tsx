@@ -1,5 +1,6 @@
-import { useState } from "react";
-import { Link, Redirect } from "wouter";
+import { useState, useEffect } from "react";
+import { Link } from "wouter";
+import { navigate } from "wouter/use-browser-location";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,7 +16,10 @@ export default function Register() {
     phone: "",
     password: "",
   });
-  if (isAuthenticated) return <Redirect to="/dashboard" />;
+
+  useEffect(() => {
+    if (isAuthenticated) navigate("/dashboard");
+  }, [isAuthenticated]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
