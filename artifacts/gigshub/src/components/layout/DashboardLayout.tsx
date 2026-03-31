@@ -9,6 +9,7 @@ import {
   ShieldCheck,
   Settings,
   Wifi,
+  LayoutGrid,
 } from "lucide-react";
 
 interface DashboardLayoutProps {
@@ -33,6 +34,26 @@ function SidebarLink({ href, icon: Icon, children }: { href: string; icon: any; 
   );
 }
 
+function BottomNavItem({ href, icon: Icon, label }: { href: string; icon: any; label: string }) {
+  const [isActive] = useRoute(href);
+  return (
+    <Link href={href} className="flex flex-col items-center justify-center gap-0.5 flex-1 py-2 group">
+      <div className={cn(
+        "w-10 h-6 rounded-full flex items-center justify-center transition-all",
+        isActive ? "bg-primary/15" : "group-active:bg-gray-100"
+      )}>
+        <Icon className={cn("w-5 h-5 transition-colors", isActive ? "text-primary" : "text-gray-400 group-hover:text-gray-600")} />
+      </div>
+      <span className={cn(
+        "text-[10px] font-semibold tracking-tight transition-colors",
+        isActive ? "text-primary" : "text-gray-400"
+      )}>
+        {label}
+      </span>
+    </Link>
+  );
+}
+
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const { isAuthenticated, isLoading } = useAuth();
 
@@ -41,30 +62,46 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   }
 
   return (
-    <div className="mx-auto px-3 sm:px-4 py-4 md:py-8 max-w-7xl flex flex-col md:flex-row gap-6 md:gap-8 min-h-[calc(100vh-4rem)] pb-24">
-      {/* Sidebar — desktop only */}
-      <aside className="hidden md:block md:w-64 shrink-0 space-y-6">
-        <nav className="space-y-2">
-          <SidebarLink href="/dashboard" icon={Home}>Overview</SidebarLink>
-          <SidebarLink href="/bundles" icon={Wifi}>Buy Data</SidebarLink>
-          <SidebarLink href="/wallet" icon={CreditCard}>Wallet & Top-up</SidebarLink>
-          <SidebarLink href="/orders" icon={History}>Order History</SidebarLink>
-          <SidebarLink href="/afa-registration" icon={ShieldCheck}>AFA Registration</SidebarLink>
-          <SidebarLink href="/agent-registration" icon={UserPlus}>Become an Agent</SidebarLink>
-        </nav>
-        <div className="pt-6 border-t border-border">
+    <>
+      <div className="mx-auto px-3 sm:px-4 py-4 md:py-8 max-w-7xl flex flex-col md:flex-row gap-6 md:gap-8 min-h-[calc(100vh-4rem)] pb-24 md:pb-8">
+        {/* Sidebar — desktop only */}
+        <aside className="hidden md:block md:w-64 shrink-0 space-y-6">
           <nav className="space-y-2">
-            <SidebarLink href="/settings" icon={Settings}>Settings</SidebarLink>
+            <SidebarLink href="/dashboard" icon={Home}>Overview</SidebarLink>
+            <SidebarLink href="/bundles" icon={Wifi}>Buy Data</SidebarLink>
+            <SidebarLink href="/wallet" icon={CreditCard}>Wallet & Top-up</SidebarLink>
+            <SidebarLink href="/orders" icon={History}>Order History</SidebarLink>
+            <SidebarLink href="/afa-registration" icon={ShieldCheck}>AFA Registration</SidebarLink>
+            <SidebarLink href="/agent-registration" icon={UserPlus}>Become an Agent</SidebarLink>
           </nav>
-        </div>
-      </aside>
+          <div className="pt-6 border-t border-border">
+            <nav className="space-y-2">
+              <SidebarLink href="/settings" icon={Settings}>Settings</SidebarLink>
+            </nav>
+          </div>
+        </aside>
 
-      {/* Main Content */}
-      <main className="flex-1 min-w-0">
-        <div className="md:bg-white md:rounded-3xl md:p-8 md:shadow-sm md:border md:border-border/50 min-h-[600px]">
-          {children}
+        {/* Main Content */}
+        <main className="flex-1 min-w-0">
+          <div className="md:bg-white md:rounded-3xl md:p-8 md:shadow-sm md:border md:border-border/50 min-h-[600px]">
+            {children}
+          </div>
+        </main>
+      </div>
+
+      {/* Mobile bottom navigation */}
+      <nav
+        className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-gray-200"
+        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+      >
+        <div className="flex items-stretch h-16 px-1">
+          <BottomNavItem href="/dashboard" icon={Home} label="Home" />
+          <BottomNavItem href="/bundles" icon={Wifi} label="Bundles" />
+          <BottomNavItem href="/wallet" icon={CreditCard} label="Wallet" />
+          <BottomNavItem href="/orders" icon={History} label="Orders" />
+          <BottomNavItem href="/services" icon={LayoutGrid} label="Services" />
         </div>
-      </main>
-    </div>
+      </nav>
+    </>
   );
 }
