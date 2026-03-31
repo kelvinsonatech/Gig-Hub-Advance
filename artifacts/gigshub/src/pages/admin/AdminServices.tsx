@@ -122,13 +122,13 @@ export default function AdminServices() {
   const isSaving = createMutation.isPending || updateMutation.isPending;
 
   return (
-    <div className="p-8">
-      <div className="flex items-center justify-between mb-8">
+    <div className="p-4 sm:p-8">
+      <div className="flex items-start sm:items-center justify-between gap-3 mb-6 sm:mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Services & Packages</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Services & Packages</h1>
           <p className="text-gray-500 text-sm mt-1">Packages shown on the All Services page, grouped by network</p>
         </div>
-        <Button onClick={openAdd} className="bg-primary hover:bg-primary/90 gap-2">
+        <Button onClick={openAdd} className="bg-primary hover:bg-primary/90 gap-2 shrink-0">
           <Plus className="w-4 h-4" /> Add Package
         </Button>
       </div>

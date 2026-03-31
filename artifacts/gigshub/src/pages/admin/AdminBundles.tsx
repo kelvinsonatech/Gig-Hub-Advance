@@ -142,14 +142,14 @@ export default function AdminBundles() {
   const isSaving = createMutation.isPending || updateMutation.isPending;
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-8">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-start sm:items-center justify-between gap-3 mb-6 sm:mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Data Bundles</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Data Bundles</h1>
           <p className="text-gray-500 text-sm mt-1">Manage data packages for each network</p>
         </div>
-        <Button onClick={openAdd} className="bg-[#0077C7] hover:bg-[#005fa3] gap-2">
+        <Button onClick={openAdd} className="bg-[#0077C7] hover:bg-[#005fa3] gap-2 shrink-0">
           <Plus className="w-4 h-4" /> Add Bundle
         </Button>
       </div>
@@ -183,7 +183,8 @@ export default function AdminBundles() {
         </div>
       ) : (
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto">
+          <table className="w-full text-sm min-w-[600px]">
             <thead>
               <tr className="border-b border-gray-100 bg-gray-50">
                 <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Name</th>
@@ -222,6 +223,7 @@ export default function AdminBundles() {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
 
