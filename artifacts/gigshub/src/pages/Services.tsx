@@ -203,14 +203,7 @@ export default function Services() {
                             </p>
                           )}
                         </div>
-                      ) : (
-                        <div
-                          className="rounded-xl px-3 py-3 text-center backdrop-blur-sm"
-                          style={{ background: net.pkgBg, border: `1px solid ${net.pkgBorder}` }}
-                        >
-                          <p className={`text-xs font-medium ${net.taglineText}`}>All packages available below</p>
-                        </div>
-                      )}
+                      ) : null}
                     </div>
 
                     {/* CTA button */}
