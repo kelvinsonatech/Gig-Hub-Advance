@@ -181,55 +181,44 @@ export default function Bundles() {
             bundles.map((bundle) => {
               const net = networks?.find(n => n.id === bundle.networkId);
               const accent = net ? getNetworkAccent(net.code) : getNetworkAccent('');
-              const priceColor = accent.bg === '#FFCC00' ? '#92700a' : accent.bg;
               return (
                 <div
                   key={bundle.id}
-                  className="rounded-2xl sm:rounded-3xl overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-[box-shadow,transform] duration-200 flex flex-col border border-gray-100 bg-white"
+                  className="bg-white border border-gray-100 rounded-2xl sm:rounded-3xl p-5 sm:p-6 hover:shadow-xl hover:-translate-y-1 transition-[box-shadow,transform] duration-200 flex flex-col justify-between relative overflow-hidden"
                 >
-                  {/* Coloured top — data info */}
-                  <div className="relative px-4 pt-4 pb-5 flex flex-col gap-1" style={{ background: accent.bg }}>
-                    {/* POPULAR badge */}
-                    {bundle.popular && (
-                      <span className="absolute top-2.5 right-2.5 bg-white/90 text-[9px] font-black px-2 py-0.5 rounded-full tracking-widest uppercase" style={{ color: priceColor }}>
-                        Popular
-                      </span>
-                    )}
-                    {/* Type + network row */}
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: accent.text === '#fff' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.5)' }}>
+                  {bundle.popular && (
+                    <div className="absolute top-0 right-0 bg-emerald-500 text-white text-[9px] sm:text-[10px] font-bold px-2 sm:px-3 py-1 rounded-bl-xl sm:rounded-bl-2xl z-10 tracking-wider">
+                      POPULAR
+                    </div>
+                  )}
+                  <div className="absolute top-0 left-0 right-0 h-1 rounded-t-2xl sm:rounded-t-3xl" style={{ background: accent.bg }} />
+
+                  <div>
+                    <div className="flex justify-between items-start mb-3 mt-1.5">
+                      <span className={cn("px-2 py-0.5 rounded-md text-[10px] sm:text-xs font-bold", accent.badge)}>
                         {net?.code}
                       </span>
-                      <span className="text-[10px]" style={{ color: accent.text === '#fff' ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.3)' }}>·</span>
-                      <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: accent.text === '#fff' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.5)' }}>
+                      <span className="text-[9px] sm:text-xs font-medium text-muted-foreground uppercase tracking-wider bg-gray-50 px-1.5 py-0.5 rounded-md">
                         {bundle.type}
                       </span>
                     </div>
-                    {/* Data size */}
-                    <h3 className="text-3xl sm:text-4xl font-black leading-none" style={{ color: accent.text }}>
-                      {bundle.data}
-                    </h3>
-                    {/* Validity */}
-                    <p className="text-xs font-semibold" style={{ color: accent.text === '#fff' ? 'rgba(255,255,255,0.75)' : 'rgba(0,0,0,0.55)' }}>
-                      Valid {bundle.validity}
-                    </p>
+                    <h3 className="text-2xl sm:text-3xl font-extrabold text-gray-900 mb-0.5">{bundle.data}</h3>
+                    <p className="text-xs sm:text-sm font-medium text-muted-foreground">Valid: {bundle.validity}</p>
                   </div>
 
-                  {/* White bottom — price + action */}
-                  <div className="px-4 py-4 flex flex-col gap-3 flex-1 justify-between">
-                    <div className="flex items-end justify-between">
-                      <span className="text-[11px] font-medium text-gray-400 uppercase tracking-wide">Price</span>
-                      <span className="text-2xl sm:text-3xl font-black leading-none" style={{ color: priceColor }}>
-                        {formatGHS(bundle.price)}
-                      </span>
-                    </div>
-                    <Button
-                      className={cn("w-full rounded-xl h-10 sm:h-11 font-bold text-sm shadow-sm", accent.btn)}
-                      onClick={() => handleBuyClick(bundle)}
-                    >
-                      Buy Now
-                    </Button>
+                  <div className="my-3 px-3 py-2.5 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-between">
+                    <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Price</span>
+                    <span className="text-lg sm:text-xl font-black" style={{ color: accent.bg === '#FFCC00' ? '#b38600' : accent.bg }}>
+                      {formatGHS(bundle.price)}
+                    </span>
                   </div>
+
+                  <Button
+                    className={cn("w-full rounded-lg sm:rounded-xl h-9 sm:h-11 font-bold text-xs sm:text-sm shadow-md", accent.btn)}
+                    onClick={() => handleBuyClick(bundle)}
+                  >
+                    Buy Now
+                  </Button>
                 </div>
               );
             })
