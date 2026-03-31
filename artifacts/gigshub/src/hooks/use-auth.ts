@@ -50,14 +50,26 @@ export function useAuth() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  const { data: user, isLoading: isLoadingUser, isPlaceholderData } = useGetMe({
+  const {
+    data: user,
+    isLoading: isLoadingUser,
+    isPlaceholderData,
+    isError,
+    error,
+  } = useGetMe({
     query: {
       enabled: !!token,
-      retry: false,
+      // Retry once on transient failures before giving up
+      retry: 1,
+      retryDelay: 2000,
+      // Keep cached data fresh for 5 minutes — avoids repeated flickers on navigation
+      staleTime: 5 * 60 * 1000,
+      // Show cached user instantly while the real fetch happens in background
       placeholderData: readCachedUser,
     },
   });
 
+  // Persist fresh user data to localStorage
   useEffect(() => {
     if (user && !isPlaceholderData) {
       try {
@@ -65,6 +77,15 @@ export function useAuth() {
       } catch {}
     }
   }, [user, isPlaceholderData]);
+
+  // Only clear the token (log out) when the server explicitly says 401 — invalid/expired token.
+  // Do NOT log out on network errors, 500s, or other transient issues.
+  useEffect(() => {
+    if (isError && (error as any)?.status === 401) {
+      setToken(null);
+      localStorage.removeItem(USER_CACHE_KEY);
+    }
+  }, [isError, error]);
 
   const loginMutation = useLogin({
     mutation: {
@@ -106,11 +127,19 @@ export function useAuth() {
     },
   });
 
+  // isAuthenticated is true if:
+  // 1. Token exists AND user data is loading (show logged-in UI while fetching)
+  // 2. Token exists AND we have user data (normal logged-in state)
+  // 3. Token exists AND there was a non-401 error (transient — stay logged in)
+  // It becomes false ONLY when token is missing OR server returns 401
+  const isAuthenticated =
+    !!token && (isLoadingUser || !!user || (isError && (error as any)?.status !== 401));
+
   return {
     user,
     token,
     justLoggedIn,
-    isAuthenticated: !!token && (isLoadingUser || !!user),
+    isAuthenticated,
     isLoading: isLoadingUser,
     login: loginMutation.mutate,
     isLoggingIn: loginMutation.isPending,
