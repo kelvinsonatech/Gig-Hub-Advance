@@ -4,7 +4,6 @@ import { useAuth } from "@/hooks/use-auth";
 import {
   LayoutDashboard,
   Package,
-  Wrench,
   LogOut,
   ShieldCheck,
   Bell,
@@ -20,7 +19,6 @@ const navItems = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/networks", label: "Networks", icon: Radio },
   { href: "/admin/bundles", label: "Data Bundles", icon: Package },
-  { href: "/admin/services", label: "Services", icon: Wrench },
   { href: "/admin/notifications", label: "Notifications", icon: Bell },
 ];
 
