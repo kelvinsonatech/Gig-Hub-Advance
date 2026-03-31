@@ -1,8 +1,24 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Pencil, Trash2, X, Loader2, Wrench, Package } from "lucide-react";
+import { Plus, Pencil, Trash2, X, Loader2, Wrench, Package, ChevronRight, Wifi } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+
+/* ── colour helpers (mirrors Services.tsx) ── */
+function hexAdjust(hex: string, amount: number): string {
+  const clean = hex.replace("#", "");
+  const r = Math.min(255, Math.max(0, parseInt(clean.slice(0, 2), 16) + amount));
+  const g = Math.min(255, Math.max(0, parseInt(clean.slice(2, 4), 16) + amount));
+  const b = Math.min(255, Math.max(0, parseInt(clean.slice(4, 6), 16) + amount));
+  return `#${r.toString(16).padStart(2, "0")}${g.toString(16).padStart(2, "0")}${b.toString(16).padStart(2, "0")}`;
+}
+function isLightColor(hex: string): boolean {
+  const clean = hex.replace("#", "");
+  const r = parseInt(clean.slice(0, 2), 16);
+  const g = parseInt(clean.slice(2, 4), 16);
+  const b = parseInt(clean.slice(4, 6), 16);
+  return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.55;
+}
 
 const API = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -153,43 +169,143 @@ export default function AdminServices() {
           <Button variant="outline" size="sm" className="mt-4" onClick={openAdd}>Add first package</Button>
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {services.map(s => {
             const cat = getCategoryMeta(s.category);
+            const isNetwork = ["mtn", "airteltigo", "telecel"].includes(s.category);
             const color = s.brandColor || "#6366f1";
-            return (
-              <div key={s.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-                <div className="flex items-start justify-between mb-3">
-                  <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-full ${cat.color}`}>
-                    {cat.label}
-                  </span>
-                  <div className="flex gap-1">
-                    <button onClick={() => openEdit(s)} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-colors">
+
+            /* ── Network package — simple white card (appears as list item inside network card) ── */
+            if (isNetwork) {
+              return (
+                <div key={s.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 relative group">
+                  {/* Admin controls */}
+                  <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button onClick={() => openEdit(s)} className="p-1.5 rounded-lg bg-white shadow border border-gray-100 text-gray-400 hover:text-gray-700 transition-colors">
                       <Pencil className="w-3.5 h-3.5" />
                     </button>
-                    <button onClick={() => setDeleteId(s.id)} className="p-1.5 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors">
+                    <button onClick={() => setDeleteId(s.id)} className="p-1.5 rounded-lg bg-white shadow border border-gray-100 text-gray-400 hover:text-red-500 transition-colors">
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
                   </div>
-                </div>
 
-                {/* Icon preview */}
+                  <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-full ${cat.color} inline-block mb-3`}>
+                    {cat.label}
+                  </span>
+
+                  {/* Package row preview (same style as inside network card) */}
+                  <div className="flex items-center justify-between rounded-xl px-3 py-2.5 bg-gray-50 border border-gray-100 mb-3">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <Wifi className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+                      <span className="text-xs font-semibold text-gray-700 truncate">{s.name}</span>
+                    </div>
+                    <span className="text-xs font-black text-gray-900 shrink-0 ml-2">GHS {s.price.toFixed(2)}</span>
+                  </div>
+
+                  <p className="text-xs text-gray-500 line-clamp-2">{s.description}</p>
+                </div>
+              );
+            }
+
+            /* ── Non-network — exact gradient card preview ── */
+            const gradientStart = hexAdjust(color, -45);
+            const gradientEnd = hexAdjust(color, +30);
+            const gradient = `linear-gradient(135deg, ${gradientStart} 0%, ${color} 55%, ${gradientEnd} 100%)`;
+            const light = isLightColor(color);
+            const textColor = light ? "#111827" : "#ffffff";
+            const subColor = light ? "rgba(0,0,0,0.55)" : "rgba(255,255,255,0.65)";
+            const btnBg = light ? "rgba(0,0,0,0.12)" : "rgba(255,255,255,0.18)";
+            const btnBorder = light ? "rgba(0,0,0,0.12)" : "rgba(255,255,255,0.3)";
+
+            return (
+              <div
+                key={s.id}
+                className="relative overflow-hidden rounded-3xl shadow-lg group"
+                style={{ background: gradient }}
+              >
+                {/* Ambient glow */}
                 <div
-                  className="w-11 h-11 rounded-xl flex items-center justify-center mb-3"
-                  style={{ backgroundColor: color + "20" }}
-                >
-                  {s.iconUrl ? (
-                    <img src={s.iconUrl} alt={s.name} className="w-7 h-7 object-contain rounded-lg" />
-                  ) : (
-                    <Package className="w-5 h-5" style={{ color }} />
-                  )}
+                  className="absolute -top-10 -left-10 w-48 h-48 rounded-full blur-3xl opacity-40 pointer-events-none"
+                  style={{ background: color }}
+                />
+
+                {/* Blurred logo watermark */}
+                {s.iconUrl && (
+                  <div className="absolute -right-6 -bottom-6 w-44 h-44 opacity-20 blur-xl pointer-events-none select-none">
+                    <img src={s.iconUrl} alt="" className="w-full h-full object-contain" />
+                  </div>
+                )}
+
+                {/* Grid overlay */}
+                <div
+                  className="absolute inset-0 pointer-events-none opacity-[0.04]"
+                  style={{
+                    backgroundImage: "repeating-linear-gradient(0deg,transparent,transparent 24px,#fff 24px,#fff 25px),repeating-linear-gradient(90deg,transparent,transparent 24px,#fff 24px,#fff 25px)",
+                  }}
+                />
+
+                {/* Admin controls — top-right, always visible on hover */}
+                <div className="absolute top-3 right-3 z-20 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button
+                    onClick={() => openEdit(s)}
+                    className="p-1.5 rounded-lg backdrop-blur-sm text-white/80 hover:text-white transition-colors"
+                    style={{ background: "rgba(0,0,0,0.25)" }}
+                  >
+                    <Pencil className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    onClick={() => setDeleteId(s.id)}
+                    className="p-1.5 rounded-lg backdrop-blur-sm text-white/80 hover:text-red-300 transition-colors"
+                    style={{ background: "rgba(0,0,0,0.25)" }}
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
                 </div>
 
-                <h3 className="font-semibold text-gray-900 text-sm mt-2">{s.name}</h3>
-                <p className="text-xs text-gray-500 mt-1 line-clamp-2">{s.description}</p>
-                <div className="mt-3 flex items-center gap-2">
-                  <span className="text-sm font-bold" style={{ color }}>GHS {s.price.toFixed(2)}</span>
-                  <span className="w-3 h-3 rounded-full border border-gray-200 inline-block" style={{ backgroundColor: color }} title="Brand colour" />
+                {/* Category badge */}
+                <div className="absolute top-3 left-3 z-20">
+                  <span
+                    className="text-[10px] font-bold px-2 py-1 rounded-full backdrop-blur-sm"
+                    style={{
+                      background: light ? "rgba(0,0,0,0.12)" : "rgba(255,255,255,0.2)",
+                      color: light ? "#1a1a1a" : "#ffffff",
+                    }}
+                  >
+                    {cat.label}
+                  </span>
+                </div>
+
+                {/* Card content */}
+                <div className="relative z-10 p-6 pt-12 flex flex-col">
+                  {/* Logo + name */}
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="w-14 h-14 rounded-2xl bg-white/90 backdrop-blur-sm shadow-md flex items-center justify-center overflow-hidden shrink-0 ring-1 ring-white/50">
+                      {s.iconUrl ? (
+                        <img src={s.iconUrl} alt={s.name} className="w-full h-full object-contain p-1.5" />
+                      ) : (
+                        <Package className="w-6 h-6" style={{ color }} />
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <h3 className="font-black text-lg tracking-tight leading-tight" style={{ color: textColor }}>{s.name}</h3>
+                      <p className="text-xs font-bold mt-0.5" style={{ color: subColor }}>
+                        From GHS {s.price.toFixed(2)}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Description */}
+                  <p className="text-xs leading-relaxed mb-4 line-clamp-2" style={{ color: subColor }}>
+                    {s.description}
+                  </p>
+
+                  {/* CTA (cosmetic — matches live card) */}
+                  <div
+                    className="w-full h-10 rounded-2xl text-sm font-bold flex items-center justify-center gap-1"
+                    style={{ background: btnBg, color: light ? "#1a1a1a" : "#ffffff", border: `1.5px solid ${btnBorder}` }}
+                  >
+                    Get Started <ChevronRight className="w-3.5 h-3.5" />
+                  </div>
                 </div>
               </div>
             );
