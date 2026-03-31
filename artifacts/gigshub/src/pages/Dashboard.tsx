@@ -4,6 +4,7 @@ import { useGetWallet, useGetOrders } from "@workspace/api-client-react";
 import { formatGHS } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
+import walletBg from "@assets/wallet-bg.jpg";
 import {
   Wifi, ShieldCheck, Plus, ArrowRight, Users, Eye, EyeOff,
   TrendingUp, Package, CheckCircle2, Clock, XCircle, ChevronRight,
@@ -87,7 +88,7 @@ export default function Dashboard() {
           animate={{ opacity: 1, y: 0 }}
           className="relative overflow-hidden rounded-2xl md:rounded-3xl p-5 md:p-6 text-white shadow-2xl isolate"
           style={{
-            backgroundImage: `url("https://occ-0-8407-2219.1.nflxso.net/dnm/api/v6/6AYY37jfdO6hpXcMjf9Yu5cnmO0/AAAABUV_jDjJ4_X_PSYgTJthNlfoStaN1fqwW1vcTx8bKIwYizu5-VL1365SJPeFB1FIig2dpPVvYdgfODQ9DEKR8t9Ak3G5NIa1HeWv.jpg?r=513")`,
+            backgroundImage: `url("${walletBg}")`,
             backgroundSize: "cover",
             backgroundPosition: "center",
           }}
