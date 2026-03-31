@@ -124,7 +124,7 @@ export default function Services() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.1, type: "spring", stiffness: 220, damping: 22 }}
                   whileHover={{ y: -6, scale: 1.02 }}
-                  className="relative overflow-hidden rounded-3xl shadow-lg flex flex-col min-h-[280px] cursor-default"
+                  className="relative overflow-hidden rounded-3xl shadow-lg flex flex-col cursor-default"
                   style={{ background: net.gradient }}
                 >
                   {/* Ambient glow blob top-left */}
@@ -151,7 +151,7 @@ export default function Services() {
                   />
 
                   {/* Content */}
-                  <div className="relative z-10 p-6 flex flex-col flex-1">
+                  <div className="relative z-10 p-6 flex flex-col">
 
                     {/* Logo pill + name */}
                     <div className="flex items-center gap-3 mb-5">
@@ -170,7 +170,7 @@ export default function Services() {
                     </div>
 
                     {/* Packages */}
-                    <div className="flex-1 mb-5">
+                    <div className="mb-5">
                       {isLoading ? (
                         <div className="space-y-2">
                           {[1, 2].map(j => (
