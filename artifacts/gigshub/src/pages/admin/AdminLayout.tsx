@@ -145,7 +145,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
           </button>
 
           <div className="flex-1">
-            <img src={logoUrl} alt="TurboGH" className="h-6 w-auto" />
+            <img src={logoUrl} alt="TurboGH" className="h-9 w-auto" />
           </div>
 
           <button
