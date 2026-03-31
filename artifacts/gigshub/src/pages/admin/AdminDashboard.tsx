@@ -5,7 +5,7 @@ const API = import.meta.env.BASE_URL.replace(/\/$/, "");
 
 async function fetchStats() {
   const token = localStorage.getItem("gigshub_token");
-  const res = await fetch(`${API}api/admin/stats`, {
+  const res = await fetch(`${API}/api/admin/stats`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) throw new Error("Failed to fetch stats");

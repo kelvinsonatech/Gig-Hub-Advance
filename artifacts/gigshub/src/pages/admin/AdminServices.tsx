@@ -8,7 +8,7 @@ const API = import.meta.env.BASE_URL.replace(/\/$/, "");
 
 async function apiFetch(path: string, opts?: RequestInit) {
   const token = localStorage.getItem("gigshub_token");
-  const res = await fetch(`${API}api/admin${path}`, {
+  const res = await fetch(`${API}/api/admin${path}`, {
     ...opts,
     headers: {
       "Content-Type": "application/json",

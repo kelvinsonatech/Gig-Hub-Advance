@@ -8,7 +8,7 @@ const API = import.meta.env.BASE_URL.replace(/\/$/, "");
 const token = () => localStorage.getItem("gigshub_token");
 
 async function fetchNotifications() {
-  const res = await fetch(`${API}api/admin/notifications`, {
+  const res = await fetch(`${API}/api/admin/notifications`, {
     headers: { Authorization: `Bearer ${token()}` },
   });
   if (!res.ok) throw new Error("Failed to fetch");
@@ -16,7 +16,7 @@ async function fetchNotifications() {
 }
 
 async function sendNotification(data: { title: string; message: string; imageUrl?: string; userId?: string }) {
-  const res = await fetch(`${API}api/admin/notifications`, {
+  const res = await fetch(`${API}/api/admin/notifications`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${token()}` },
     body: JSON.stringify(data),
@@ -26,7 +26,7 @@ async function sendNotification(data: { title: string; message: string; imageUrl
 }
 
 async function deleteNotification(id: string) {
-  const res = await fetch(`${API}api/admin/notifications/${id}`, {
+  const res = await fetch(`${API}/api/admin/notifications/${id}`, {
     method: "DELETE",
     headers: { Authorization: `Bearer ${token()}` },
   });

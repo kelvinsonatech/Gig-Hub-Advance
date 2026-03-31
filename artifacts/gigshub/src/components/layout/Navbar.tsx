@@ -69,7 +69,7 @@ function NotificationsPanel({ onClose }: { onClose: () => void }) {
   const { data: notifications = [], isLoading } = useQuery({
     queryKey: ["notifications"],
     queryFn: async () => {
-      const res = await fetch(`${API}api/notifications`);
+      const res = await fetch(`${API}/api/notifications`);
       if (!res.ok) throw new Error("Failed");
       return res.json() as Promise<Array<{
         id: string; title: string; message: string; imageUrl: string | null;
@@ -81,14 +81,14 @@ function NotificationsPanel({ onClose }: { onClose: () => void }) {
 
   const markReadMutation = useMutation({
     mutationFn: async (id: string) => {
-      await fetch(`${API}api/notifications/${id}/read`, { method: "PATCH" });
+      await fetch(`${API}/api/notifications/${id}/read`, { method: "PATCH" });
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["notifications"] }),
   });
 
   const markAllMutation = useMutation({
     mutationFn: async () => {
-      await fetch(`${API}api/notifications/read-all`, { method: "PATCH" });
+      await fetch(`${API}/api/notifications/read-all`, { method: "PATCH" });
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["notifications"] }),
   });
@@ -201,7 +201,7 @@ export function Navbar() {
   const { data: notifications = [] } = useQuery({
     queryKey: ["notifications"],
     queryFn: async () => {
-      const res = await fetch(`${API}api/notifications`);
+      const res = await fetch(`${API}/api/notifications`);
       if (!res.ok) throw new Error("Failed");
       return res.json() as Promise<Array<{ id: string; isRead: boolean; [key: string]: any }>>;
     },
