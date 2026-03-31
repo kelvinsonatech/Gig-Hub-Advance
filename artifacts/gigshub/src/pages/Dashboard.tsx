@@ -83,9 +83,7 @@ export default function Dashboard() {
         </div>
 
         {/* ── Wallet Card ── */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
+        <div
           className="relative overflow-hidden rounded-2xl md:rounded-3xl p-5 md:p-6 text-white shadow-2xl isolate"
           style={{
             backgroundImage: `url("${walletBg}")`,
@@ -116,13 +114,9 @@ export default function Dashboard() {
 
             <div className="mb-5">
               <p className="text-white/60 text-[10px] font-semibold uppercase tracking-widest mb-1">Available Balance</p>
-              {isLoadingWallet ? (
-                <div className="h-9 w-40 bg-white/20 animate-pulse rounded-xl" />
-              ) : (
-                <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight">
-                  {balanceHidden ? "GHS ••••••" : formatGHS(wallet?.balance)}
-                </h2>
-              )}
+              <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight">
+                {balanceHidden ? "GHS ••••••" : isLoadingWallet ? "GHS —" : formatGHS(wallet?.balance)}
+              </h2>
               {user?.phone && (
                 <p className="text-white/50 text-xs mt-1 font-mono">
                   {user.phone.replace(/(\d{3})(\d{3})(\d{4})/, "$1 $2 $3")}
@@ -149,7 +143,7 @@ export default function Dashboard() {
               </Button>
             </div>
           </div>
-        </motion.div>
+        </div>
 
         {/* ── Stats Row ── */}
         <div className="grid grid-cols-2 gap-4">
