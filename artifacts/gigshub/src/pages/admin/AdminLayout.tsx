@@ -15,12 +15,32 @@ import {
 import { Button } from "@/components/ui/button";
 import { UserAvatar } from "@/components/ui/UserAvatar";
 
+const PINK = "#EC4899";
+
 const navItems = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/bundles", label: "Data Bundles", icon: Package },
   { href: "/admin/services", label: "Services", icon: Wrench },
   { href: "/admin/notifications", label: "Notifications", icon: Bell },
 ];
+
+const SidebarLink = ({ href, label, icon: Icon, active, onClick }: {
+  href: string; label: string; icon: any; active: boolean; onClick: () => void;
+}) => (
+  <Link
+    href={href}
+    className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
+      active
+        ? "bg-pink-500 text-white shadow-sm shadow-pink-200"
+        : "text-gray-600 hover:bg-pink-50 hover:text-pink-600"
+    }`}
+    onClick={onClick}
+  >
+    <Icon className="w-4 h-4 flex-shrink-0" />
+    {label}
+    {active && <ChevronRight className="w-3 h-3 ml-auto opacity-70" />}
+  </Link>
+);
 
 export function AdminLayout({ children }: { children: React.ReactNode }) {
   const [location, navigate] = useLocation();
@@ -44,13 +64,13 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
       {/* Brand */}
       <div className="px-5 py-5 border-b border-gray-100">
         <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-[#0077C7] flex items-center justify-center">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-pink-500 flex items-center justify-center shadow-sm shadow-pink-200">
               <ShieldCheck className="w-4 h-4 text-white" />
             </div>
             <div>
               <p className="text-sm font-bold text-gray-900">TurboGH</p>
-              <p className="text-[10px] text-[#0077C7] font-semibold uppercase tracking-wide">Admin Panel</p>
+              <p className="text-[10px] text-pink-500 font-semibold uppercase tracking-wide">Admin Panel</p>
             </div>
           </div>
           <button
@@ -64,25 +84,16 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
 
       {/* Nav */}
       <nav className="flex-1 px-3 py-4 space-y-0.5">
-        {navItems.map(({ href, label, icon: Icon }) => {
-          const active = location === href;
-          return (
-            <Link
-              key={href}
-              href={href}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                active
-                  ? "bg-[#0077C7] text-white shadow-sm"
-                  : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-              }`}
-              onClick={() => setSidebarOpen(false)}
-            >
-              <Icon className="w-4 h-4 flex-shrink-0" />
-              {label}
-              {active && <ChevronRight className="w-3 h-3 ml-auto opacity-70" />}
-            </Link>
-          );
-        })}
+        {navItems.map(({ href, label, icon: Icon }) => (
+          <SidebarLink
+            key={href}
+            href={href}
+            label={label}
+            icon={Icon}
+            active={location === href}
+            onClick={() => setSidebarOpen(false)}
+          />
+        ))}
       </nav>
 
       {/* Profile card at bottom */}
@@ -92,7 +103,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-gray-900 truncate">{user.name}</p>
             <p className="text-[11px] text-gray-400 truncate">{user.email}</p>
-            <span className="inline-flex items-center gap-1 mt-0.5 px-1.5 py-0.5 rounded-full bg-[#0077C7]/10 text-[10px] font-semibold text-[#0077C7] uppercase tracking-wide">
+            <span className="inline-flex items-center gap-1 mt-0.5 px-1.5 py-0.5 rounded-full bg-pink-50 text-[10px] font-semibold text-pink-500 uppercase tracking-wide">
               <ShieldCheck className="w-2.5 h-2.5" /> Admin
             </span>
           </div>
@@ -100,7 +111,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
 
         <button
           onClick={() => { logout(); navigate("/"); }}
-          className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+          className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-500 hover:bg-red-50 rounded-xl transition-colors"
         >
           <LogOut className="w-4 h-4" />
           Sign out
@@ -139,13 +150,13 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
         <header className="md:hidden sticky top-0 z-30 bg-white border-b border-gray-100 px-4 py-3 flex items-center gap-3">
           <button
             onClick={() => setSidebarOpen(true)}
-            className="p-2 rounded-lg hover:bg-gray-100 text-gray-600"
+            className="p-2 rounded-xl hover:bg-pink-50 text-gray-600 hover:text-pink-500 transition-colors"
           >
             <Menu className="w-5 h-5" />
           </button>
 
           <div className="flex items-center gap-2 flex-1">
-            <div className="w-7 h-7 rounded-lg bg-[#0077C7] flex items-center justify-center">
+            <div className="w-7 h-7 rounded-lg bg-pink-500 flex items-center justify-center shadow-sm shadow-pink-200">
               <ShieldCheck className="w-3.5 h-3.5 text-white" />
             </div>
             <span className="text-sm font-bold text-gray-900">Admin Panel</span>

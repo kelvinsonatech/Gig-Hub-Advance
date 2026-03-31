@@ -1,13 +1,46 @@
 import { Router, type IRouter } from "express";
 import { db } from "@workspace/db";
 import { bundlesTable, servicesTable, networksTable, ordersTable, usersTable, notificationsTable, deviceTokensTable } from "@workspace/db";
-import { eq, count, inArray } from "drizzle-orm";
+import { eq, count, inArray, gte, sql } from "drizzle-orm";
 import { requireAuth, requireAdmin } from "../middleware/auth";
 import { sendPushToTokens } from "../lib/fcm";
 
 const router: IRouter = Router();
 
 router.use(requireAuth, requireAdmin);
+
+// ── Chart Data ─────────────────────────────────────────────────────────────────
+router.get("/chart-data", async (req, res) => {
+  try {
+    const now = new Date();
+    const startOfYear = new Date(now.getFullYear(), 0, 1);
+
+    const [orderRows, userRows] = await Promise.all([
+      db.select({
+        month: sql<number>`EXTRACT(MONTH FROM ${ordersTable.createdAt})::int`,
+        count: count(),
+      }).from(ordersTable).where(gte(ordersTable.createdAt, startOfYear)).groupBy(sql`EXTRACT(MONTH FROM ${ordersTable.createdAt})`),
+
+      db.select({
+        month: sql<number>`EXTRACT(MONTH FROM ${usersTable.createdAt})::int`,
+        count: count(),
+      }).from(usersTable).where(gte(usersTable.createdAt, startOfYear)).groupBy(sql`EXTRACT(MONTH FROM ${usersTable.createdAt})`),
+    ]);
+
+    const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    const data = months.map((name, idx) => {
+      const m = idx + 1;
+      const orders = orderRows.find(r => r.month === m)?.count ?? 0;
+      const users = userRows.find(r => r.month === m)?.count ?? 0;
+      return { name, orders: Number(orders), users: Number(users) };
+    });
+
+    return res.json(data);
+  } catch (err) {
+    req.log.error(err, "admin chart data error");
+    return res.status(500).json({ error: "internal_error", message: "Failed to get chart data" });
+  }
+});
 
 // ── Stats ──────────────────────────────────────────────────────────────────────
 router.get("/stats", async (req, res) => {
