@@ -145,85 +145,80 @@ export default function Services() {
                   />
 
                   {/* Content */}
-                  <div className="relative z-10 p-6 flex flex-col">
+                  <div className="relative z-10 p-4 sm:p-6 flex flex-col sm:flex-col">
 
-                    {/* Logo pill + name */}
-                    <div className="flex items-center gap-3 mb-5">
-                      <div className="w-16 h-16 rounded-2xl bg-white/90 backdrop-blur-sm shadow-md flex items-center justify-center overflow-hidden shrink-0 ring-1 ring-white/50">
-                        <img
-                          src={net.logoUrl}
-                          alt={net.name}
-                          className="w-full h-full object-contain p-1.5"
-                          onError={e => { (e.target as HTMLImageElement).style.display = "none"; }}
-                        />
-                      </div>
-                      <div>
-                        <h3 className={`font-black text-xl tracking-tight ${net.titleText}`}>{net.name}</h3>
-                        <p className={`text-xs font-medium ${net.taglineText}`}>{net.tagline}</p>
-                      </div>
-                    </div>
+                    {/* Mobile: horizontal row | Desktop: vertical stack */}
+                    <div className="flex items-center gap-3 sm:flex-col sm:items-start sm:gap-0">
 
-                    {/* Packages */}
-                    <div className="mb-5">
-                      {isLoading ? (
-                        <div className="space-y-2">
-                          {[1, 2].map(j => (
-                            <div key={j} className="h-9 rounded-xl animate-pulse" style={{ background: net.pkgBg }} />
-                          ))}
+                      {/* Logo + name row */}
+                      <div className="flex items-center gap-3 sm:mb-5 flex-1 min-w-0">
+                        <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl bg-white/90 backdrop-blur-sm shadow-md flex items-center justify-center overflow-hidden shrink-0 ring-1 ring-white/50">
+                          <img
+                            src={net.logoUrl}
+                            alt={net.name}
+                            className="w-full h-full object-contain p-1"
+                            onError={e => { (e.target as HTMLImageElement).style.display = "none"; }}
+                          />
                         </div>
-                      ) : packages.length > 0 ? (
-                        <div className="space-y-2">
-                          {packages.slice(0, 3).map(pkg => (
-                            <div
-                              key={pkg.id}
-                              className="flex items-center justify-between rounded-xl px-3 py-2.5 backdrop-blur-sm"
-                              style={{
-                                background: net.pkgBg,
-                                border: `1px solid ${net.pkgBorder}`,
-                              }}
-                            >
-                              <div className="flex items-center gap-2 min-w-0">
-                                <Wifi className={`w-3.5 h-3.5 shrink-0 ${net.pkgText}`} />
-                                <span className={`text-xs font-semibold truncate ${net.pkgText}`}>{pkg.name}</span>
+                        <div className="min-w-0">
+                          <h3 className={`font-black text-base sm:text-xl tracking-tight ${net.titleText}`}>{net.name}</h3>
+                          <p className={`text-xs font-medium truncate ${net.taglineText}`}>{net.tagline}</p>
+                        </div>
+                      </div>
+
+                      {/* Packages — hidden on mobile, shown on desktop */}
+                      {packages.length > 0 && (
+                        <div className="hidden sm:block w-full mb-5 space-y-2">
+                          {isLoading ? (
+                            [1, 2].map(j => (
+                              <div key={j} className="h-9 rounded-xl animate-pulse" style={{ background: net.pkgBg }} />
+                            ))
+                          ) : (
+                            packages.slice(0, 3).map(pkg => (
+                              <div
+                                key={pkg.id}
+                                className="flex items-center justify-between rounded-xl px-3 py-2.5 backdrop-blur-sm"
+                                style={{ background: net.pkgBg, border: `1px solid ${net.pkgBorder}` }}
+                              >
+                                <div className="flex items-center gap-2 min-w-0">
+                                  <Wifi className={`w-3.5 h-3.5 shrink-0 ${net.pkgText}`} />
+                                  <span className={`text-xs font-semibold truncate ${net.pkgText}`}>{pkg.name}</span>
+                                </div>
+                                <span className={`text-xs font-black shrink-0 ml-2 ${net.priceColor}`}>
+                                  {formatGHS(pkg.price)}
+                                </span>
                               </div>
-                              <span className={`text-xs font-black shrink-0 ml-2 ${net.priceColor}`}>
-                                {formatGHS(pkg.price)}
-                              </span>
-                            </div>
-                          ))}
+                            ))
+                          )}
                           {packages.length > 3 && (
-                            <p className={`text-[11px] text-center ${net.taglineText}`}>
-                              +{packages.length - 3} more
-                            </p>
+                            <p className={`text-[11px] text-center ${net.taglineText}`}>+{packages.length - 3} more</p>
                           )}
                         </div>
-                      ) : null}
-                    </div>
+                      )}
 
-                    {/* CTA button */}
-                    <Link href={`/bundles?network=${net.networkCode}`}>
-                      <motion.button
-                        whileTap={{ scale: 0.97 }}
-                        className="w-full h-11 rounded-2xl text-sm font-bold flex items-center justify-center gap-1.5 backdrop-blur-sm transition-all"
-                        style={{
-                          background: net.dark ? "rgba(0,0,0,0.15)" : "rgba(255,255,255,0.2)",
-                          color: net.dark ? "#1a1a1a" : "#ffffff",
-                          border: net.dark ? "1.5px solid rgba(0,0,0,0.15)" : "1.5px solid rgba(255,255,255,0.35)",
-                        }}
-                        onMouseEnter={e => {
-                          (e.currentTarget as HTMLButtonElement).style.background = net.dark
-                            ? "rgba(0,0,0,0.25)"
-                            : "rgba(255,255,255,0.32)";
-                        }}
-                        onMouseLeave={e => {
-                          (e.currentTarget as HTMLButtonElement).style.background = net.dark
-                            ? "rgba(0,0,0,0.15)"
-                            : "rgba(255,255,255,0.2)";
-                        }}
-                      >
-                        View All Packages <ChevronRight className="w-4 h-4" />
-                      </motion.button>
-                    </Link>
+                      {/* CTA button */}
+                      <Link href={`/bundles?network=${net.networkCode}`} className="shrink-0 sm:w-full">
+                        <motion.button
+                          whileTap={{ scale: 0.97 }}
+                          className="h-9 sm:h-11 px-4 sm:px-0 sm:w-full rounded-xl sm:rounded-2xl text-xs sm:text-sm font-bold flex items-center justify-center gap-1 backdrop-blur-sm transition-all whitespace-nowrap"
+                          style={{
+                            background: net.dark ? "rgba(0,0,0,0.15)" : "rgba(255,255,255,0.2)",
+                            color: net.dark ? "#1a1a1a" : "#ffffff",
+                            border: net.dark ? "1.5px solid rgba(0,0,0,0.15)" : "1.5px solid rgba(255,255,255,0.35)",
+                          }}
+                          onMouseEnter={e => {
+                            (e.currentTarget as HTMLButtonElement).style.background = net.dark
+                              ? "rgba(0,0,0,0.25)" : "rgba(255,255,255,0.32)";
+                          }}
+                          onMouseLeave={e => {
+                            (e.currentTarget as HTMLButtonElement).style.background = net.dark
+                              ? "rgba(0,0,0,0.15)" : "rgba(255,255,255,0.2)";
+                          }}
+                        >
+                          View All <ChevronRight className="w-3.5 h-3.5" />
+                        </motion.button>
+                      </Link>
+                    </div>
                   </div>
                 </motion.div>
               );
