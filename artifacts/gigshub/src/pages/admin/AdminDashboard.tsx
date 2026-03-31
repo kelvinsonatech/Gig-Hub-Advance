@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { Package, Wrench, ShoppingBag, Users, ArrowUpRight, TrendingUp } from "lucide-react";
+import { Package, Wrench, ShoppingBag, Users, TrendingUp } from "lucide-react";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 } from "recharts";
@@ -26,10 +26,10 @@ async function fetchChartData() {
 }
 
 const statCards = [
-  { key: "bundles", label: "Data Bundles", icon: Package, bg: "bg-pink-50", iconBg: "bg-pink-500", text: "text-pink-600" },
-  { key: "services", label: "Services", icon: Wrench, bg: "bg-purple-50", iconBg: "bg-purple-500", text: "text-purple-600" },
-  { key: "orders", label: "Total Orders", icon: ShoppingBag, bg: "bg-rose-50", iconBg: "bg-rose-500", text: "text-rose-600" },
-  { key: "users", label: "Registered Users", icon: Users, bg: "bg-fuchsia-50", iconBg: "bg-fuchsia-500", text: "text-fuchsia-600" },
+  { key: "bundles", label: "Data Bundles", icon: Package, color: "bg-orange-500" },
+  { key: "services", label: "Services", icon: Wrench, color: "bg-green-500" },
+  { key: "orders", label: "Total Orders", icon: ShoppingBag, color: "bg-orange-500" },
+  { key: "users", label: "Users", icon: Users, color: "bg-purple-500" },
 ];
 
 const CustomTooltip = ({ active, payload, label }: any) => {
@@ -74,19 +74,16 @@ export default function AdminDashboard() {
       </div>
 
       {/* Stat cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {statCards.map(({ key, label, icon: Icon, bg, iconBg, text }) => (
-          <div key={key} className={`${bg} rounded-2xl p-4 sm:p-5 border border-white shadow-sm`}>
-            <div className="flex items-start justify-between mb-3">
-              <div className={`w-9 h-9 rounded-xl ${iconBg} flex items-center justify-center shadow-sm`}>
-                <Icon className="w-4 h-4 text-white" />
-              </div>
-              <ArrowUpRight className={`w-4 h-4 ${text} opacity-60`} />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        {statCards.map(({ key, label, icon: Icon, color }) => (
+          <div key={key} className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+            <div className={`w-10 h-10 rounded-xl ${color} flex items-center justify-center mb-4`}>
+              <Icon className="w-5 h-5 text-white" />
             </div>
-            <p className="text-2xl sm:text-3xl font-bold text-gray-900">
-              {isLoading ? <span className="inline-block w-8 h-7 bg-gray-200 rounded animate-pulse" /> : (stats?.[key] ?? 0)}
+            <p className="text-3xl font-bold text-gray-900">
+              {isLoading ? "—" : (stats?.[key] ?? 0)}
             </p>
-            <p className={`text-xs font-medium mt-1 ${text}`}>{label}</p>
+            <p className="text-sm text-gray-500 mt-1">{label}</p>
           </div>
         ))}
       </div>
