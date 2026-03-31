@@ -21,24 +21,21 @@ const navItems = [
   { href: "/admin/notifications", label: "Notifications", icon: Bell },
 ];
 
-function getInitials(name: string) {
-  const parts = name.trim().split(/\s+/);
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-}
+const ADMIN_AVATAR = `${import.meta.env.BASE_URL}admin-avatar.png`;
 
 function Avatar({ name, size = "md" }: { name: string; size?: "sm" | "md" | "lg" }) {
-  const initials = getInitials(name);
   const sizes = {
-    sm: "w-8 h-8 text-xs",
-    md: "w-11 h-11 text-sm",
-    lg: "w-14 h-14 text-base",
+    sm: "w-8 h-8",
+    md: "w-11 h-11",
+    lg: "w-14 h-14",
   };
   return (
-    <div
-      className={`${sizes[size]} rounded-full bg-gradient-to-br from-[#0077C7] to-[#005fa3] flex items-center justify-center font-bold text-white shadow-md ring-2 ring-white shrink-0`}
-    >
-      {initials}
+    <div className={`${sizes[size]} rounded-full overflow-hidden shadow-md ring-2 ring-white shrink-0 bg-blue-50`}>
+      <img
+        src={ADMIN_AVATAR}
+        alt={name}
+        className="w-full h-full object-cover"
+      />
     </div>
   );
 }
