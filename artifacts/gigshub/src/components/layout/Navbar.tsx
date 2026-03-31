@@ -261,14 +261,16 @@ export function Navbar() {
                     variant="ghost"
                     size="icon"
                     className={cn(
-                      "h-8 w-8 rounded-full relative",
+                      "h-10 w-10 rounded-full relative",
                       showNotifications ? "text-primary bg-orange-50" : "text-muted-foreground hover:text-primary"
                     )}
                     onClick={() => setShowNotifications(v => !v)}
                   >
-                    <Bell className="w-4 h-4" />
+                    <Bell className="w-5 h-5" />
                     {unreadCount > 0 && (
-                      <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full border border-white" />
+                      <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-bold rounded-full border-2 border-white flex items-center justify-center px-1 leading-none">
+                        {unreadCount > 9 ? "9+" : unreadCount}
+                      </span>
                     )}
                   </Button>
 
