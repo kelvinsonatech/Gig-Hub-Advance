@@ -203,14 +203,22 @@ export default function Bundles() {
                       </span>
                     </div>
                     <h3 className="text-2xl sm:text-3xl font-extrabold text-gray-900 mb-0.5">{bundle.data}</h3>
-                    <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-4">Valid: {bundle.validity}</p>
+                    <p className="text-xs sm:text-sm font-medium text-muted-foreground">Valid: {bundle.validity}</p>
+                  </div>
+
+                  {/* Price — prominent, clearly visible */}
+                  <div className="my-3 px-3 py-2.5 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-between">
+                    <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Price</span>
+                    <span className="text-lg sm:text-xl font-black" style={{ color: accent.bg === '#FFCC00' ? '#b38600' : accent.bg }}>
+                      {formatGHS(bundle.price)}
+                    </span>
                   </div>
 
                   <Button
                     className={cn("w-full rounded-lg sm:rounded-xl h-9 sm:h-11 font-bold text-xs sm:text-sm shadow-md", accent.btn)}
                     onClick={() => handleBuyClick(bundle)}
                   >
-                    Buy — {formatGHS(bundle.price)}
+                    Buy Now
                   </Button>
                 </div>
               );
