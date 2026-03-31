@@ -144,8 +144,10 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
             <Menu className="w-5 h-5" />
           </button>
 
-          <div className="flex-1">
-            <img src={logoUrl} alt="TurboGH" className="h-24 w-auto" />
+          <div className="flex-1 flex items-center justify-center">
+            <div className="bg-white border border-gray-100 rounded-2xl shadow-sm px-4 py-1.5 inline-flex items-center">
+              <img src={logoUrl} alt="TurboGH" className="h-10 w-auto" />
+            </div>
           </div>
 
           <button
