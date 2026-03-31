@@ -87,7 +87,7 @@ export default function AdminNotifications() {
       {/* Send form */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-8">
         <h2 className="text-base font-semibold text-gray-900 mb-5 flex items-center gap-2">
-          <Send className="w-4 h-4 text-[#0077C7]" /> Send Notification
+          <Send className="w-4 h-4 text-[#E91E8C]" /> Send Notification
         </h2>
         <form onSubmit={handleSend} className="space-y-4">
           <div>
@@ -96,7 +96,7 @@ export default function AdminNotifications() {
               value={title}
               onChange={e => setTitle(e.target.value)}
               placeholder="e.g. New Bundle Available!"
-              className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0077C7]/30 focus:border-[#0077C7]"
+              className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#E91E8C]/30 focus:border-[#E91E8C]"
             />
           </div>
 
@@ -107,7 +107,7 @@ export default function AdminNotifications() {
               onChange={e => setMessage(e.target.value)}
               rows={3}
               placeholder="Write your message here..."
-              className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0077C7]/30 focus:border-[#0077C7] resize-none"
+              className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#E91E8C]/30 focus:border-[#E91E8C] resize-none"
             />
           </div>
 
@@ -119,7 +119,7 @@ export default function AdminNotifications() {
               value={imageUrl}
               onChange={e => { setImageUrl(e.target.value); setImgError(false); }}
               placeholder="https://example.com/image.jpg"
-              className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0077C7]/30 focus:border-[#0077C7]"
+              className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#E91E8C]/30 focus:border-[#E91E8C]"
             />
             {/* Live preview */}
             {imageUrl.trim() && (
@@ -155,7 +155,7 @@ export default function AdminNotifications() {
               value={userId}
               onChange={e => setUserId(e.target.value)}
               placeholder="e.g. 42 — or leave empty for broadcast"
-              className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0077C7]/30 focus:border-[#0077C7]"
+              className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#E91E8C]/30 focus:border-[#E91E8C]"
             />
           </div>
 
@@ -163,7 +163,7 @@ export default function AdminNotifications() {
             <Button
               type="submit"
               disabled={sendMutation.isPending || !title.trim() || !message.trim()}
-              className="bg-[#0077C7] hover:bg-[#005fa3] text-white rounded-xl px-5"
+              className="bg-[#E91E8C] hover:bg-[#d4197f] text-white rounded-xl px-5"
             >
               <Send className="w-4 h-4 mr-2" />
               {sendMutation.isPending ? "Sending..." : userId ? "Send to User" : "Broadcast to All"}
@@ -182,7 +182,7 @@ export default function AdminNotifications() {
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
         <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
           <h2 className="text-base font-semibold text-gray-900 flex items-center gap-2">
-            <Bell className="w-4 h-4 text-[#0077C7]" /> Sent Notifications
+            <Bell className="w-4 h-4 text-[#E91E8C]" /> Sent Notifications
           </h2>
           <span className="text-xs text-gray-400">{notifications.length} total</span>
         </div>

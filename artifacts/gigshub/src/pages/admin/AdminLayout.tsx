@@ -15,7 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { UserAvatar } from "@/components/ui/UserAvatar";
 
-const PINK = "#EC4899";
+const PINK = "#E91E8C";
 
 const navItems = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
@@ -31,8 +31,8 @@ const SidebarLink = ({ href, label, icon: Icon, active, onClick }: {
     href={href}
     className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
       active
-        ? "bg-pink-500 text-white shadow-sm shadow-pink-200"
-        : "text-gray-600 hover:bg-pink-50 hover:text-pink-600"
+        ? "bg-[#E91E8C] text-white shadow-sm shadow-pink-100"
+        : "text-gray-600 hover:bg-pink-50 hover:text-[#E91E8C]"
     }`}
     onClick={onClick}
   >
@@ -65,12 +65,12 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
       <div className="px-5 py-5 border-b border-gray-100">
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-pink-500 flex items-center justify-center shadow-sm shadow-pink-200">
+            <div className="w-8 h-8 rounded-xl bg-[#E91E8C] flex items-center justify-center shadow-sm shadow-pink-100">
               <ShieldCheck className="w-4 h-4 text-white" />
             </div>
             <div>
               <p className="text-sm font-bold text-gray-900">TurboGH</p>
-              <p className="text-[10px] text-pink-500 font-semibold uppercase tracking-wide">Admin Panel</p>
+              <p className="text-[10px] text-[#E91E8C] font-semibold uppercase tracking-wide">Admin Panel</p>
             </div>
           </div>
           <button
@@ -103,7 +103,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-gray-900 truncate">{user.name}</p>
             <p className="text-[11px] text-gray-400 truncate">{user.email}</p>
-            <span className="inline-flex items-center gap-1 mt-0.5 px-1.5 py-0.5 rounded-full bg-pink-50 text-[10px] font-semibold text-pink-500 uppercase tracking-wide">
+            <span className="inline-flex items-center gap-1 mt-0.5 px-1.5 py-0.5 rounded-full bg-pink-50 text-[10px] font-semibold text-[#E91E8C] uppercase tracking-wide">
               <ShieldCheck className="w-2.5 h-2.5" /> Admin
             </span>
           </div>
@@ -150,13 +150,13 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
         <header className="md:hidden sticky top-0 z-30 bg-white border-b border-gray-100 px-4 py-3 flex items-center gap-3">
           <button
             onClick={() => setSidebarOpen(true)}
-            className="p-2 rounded-xl hover:bg-pink-50 text-gray-600 hover:text-pink-500 transition-colors"
+            className="p-2 rounded-xl hover:bg-pink-50 text-gray-600 hover:text-[#E91E8C] transition-colors"
           >
             <Menu className="w-5 h-5" />
           </button>
 
           <div className="flex items-center gap-2 flex-1">
-            <div className="w-7 h-7 rounded-lg bg-pink-500 flex items-center justify-center shadow-sm shadow-pink-200">
+            <div className="w-7 h-7 rounded-lg bg-[#E91E8C] flex items-center justify-center shadow-sm shadow-pink-100">
               <ShieldCheck className="w-3.5 h-3.5 text-white" />
             </div>
             <span className="text-sm font-bold text-gray-900">Admin Panel</span>

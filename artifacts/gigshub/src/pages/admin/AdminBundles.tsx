@@ -149,7 +149,7 @@ export default function AdminBundles() {
           <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Data Bundles</h1>
           <p className="text-gray-500 text-sm mt-1">Manage data packages for each network</p>
         </div>
-        <Button onClick={openAdd} className="bg-pink-500 hover:bg-pink-600 gap-2 shrink-0">
+        <Button onClick={openAdd} className="bg-[#E91E8C] hover:bg-[#d4197f] gap-2 shrink-0">
           <Plus className="w-4 h-4" /> Add Bundle
         </Button>
       </div>
@@ -243,7 +243,7 @@ export default function AdminBundles() {
                 <select
                   value={form.networkId}
                   onChange={e => handleNetworkChange(e.target.value)}
-                  className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-200 focus:border-pink-500"
+                  className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#fce7f3] focus:border-[#E91E8C]"
                 >
                   {NETWORKS.map(n => <option key={n.id} value={n.id}>{n.name}</option>)}
                 </select>
@@ -257,7 +257,7 @@ export default function AdminBundles() {
                     placeholder="e.g. MTN 1GB Daily"
                     value={form.name}
                     onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-200 focus:border-pink-500"
+                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#fce7f3] focus:border-[#E91E8C]"
                   />
                 </div>
                 <div>
@@ -267,7 +267,7 @@ export default function AdminBundles() {
                     placeholder="e.g. 1GB"
                     value={form.data}
                     onChange={e => setForm(f => ({ ...f, data: e.target.value }))}
-                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-200 focus:border-pink-500"
+                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#fce7f3] focus:border-[#E91E8C]"
                   />
                 </div>
               </div>
@@ -280,7 +280,7 @@ export default function AdminBundles() {
                     placeholder="e.g. 1 Day"
                     value={form.validity}
                     onChange={e => setForm(f => ({ ...f, validity: e.target.value }))}
-                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-200 focus:border-pink-500"
+                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#fce7f3] focus:border-[#E91E8C]"
                   />
                 </div>
                 <div>
@@ -293,7 +293,7 @@ export default function AdminBundles() {
                     placeholder="0.00"
                     value={form.price || ""}
                     onChange={e => setForm(f => ({ ...f, price: parseFloat(e.target.value) || 0 }))}
-                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-200 focus:border-pink-500"
+                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#fce7f3] focus:border-[#E91E8C]"
                   />
                 </div>
               </div>
@@ -303,7 +303,7 @@ export default function AdminBundles() {
                 <select
                   value={form.type}
                   onChange={e => setForm(f => ({ ...f, type: e.target.value }))}
-                  className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-200 focus:border-pink-500"
+                  className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#fce7f3] focus:border-[#E91E8C]"
                 >
                   {TYPES.map(t => <option key={t} value={t} className="capitalize">{t.charAt(0).toUpperCase() + t.slice(1)}</option>)}
                 </select>
@@ -314,14 +314,14 @@ export default function AdminBundles() {
                   type="checkbox"
                   checked={form.popular}
                   onChange={e => setForm(f => ({ ...f, popular: e.target.checked }))}
-                  className="w-4 h-4 rounded accent-pink-500"
+                  className="w-4 h-4 rounded accent-[#E91E8C]"
                 />
                 <span className="text-sm text-gray-700">Mark as popular</span>
               </label>
 
               <div className="flex gap-3 pt-2">
                 <Button type="button" variant="outline" className="flex-1" onClick={closeForm}>Cancel</Button>
-                <Button type="submit" disabled={isSaving} className="flex-1 bg-pink-500 hover:bg-pink-600">
+                <Button type="submit" disabled={isSaving} className="flex-1 bg-[#E91E8C] hover:bg-[#d4197f]">
                   {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : editBundle ? "Save Changes" : "Add Bundle"}
                 </Button>
               </div>

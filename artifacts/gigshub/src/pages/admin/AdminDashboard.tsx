@@ -68,8 +68,8 @@ export default function AdminDashboard() {
           <p className="text-gray-400 text-sm mt-1">Here's what's happening on TurboGH today.</p>
         </div>
         <div className="hidden sm:flex items-center gap-2 bg-pink-50 border border-pink-100 rounded-xl px-3 py-2">
-          <TrendingUp className="w-4 h-4 text-pink-500" />
-          <span className="text-xs font-semibold text-pink-600">Live Data</span>
+          <TrendingUp className="w-4 h-4 text-[#E91E8C]" />
+          <span className="text-xs font-semibold text-[#E91E8C]">Live Data</span>
         </div>
       </div>
 
@@ -97,7 +97,7 @@ export default function AdminDashboard() {
           </div>
           <div className="flex items-center gap-3 text-xs text-gray-500">
             <span className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-pink-500 inline-block" />
+              <span className="w-2.5 h-2.5 rounded-full bg-[#E91E8C] inline-block" />
               Orders
             </span>
             <span className="flex items-center gap-1.5">
@@ -107,7 +107,7 @@ export default function AdminDashboard() {
           </div>
         </div>
         <ResponsiveContainer width="100%" height={240}>
-          <BarChart data={chartData ?? []} barSize={10} barGap={3}>
+          <BarChart data={chartData ?? []} barSize={4} barGap={2} barCategoryGap="40%">
             <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" vertical={false} />
             <XAxis
               dataKey="name"
@@ -121,9 +121,9 @@ export default function AdminDashboard() {
               tickLine={false}
               allowDecimals={false}
             />
-            <Tooltip content={<CustomTooltip />} cursor={{ fill: "#fdf2f8", radius: 6 }} />
-            <Bar dataKey="orders" name="Orders" fill="#EC4899" radius={[4, 4, 0, 0]} />
-            <Bar dataKey="users" name="Users" fill="#c084fc" radius={[4, 4, 0, 0]} />
+            <Tooltip content={<CustomTooltip />} cursor={{ fill: "#fdf2f8" }} />
+            <Bar dataKey="orders" name="Orders" fill="#E91E8C" />
+            <Bar dataKey="users" name="Users" fill="#a855f7" />
           </BarChart>
         </ResponsiveContainer>
       </div>
@@ -133,15 +133,15 @@ export default function AdminDashboard() {
         <h2 className="text-sm font-bold text-gray-900 mb-3">Quick Actions</h2>
         <ul className="space-y-2 text-sm text-gray-500">
           <li className="flex items-start gap-2">
-            <span className="text-pink-500 font-bold mt-0.5">•</span>
+            <span className="text-[#E91E8C] font-bold mt-0.5">•</span>
             Go to <strong className="text-gray-700">Data Bundles</strong> to add, edit or remove packages for each network.
           </li>
           <li className="flex items-start gap-2">
-            <span className="text-pink-500 font-bold mt-0.5">•</span>
+            <span className="text-[#E91E8C] font-bold mt-0.5">•</span>
             Go to <strong className="text-gray-700">Services</strong> to manage AFA registration and other digital services.
           </li>
           <li className="flex items-start gap-2">
-            <span className="text-pink-500 font-bold mt-0.5">•</span>
+            <span className="text-[#E91E8C] font-bold mt-0.5">•</span>
             Use <strong className="text-gray-700">Notifications</strong> to broadcast push messages to all users instantly.
           </li>
         </ul>
