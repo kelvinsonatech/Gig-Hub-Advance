@@ -155,7 +155,7 @@ function NotificationsPanel({ onClose }: { onClose: () => void }) {
                 onClick={() => { if (!n.isRead) markReadMutation.mutate(n.id); }}
                 className={cn(
                   "flex gap-3 px-4 py-3 cursor-pointer transition-colors",
-                  n.isRead ? "bg-white hover:bg-gray-50/50" : "bg-orange-50/60 hover:bg-orange-50"
+                  "bg-white hover:bg-gray-50/50"
                 )}
               >
                 {/* Image or icon */}
