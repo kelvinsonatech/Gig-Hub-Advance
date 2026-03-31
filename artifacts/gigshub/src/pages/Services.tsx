@@ -1,7 +1,7 @@
 import { useGetServices } from "@workspace/api-client-react";
 import { Link } from "wouter";
 import { formatGHS } from "@/lib/utils";
-import { ShieldCheck, UserPlus, Smartphone, ArrowRight, ChevronRight, Wifi } from "lucide-react";
+import { ShieldCheck, UserPlus, ArrowRight, ChevronRight, Wifi } from "lucide-react";
 import { motion } from "framer-motion";
 
 const NETWORKS = [
@@ -71,14 +71,6 @@ const OTHER_SERVICES = [
     glow: "group-hover:shadow-emerald-100",
     title: "Become an Agent",
     desc: "Start your own business selling TurboGH services and earn commissions.",
-  },
-  {
-    href: "/wallet",
-    icon: Smartphone,
-    color: "bg-blue-100 text-blue-600",
-    glow: "group-hover:shadow-blue-100",
-    title: "Wallet & Top-Up",
-    desc: "Fund your TurboGH wallet using MoMo, Telecel Cash, or AT Money.",
   },
 ];
 
