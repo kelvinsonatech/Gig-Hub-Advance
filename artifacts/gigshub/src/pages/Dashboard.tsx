@@ -4,7 +4,6 @@ import { useGetWallet, useGetOrders } from "@workspace/api-client-react";
 import { formatGHS } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
-import walletBg from "@assets/wallet-bg.jpg";
 import {
   Wifi, ShieldCheck, Plus, ArrowRight, Users, Eye, EyeOff,
   TrendingUp, Package, CheckCircle2, Clock, XCircle, ChevronRight,
@@ -86,7 +85,7 @@ export default function Dashboard() {
         <div className="relative overflow-hidden rounded-2xl md:rounded-3xl p-5 md:p-6 text-white shadow-2xl isolate">
           {/* Background image — fetchPriority high so browser loads it immediately */}
           <img
-            src={walletBg}
+            src={`${import.meta.env.BASE_URL}wallet-bg.jpg`}
             alt=""
             fetchPriority="high"
             aria-hidden="true"
