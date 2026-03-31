@@ -13,6 +13,7 @@ import {
   X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { UserAvatar } from "@/components/ui/UserAvatar";
 
 const navItems = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
@@ -20,25 +21,6 @@ const navItems = [
   { href: "/admin/services", label: "Services", icon: Wrench },
   { href: "/admin/notifications", label: "Notifications", icon: Bell },
 ];
-
-const ADMIN_AVATAR = `${import.meta.env.BASE_URL}admin-avatar.png`;
-
-function Avatar({ name, size = "md" }: { name: string; size?: "sm" | "md" | "lg" }) {
-  const sizes = {
-    sm: "w-8 h-8",
-    md: "w-11 h-11",
-    lg: "w-14 h-14",
-  };
-  return (
-    <div className={`${sizes[size]} rounded-full overflow-hidden shadow-md ring-2 ring-white shrink-0 bg-blue-50`}>
-      <img
-        src={ADMIN_AVATAR}
-        alt={name}
-        className="w-full h-full object-cover"
-      />
-    </div>
-  );
-}
 
 export function AdminLayout({ children }: { children: React.ReactNode }) {
   const [location, navigate] = useLocation();
@@ -105,9 +87,8 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
 
       {/* Profile card at bottom */}
       <div className="px-3 pb-4 border-t border-gray-100 pt-4 space-y-3">
-        {/* Avatar + info */}
         <div className="flex items-center gap-3 px-2">
-          <Avatar name={user.name} size="md" />
+          <UserAvatar name={user.name} size={44} className="ring-2 ring-white shadow-md" />
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-gray-900 truncate">{user.name}</p>
             <p className="text-[11px] text-gray-400 truncate">{user.email}</p>
@@ -117,7 +98,6 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
           </div>
         </div>
 
-        {/* Sign out */}
         <button
           onClick={() => { logout(); navigate("/"); }}
           className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-500 hover:bg-red-50 rounded-lg transition-colors"
@@ -171,13 +151,12 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
             <span className="text-sm font-bold text-gray-900">Admin Panel</span>
           </div>
 
-          {/* Avatar — tapping opens sidebar */}
           <button
             onClick={() => setSidebarOpen(true)}
             className="shrink-0"
             aria-label="Open menu"
           >
-            <Avatar name={user.name} size="sm" />
+            <UserAvatar name={user.name} size={32} className="ring-2 ring-white shadow-md" />
           </button>
         </header>
 
