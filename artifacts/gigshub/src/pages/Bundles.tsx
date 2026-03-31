@@ -48,6 +48,7 @@ export default function Bundles() {
 
   const [selectedBundle, setSelectedBundle] = useState<Bundle | null>(null);
   const [phoneNumber, setPhoneNumber] = useState("");
+  const [phoneTouched, setPhoneTouched] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const createOrder = useCreateOrder({
@@ -56,6 +57,7 @@ export default function Bundles() {
         toast({ title: "Purchase successful!", description: "Your data bundle will be activated shortly." });
         setIsModalOpen(false);
         setPhoneNumber("");
+        setPhoneTouched(false);
         queryClient.invalidateQueries({ queryKey: ["/api/wallet"] });
         queryClient.invalidateQueries({ queryKey: ["/api/orders"] });
       },
@@ -234,14 +236,23 @@ export default function Bundles() {
               <div className="space-y-3">
                 <Label htmlFor="phone">Recipient Phone Number</Label>
                 <div className="relative">
-                  <Phone className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
+                  <Phone className={`absolute left-3 top-3 h-5 w-5 ${phoneTouched && phoneNumber.replace(/\D/g, "").length < 10 ? "text-red-400" : "text-muted-foreground"}`} />
                   <Input
                     id="phone" type="tel" placeholder="Enter phone number"
-                    className="pl-10 h-12 rounded-xl text-lg font-medium"
+                    className={`pl-10 h-12 rounded-xl text-lg font-medium transition-colors ${
+                      phoneTouched && phoneNumber.replace(/\D/g, "").length < 10
+                        ? "border-red-400 ring-2 ring-red-200 focus-visible:ring-red-300 focus-visible:border-red-400"
+                        : ""
+                    }`}
                     value={phoneNumber}
-                    onChange={(e) => setPhoneNumber(e.target.value)}
+                    onChange={(e) => { setPhoneNumber(e.target.value); setPhoneTouched(true); }}
                   />
                 </div>
+                {phoneTouched && phoneNumber.replace(/\D/g, "").length < 10 && (
+                  <p className="text-xs text-red-500 font-medium flex items-center gap-1">
+                    <span className="font-bold">{phoneNumber.replace(/\D/g, "").length} / 10</span> digits entered — needs {10 - phoneNumber.replace(/\D/g, "").length} more
+                  </p>
+                )}
               </div>
             </div>
           )}
@@ -250,7 +261,7 @@ export default function Bundles() {
             <Button variant="outline" onClick={() => setIsModalOpen(false)} className="rounded-xl h-12 flex-1">Cancel</Button>
             <Button
               onClick={handlePurchase}
-              disabled={!phoneNumber || createOrder.isPending}
+              disabled={phoneNumber.replace(/\D/g, "").length < 10 || createOrder.isPending}
               className="rounded-xl h-12 flex-1 shadow-md shadow-primary/20"
             >
               {createOrder.isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : "Confirm & Pay"}
