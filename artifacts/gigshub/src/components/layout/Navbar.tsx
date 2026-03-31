@@ -382,16 +382,6 @@ export function Navbar() {
                   <Wallet className="w-4 h-4" />
                   <span>{formatGHS(wallet?.balance)}</span>
                 </div>
-                <Button
-                  variant="outline"
-                  className="w-full rounded-xl justify-between"
-                  onClick={() => { setIsMobileMenuOpen(false); setShowNotifications(true); }}
-                >
-                  <span className="flex items-center gap-2"><Bell className="w-4 h-4" /> Notifications</span>
-                  {unreadCount > 0 && (
-                    <span className="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">{unreadCount}</span>
-                  )}
-                </Button>
                 <Button variant="outline" asChild className="w-full rounded-xl justify-center">
                   <Link href="/wallet" onClick={close}>Wallet & Top Up</Link>
                 </Button>
