@@ -7,6 +7,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
+import { BottomNav } from "@/components/layout/BottomNav";
 import { InstallPrompt } from "@/components/InstallPrompt";
 import { LoginConfetti } from "@/components/LoginConfetti";
 import { AdminLayout } from "@/pages/admin/AdminLayout";
@@ -67,6 +68,7 @@ function PublicLayout({ children }: { children: React.ReactNode }) {
       <Navbar />
       <main className="flex-1">{children}</main>
       <Footer />
+      <BottomNav />
     </div>
   );
 }

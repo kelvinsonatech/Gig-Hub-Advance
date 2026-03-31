@@ -41,7 +41,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   }
 
   return (
-    <div className="mx-auto px-3 sm:px-4 py-4 md:py-8 max-w-7xl flex flex-col md:flex-row gap-6 md:gap-8 min-h-[calc(100vh-4rem)] pb-6">
+    <div className="mx-auto px-3 sm:px-4 py-4 md:py-8 max-w-7xl flex flex-col md:flex-row gap-6 md:gap-8 min-h-[calc(100vh-4rem)] pb-24 md:pb-8">
       {/* Sidebar — desktop only */}
       <aside className="hidden md:block md:w-64 shrink-0 space-y-6">
         <nav className="space-y-2">
