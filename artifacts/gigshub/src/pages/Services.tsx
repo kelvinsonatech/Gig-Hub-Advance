@@ -1,7 +1,7 @@
 import { useGetServices } from "@workspace/api-client-react";
 import { Link } from "wouter";
 import { formatGHS } from "@/lib/utils";
-import { ShieldCheck, UserPlus, Smartphone, ArrowRight, ChevronRight, Wifi, Package } from "lucide-react";
+import { ShieldCheck, UserPlus, Smartphone, ArrowRight, ChevronRight, Wifi } from "lucide-react";
 import { motion } from "framer-motion";
 
 const NETWORKS = [
@@ -82,33 +82,11 @@ const OTHER_SERVICES = [
   },
 ];
 
-/* ── colour helpers ── */
-function hexAdjust(hex: string, amount: number): string {
-  const clean = hex.replace("#", "");
-  const r = Math.min(255, Math.max(0, parseInt(clean.slice(0, 2), 16) + amount));
-  const g = Math.min(255, Math.max(0, parseInt(clean.slice(2, 4), 16) + amount));
-  const b = Math.min(255, Math.max(0, parseInt(clean.slice(4, 6), 16) + amount));
-  return `#${r.toString(16).padStart(2, "0")}${g.toString(16).padStart(2, "0")}${b.toString(16).padStart(2, "0")}`;
-}
-
-function isLightColor(hex: string): boolean {
-  const clean = hex.replace("#", "");
-  const r = parseInt(clean.slice(0, 2), 16);
-  const g = parseInt(clean.slice(2, 4), 16);
-  const b = parseInt(clean.slice(4, 6), 16);
-  return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.55;
-}
-
 export default function Services() {
   const { data: services = [], isLoading } = useGetServices();
 
   const getNetworkPackages = (networkId: string) =>
     services.filter((s: any) => s.category === networkId);
-
-  // Admin-added non-network services
-  const customServices = (services as any[]).filter(
-    s => !["mtn", "airteltigo", "telecel"].includes(s.category)
-  );
 
   return (
     <div className="min-h-screen bg-gray-50/50">
@@ -275,86 +253,6 @@ export default function Services() {
               </motion.div>
             ))}
 
-            {/* Admin-added services — premium gradient cards */}
-            {customServices.map((s: any, i: number) => {
-              const color = s.brandColor || "#6366f1";
-              const light = isLightColor(color);
-              const gradientStart = hexAdjust(color, -45);
-              const gradientEnd = hexAdjust(color, +30);
-              const gradient = `linear-gradient(135deg, ${gradientStart} 0%, ${color} 55%, ${gradientEnd} 100%)`;
-              const textColor = light ? "text-gray-900" : "text-white";
-              const subColor = light ? "rgba(0,0,0,0.55)" : "rgba(255,255,255,0.65)";
-              const btnBg = light ? "rgba(0,0,0,0.12)" : "rgba(255,255,255,0.18)";
-              const btnBorder = light ? "rgba(0,0,0,0.12)" : "rgba(255,255,255,0.3)";
-              const btnColor = light ? "#1a1a1a" : "#ffffff";
-
-              return (
-                <motion.div
-                  key={s.id}
-                  initial={{ opacity: 0, y: 24 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.54 + i * 0.1, type: "spring", stiffness: 220, damping: 22 }}
-                  whileHover={{ y: -6, scale: 1.02 }}
-                  className="relative overflow-hidden rounded-3xl shadow-lg flex flex-col cursor-default"
-                  style={{ background: gradient }}
-                >
-                  {/* Ambient glow blob */}
-                  <div
-                    className="absolute -top-10 -left-10 w-48 h-48 rounded-full blur-3xl opacity-40 pointer-events-none"
-                    style={{ background: color }}
-                  />
-
-                  {/* Blurred logo watermark */}
-                  {s.iconUrl && (
-                    <div className="absolute -right-6 -bottom-6 w-44 h-44 opacity-20 blur-xl pointer-events-none select-none">
-                      <img src={s.iconUrl} alt="" className="w-full h-full object-contain" />
-                    </div>
-                  )}
-
-                  {/* Grid overlay */}
-                  <div
-                    className="absolute inset-0 pointer-events-none opacity-[0.04]"
-                    style={{
-                      backgroundImage: "repeating-linear-gradient(0deg,transparent,transparent 24px,#fff 24px,#fff 25px),repeating-linear-gradient(90deg,transparent,transparent 24px,#fff 24px,#fff 25px)",
-                    }}
-                  />
-
-                  {/* Content */}
-                  <div className="relative z-10 p-6 flex flex-col">
-                    {/* Logo + name */}
-                    <div className="flex items-center gap-4 mb-5">
-                      <div className="w-14 h-14 rounded-2xl bg-white/90 backdrop-blur-sm shadow-md flex items-center justify-center overflow-hidden shrink-0 ring-1 ring-white/50">
-                        {s.iconUrl ? (
-                          <img src={s.iconUrl} alt={s.name} className="w-full h-full object-contain p-1.5" />
-                        ) : (
-                          <Package className="w-6 h-6" style={{ color }} />
-                        )}
-                      </div>
-                      <div className="min-w-0">
-                        <h3 className={`font-black text-lg tracking-tight ${textColor}`}>{s.name}</h3>
-                        <p className="text-xs font-semibold" style={{ color: subColor }}>
-                          From {formatGHS(s.price)}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Description */}
-                    <p className="text-xs leading-relaxed mb-5 line-clamp-2" style={{ color: subColor }}>
-                      {s.description}
-                    </p>
-
-                    {/* CTA */}
-                    <motion.button
-                      whileTap={{ scale: 0.97 }}
-                      className="w-full h-11 rounded-2xl text-sm font-bold flex items-center justify-center gap-1 backdrop-blur-sm transition-all"
-                      style={{ background: btnBg, color: btnColor, border: `1.5px solid ${btnBorder}` }}
-                    >
-                      Get Started <ChevronRight className="w-3.5 h-3.5" />
-                    </motion.button>
-                  </div>
-                </motion.div>
-              );
-            })}
           </div>
         </section>
 
