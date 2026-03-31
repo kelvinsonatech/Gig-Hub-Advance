@@ -136,7 +136,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
       <div className="flex-1 flex flex-col min-w-0">
 
         {/* Mobile top bar */}
-        <header className="md:hidden sticky top-0 z-30 bg-white border-b border-gray-100 px-4 py-3 flex items-center gap-3">
+        <header className="md:hidden sticky top-0 z-30 bg-white border-b border-gray-100 px-4 py-5 flex items-center gap-3">
           <button
             onClick={() => setSidebarOpen(true)}
             className="p-2 rounded-xl hover:bg-gray-100 text-gray-500 transition-colors"
