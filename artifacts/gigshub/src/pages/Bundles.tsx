@@ -284,8 +284,9 @@ export default function Bundles() {
                     </div>
                     <div>
                       <p className={cn("text-sm font-bold", paymentMethod === "wallet" ? "text-green-700" : "text-gray-700")}>Wallet</p>
-                      <p className="text-[11px] text-gray-400">
-                        Bal: {wallet ? formatGHS(wallet.balance) : "—"}
+                      <p className="text-[11px] text-gray-400">Wallet Balance</p>
+                      <p className={cn("text-[11px] font-bold", paymentMethod === "wallet" ? "text-green-600" : "text-gray-500")}>
+                        {wallet ? formatGHS(wallet.balance) : "—"}
                       </p>
                     </div>
                   </button>
