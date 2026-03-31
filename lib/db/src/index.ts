@@ -12,18 +12,23 @@ const connectionString = isDev
 
 if (!connectionString) {
   console.error(
-    "[db] No database connection string found. " +
-    "Set DATABASE_URL (local) or SUPABASE_DATABASE_URL (production)."
+    "[db] FATAL: No database connection string found. " +
+    "Set SUPABASE_DATABASE_URL in your Vercel environment variables.\n" +
+    "Use the Transaction Pooler URL from Supabase (port 6543)."
   );
 }
+
+const isSupabase = connectionString?.includes("supabase") ?? false;
+const isNeon = connectionString?.includes("neon") ?? false;
+const needsSsl = isSupabase || isNeon;
 
 export const pool = connectionString
   ? new Pool({
       connectionString,
-      max: 3,
-      ssl: connectionString.includes("supabase") || connectionString.includes("neon")
-        ? { rejectUnauthorized: false }
-        : undefined,
+      max: isDev ? 3 : 1,
+      idleTimeoutMillis: 10_000,
+      connectionTimeoutMillis: 10_000,
+      ssl: needsSsl ? { rejectUnauthorized: false } : undefined,
     })
   : null as unknown as pg.Pool;
 
