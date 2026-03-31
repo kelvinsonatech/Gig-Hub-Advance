@@ -21,6 +21,28 @@ const navItems = [
   { href: "/admin/notifications", label: "Notifications", icon: Bell },
 ];
 
+function getInitials(name: string) {
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+function Avatar({ name, size = "md" }: { name: string; size?: "sm" | "md" | "lg" }) {
+  const initials = getInitials(name);
+  const sizes = {
+    sm: "w-8 h-8 text-xs",
+    md: "w-11 h-11 text-sm",
+    lg: "w-14 h-14 text-base",
+  };
+  return (
+    <div
+      className={`${sizes[size]} rounded-full bg-gradient-to-br from-[#0077C7] to-[#005fa3] flex items-center justify-center font-bold text-white shadow-md ring-2 ring-white shrink-0`}
+    >
+      {initials}
+    </div>
+  );
+}
+
 export function AdminLayout({ children }: { children: React.ReactNode }) {
   const [location, navigate] = useLocation();
   const { user, logout } = useAuth();
@@ -52,7 +74,6 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
               <p className="text-[10px] text-[#0077C7] font-semibold uppercase tracking-wide">Admin Panel</p>
             </div>
           </div>
-          {/* Close button — mobile only */}
           <button
             className="md:hidden p-1.5 rounded-lg hover:bg-gray-100 text-gray-400"
             onClick={() => setSidebarOpen(false)}
@@ -85,12 +106,21 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
         })}
       </nav>
 
-      {/* User */}
-      <div className="px-3 py-4 border-t border-gray-100">
-        <div className="px-3 py-2 mb-2">
-          <p className="text-xs font-semibold text-gray-900 truncate">{user.name}</p>
-          <p className="text-[11px] text-gray-400 truncate">{user.email}</p>
+      {/* Profile card at bottom */}
+      <div className="px-3 pb-4 border-t border-gray-100 pt-4 space-y-3">
+        {/* Avatar + info */}
+        <div className="flex items-center gap-3 px-2">
+          <Avatar name={user.name} size="md" />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-gray-900 truncate">{user.name}</p>
+            <p className="text-[11px] text-gray-400 truncate">{user.email}</p>
+            <span className="inline-flex items-center gap-1 mt-0.5 px-1.5 py-0.5 rounded-full bg-[#0077C7]/10 text-[10px] font-semibold text-[#0077C7] uppercase tracking-wide">
+              <ShieldCheck className="w-2.5 h-2.5" /> Admin
+            </span>
+          </div>
         </div>
+
+        {/* Sign out */}
         <button
           onClick={() => { logout(); navigate("/"); }}
           className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-500 hover:bg-red-50 rounded-lg transition-colors"
@@ -105,7 +135,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen flex bg-gray-50">
 
-      {/* ── Mobile overlay backdrop ── */}
+      {/* Mobile overlay backdrop */}
       {sidebarOpen && (
         <div
           className="fixed inset-0 z-40 bg-black/40 md:hidden"
@@ -113,7 +143,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
         />
       )}
 
-      {/* ── Sidebar — desktop always visible, mobile slide-in drawer ── */}
+      {/* Sidebar */}
       <aside
         className={`
           fixed md:static inset-y-0 left-0 z-50
@@ -125,7 +155,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
         <SidebarContent />
       </aside>
 
-      {/* ── Main content ── */}
+      {/* Main content */}
       <div className="flex-1 flex flex-col min-w-0">
 
         {/* Mobile top bar */}
@@ -136,12 +166,22 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
           >
             <Menu className="w-5 h-5" />
           </button>
-          <div className="flex items-center gap-2">
+
+          <div className="flex items-center gap-2 flex-1">
             <div className="w-7 h-7 rounded-lg bg-[#0077C7] flex items-center justify-center">
               <ShieldCheck className="w-3.5 h-3.5 text-white" />
             </div>
             <span className="text-sm font-bold text-gray-900">Admin Panel</span>
           </div>
+
+          {/* Avatar — tapping opens sidebar */}
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="shrink-0"
+            aria-label="Open menu"
+          >
+            <Avatar name={user.name} size="sm" />
+          </button>
         </header>
 
         <main className="flex-1 overflow-auto">
