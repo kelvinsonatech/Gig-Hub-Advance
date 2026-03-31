@@ -128,7 +128,7 @@ export default function AdminServices() {
           <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Services & Packages</h1>
           <p className="text-gray-500 text-sm mt-1">Packages shown on the All Services page, grouped by network</p>
         </div>
-        <Button onClick={openAdd} className="bg-primary hover:bg-primary/90 gap-2 shrink-0">
+        <Button onClick={openAdd} className="bg-[#E91E8C] hover:bg-[#d4197f] gap-2 shrink-0">
           <Plus className="w-4 h-4" /> Add Package
         </Button>
       </div>
@@ -163,7 +163,7 @@ export default function AdminServices() {
                 <h3 className="font-semibold text-gray-900 text-sm mt-2">{s.name}</h3>
                 <p className="text-xs text-gray-500 mt-1 line-clamp-2">{s.description}</p>
                 <div className="mt-3">
-                  <span className="text-sm font-bold text-primary">GHS {s.price.toFixed(2)}</span>
+                  <span className="text-sm font-bold text-[#E91E8C]">GHS {s.price.toFixed(2)}</span>
                 </div>
               </div>
             );
@@ -189,7 +189,7 @@ export default function AdminServices() {
                   required
                   value={form.category}
                   onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
-                  className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white"
+                  className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#fce7f3] focus:border-[#E91E8C] bg-white"
                 >
                   {CATEGORIES.map(c => (
                     <option key={c.value} value={c.value}>{c.label}</option>
@@ -207,7 +207,7 @@ export default function AdminServices() {
                   placeholder="e.g. 5GB Monthly Bundle"
                   value={form.name}
                   onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-                  className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                  className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#fce7f3] focus:border-[#E91E8C]"
                 />
               </div>
 
@@ -219,7 +219,7 @@ export default function AdminServices() {
                   placeholder="Brief description of the package"
                   value={form.description}
                   onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
-                  className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none"
+                  className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#fce7f3] focus:border-[#E91E8C] resize-none"
                 />
               </div>
 
@@ -233,7 +233,7 @@ export default function AdminServices() {
                   placeholder="0.00"
                   value={form.price || ""}
                   onChange={e => setForm(f => ({ ...f, price: parseFloat(e.target.value) || 0 }))}
-                  className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                  className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#fce7f3] focus:border-[#E91E8C]"
                 />
               </div>
 
