@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useGetBundles, useGetNetworks, useCreateOrder, useGetWallet, type Bundle } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { navigate } from "wouter/use-browser-location";
+import { useSearch } from "wouter";
 import {
   Dialog,
   DialogContent,
@@ -24,9 +25,19 @@ export default function Bundles() {
   const { isAuthenticated } = useAuth();
   const { data: networks, isLoading: loadingNetworks } = useGetNetworks();
   const { data: wallet } = useGetWallet({ query: { enabled: isAuthenticated } });
+  const search = useSearch();
 
   const [selectedNetworkId, setSelectedNetworkId] = useState<string | null>(null);
   const activeNetwork = selectedNetworkId ?? networks?.[0]?.id ?? null;
+
+  useEffect(() => {
+    if (!networks?.length) return;
+    const params = new URLSearchParams(search);
+    const code = params.get("network");
+    if (!code) return;
+    const match = networks.find(n => n.code.toUpperCase() === code.toUpperCase());
+    if (match) setSelectedNetworkId(match.id);
+  }, [networks, search]);
 
   const { data: bundles, isLoading: loadingBundles, isFetching: fetchingBundles } = useGetBundles(
     { networkId: activeNetwork || undefined },

@@ -7,15 +7,13 @@ import { motion } from "framer-motion";
 const NETWORKS = [
   {
     id: "mtn",
+    networkCode: "MTN",
     name: "MTN",
     tagline: "Ghana's Largest Network",
     logoUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/New-mtn-logo.jpg/500px-New-mtn-logo.jpg",
     gradient: "linear-gradient(135deg, #e6a800 0%, #FFCC00 55%, #ffe066 100%)",
     glowHex: "#f59e0b",
     dark: true,
-    btnBg: "rgba(0,0,0,0.18)",
-    btnText: "#1a1a1a",
-    btnHoverBg: "rgba(0,0,0,0.28)",
     pkgBg: "rgba(0,0,0,0.10)",
     pkgBorder: "rgba(0,0,0,0.10)",
     pkgText: "text-black/80",
@@ -25,15 +23,13 @@ const NETWORKS = [
   },
   {
     id: "airteltigo",
+    networkCode: "AT",
     name: "AirtelTigo",
     tagline: "Connecting Communities",
     logoUrl: "https://recharge-prd.asset.akeneo.cloud/product_assets/media/recharge_com_airteltigo_product_card.png",
     gradient: "linear-gradient(135deg, #002f5c 0%, #004b87 55%, #0077cc 100%)",
     glowHex: "#60a5fa",
     dark: false,
-    btnBg: "rgba(255,255,255,0.18)",
-    btnText: "#ffffff",
-    btnHoverBg: "rgba(255,255,255,0.28)",
     pkgBg: "rgba(255,255,255,0.12)",
     pkgBorder: "rgba(255,255,255,0.15)",
     pkgText: "text-white/80",
@@ -43,15 +39,13 @@ const NETWORKS = [
   },
   {
     id: "telecel",
+    networkCode: "TELECEL",
     name: "Telecel",
     tagline: "Fast & Reliable Data",
     logoUrl: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRJQ6fNzCpMhlyaxWqlXYqmY7Bb5KZBIQt_1Q&s",
     gradient: "linear-gradient(135deg, #7f1d1d 0%, #CC0000 55%, #ef4444 100%)",
     glowHex: "#f87171",
     dark: false,
-    btnBg: "rgba(255,255,255,0.18)",
-    btnText: "#ffffff",
-    btnHoverBg: "rgba(255,255,255,0.28)",
     pkgBg: "rgba(255,255,255,0.12)",
     pkgBorder: "rgba(255,255,255,0.15)",
     pkgText: "text-white/80",
@@ -207,7 +201,7 @@ export default function Services() {
                     </div>
 
                     {/* CTA button */}
-                    <Link href="/bundles">
+                    <Link href={`/bundles?network=${net.networkCode}`}>
                       <motion.button
                         whileTap={{ scale: 0.97 }}
                         className="w-full h-11 rounded-2xl text-sm font-bold flex items-center justify-center gap-1.5 backdrop-blur-sm transition-all"
