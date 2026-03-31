@@ -83,14 +83,15 @@ export default function Dashboard() {
         </div>
 
         {/* ── Wallet Card ── */}
-        <div
-          className="relative overflow-hidden rounded-2xl md:rounded-3xl p-5 md:p-6 text-white shadow-2xl isolate"
-          style={{
-            backgroundImage: `url("${walletBg}")`,
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-          }}
-        >
+        <div className="relative overflow-hidden rounded-2xl md:rounded-3xl p-5 md:p-6 text-white shadow-2xl isolate">
+          {/* Background image — fetchPriority high so browser loads it immediately */}
+          <img
+            src={walletBg}
+            alt=""
+            fetchPriority="high"
+            aria-hidden="true"
+            className="absolute inset-0 w-full h-full object-cover object-center pointer-events-none select-none"
+          />
           {/* Dark overlay */}
           <div className="absolute inset-0 bg-gradient-to-br from-black/70 via-black/50 to-orange-950/60" />
           {/* Orange glow orb */}
