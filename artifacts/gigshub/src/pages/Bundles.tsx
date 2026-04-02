@@ -198,8 +198,13 @@ export default function Bundles() {
                       <span className={cn("px-2 py-0.5 rounded-md text-[10px] sm:text-xs font-bold", accent.badge)}>
                         {net?.code}
                       </span>
-                      <span className="text-[9px] sm:text-xs font-medium text-muted-foreground uppercase tracking-wider bg-gray-50 px-1.5 py-0.5 rounded-md">
-                        {bundle.type}
+                      <span className={cn(
+                        "text-[9px] sm:text-xs font-medium uppercase tracking-wider px-1.5 py-0.5 rounded-md",
+                        bundle.type === "non-expiry"
+                          ? "bg-green-50 text-green-600"
+                          : "bg-blue-50 text-blue-600"
+                      )}>
+                        {bundle.type === "non-expiry" ? "No Expiry" : "Expiry"}
                       </span>
                     </div>
                     <h3 className="text-2xl sm:text-3xl font-extrabold text-gray-900 mb-0.5">{bundle.data}</h3>

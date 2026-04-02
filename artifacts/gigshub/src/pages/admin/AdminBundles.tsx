@@ -13,13 +13,16 @@ const NETWORKS = [
 ];
 
 const TYPE_COLORS: Record<string, string> = {
-  daily:   "bg-orange-50  text-orange-600  border border-orange-200",
-  weekly:  "bg-blue-50    text-blue-600    border border-blue-200",
-  monthly: "bg-purple-50  text-purple-600  border border-purple-200",
-  special: "bg-emerald-50 text-emerald-600 border border-emerald-200",
+  "expiry":     "bg-blue-50  text-blue-600  border border-blue-200",
+  "non-expiry": "bg-green-50 text-green-600 border border-green-200",
 };
 
-const TYPES = ["daily", "weekly", "monthly", "special"];
+const TYPE_LABELS: Record<string, string> = {
+  "expiry":     "Expiry",
+  "non-expiry": "No Expiry",
+};
+
+const TYPES = ["expiry", "non-expiry"];
 
 async function apiFetch(path: string, opts?: RequestInit) {
   const token = localStorage.getItem("gigshub_token");
@@ -57,7 +60,7 @@ const emptyForm = (): BundleForm => ({
   data: "",
   validity: "",
   price: 0,
-  type: "daily",
+  type: "expiry",
   popular: false,
 });
 
@@ -65,6 +68,7 @@ export default function AdminBundles() {
   const qc = useQueryClient();
   const { toast } = useToast();
   const [activeNetwork, setActiveNetwork] = useState("1");
+  const [activeType, setActiveType] = useState<"expiry" | "non-expiry">("expiry");
   const [showForm, setShowForm] = useState(false);
   const [editBundle, setEditBundle] = useState<Bundle | null>(null);
   const [form, setForm] = useState<BundleForm>(emptyForm());
@@ -75,7 +79,8 @@ export default function AdminBundles() {
     queryFn: () => apiFetch("/bundles"),
   });
 
-  const filtered = bundles.filter(b => b.networkId === activeNetwork);
+  const networkBundles = bundles.filter(b => b.networkId === activeNetwork);
+  const filtered = networkBundles.filter(b => b.type === activeType);
   const activeNet = NETWORKS.find(n => n.id === activeNetwork)!;
 
   const createMutation = useMutation({
@@ -167,7 +172,7 @@ export default function AdminBundles() {
       </div>
 
       {/* ── Network tabs ────────────────────────────────────────── */}
-      <div className="flex gap-3 mb-8 flex-wrap">
+      <div className="flex gap-3 mb-4 flex-wrap">
         {NETWORKS.map(net => {
           const count = bundles.filter(b => b.networkId === net.id).length;
           const isActive = activeNetwork === net.id;
@@ -188,6 +193,36 @@ export default function AdminBundles() {
                   isActive ? "bg-white/30 text-white" : "bg-gray-100 text-gray-500"
                 }`}
               >
+                {count}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* ── Expiry / Non-Expiry tabs ─────────────────────────────── */}
+      <div className="flex gap-2 mb-8">
+        {(["expiry", "non-expiry"] as const).map(t => {
+          const count = networkBundles.filter(b => b.type === t).length;
+          const isActive = activeType === t;
+          return (
+            <button
+              key={t}
+              onClick={() => setActiveType(t)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border transition-all ${
+                isActive
+                  ? t === "expiry"
+                    ? "bg-blue-50 text-blue-700 border-blue-200 shadow-sm"
+                    : "bg-green-50 text-green-700 border-green-200 shadow-sm"
+                  : "bg-white text-gray-400 border-gray-200 hover:border-gray-300 hover:text-gray-600"
+              }`}
+            >
+              <span>{t === "expiry" ? "Expiry" : "No Expiry"}</span>
+              <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full ${
+                isActive
+                  ? t === "expiry" ? "bg-blue-100 text-blue-600" : "bg-green-100 text-green-600"
+                  : "bg-gray-100 text-gray-400"
+              }`}>
                 {count}
               </span>
             </button>
@@ -256,8 +291,8 @@ export default function AdminBundles() {
                   <Clock className="w-3 h-3 shrink-0" />
                   <span>{b.validity}</span>
                   <span className="text-gray-200">•</span>
-                  <span className={`px-2 py-0.5 rounded-full font-medium capitalize ${TYPE_COLORS[b.type] ?? "bg-gray-100 text-gray-600"}`}>
-                    {b.type}
+                  <span className={`px-2 py-0.5 rounded-full font-medium ${TYPE_COLORS[b.type] ?? "bg-gray-100 text-gray-600"}`}>
+                    {TYPE_LABELS[b.type] ?? b.type}
                   </span>
                   {b.popular && (
                     <>
@@ -393,19 +428,19 @@ export default function AdminBundles() {
               {/* Type */}
               <div>
                 <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Type</label>
-                <div className="grid grid-cols-4 gap-2">
+                <div className="grid grid-cols-2 gap-2">
                   {TYPES.map(t => (
                     <button
                       key={t}
                       type="button"
                       onClick={() => setForm(f => ({ ...f, type: t }))}
-                      className={`py-2 rounded-xl text-xs font-semibold border transition-all capitalize ${
+                      className={`py-2.5 rounded-xl text-sm font-semibold border transition-all ${
                         form.type === t
                           ? TYPE_COLORS[t] + " border-current shadow-sm"
                           : "bg-white text-gray-400 border-gray-200 hover:border-gray-300"
                       }`}
                     >
-                      {t}
+                      {TYPE_LABELS[t]}
                     </button>
                   ))}
                 </div>
