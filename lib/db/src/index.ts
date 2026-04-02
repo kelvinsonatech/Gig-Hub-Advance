@@ -24,7 +24,7 @@ const isSupabase = connectionString?.includes("supabase") ?? false;
 const isNeon = connectionString?.includes("neon") ?? false;
 const needsSsl = isSupabase || isNeon;
 
-export const pool = connectionString
+const pool_ = connectionString
   ? new Pool({
       connectionString,
       max: 3,
@@ -32,7 +32,17 @@ export const pool = connectionString
       connectionTimeoutMillis: 15_000,
       ssl: needsSsl ? { rejectUnauthorized: false } : undefined,
     })
-  : null as unknown as pg.Pool;
+  : null;
+
+// Ensure Supabase connections always resolve tables in the public schema first,
+// not the internal auth schema which also has a `users` table.
+if (pool_ && isSupabase) {
+  pool_.on("connect", (client) => {
+    client.query("SET search_path TO public");
+  });
+}
+
+export const pool = pool_ as pg.Pool;
 
 if (pool) {
   pool.connect()

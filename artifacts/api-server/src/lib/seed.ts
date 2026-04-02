@@ -13,6 +13,9 @@ export async function seedDatabase() {
 
   const client = await pool.connect();
   try {
+    // Ensure we're always working in the public schema, not Supabase's internal auth schema
+    await client.query("SET search_path TO public");
+
     // ── Schema ────────────────────────────────────────────────────────────
     await client.query(`
       CREATE TABLE IF NOT EXISTS users (
@@ -98,10 +101,11 @@ export async function seedDatabase() {
     logger.info("[seed] Schema verified");
 
     // ── Admin user — use parameterised query so $ hash is safe ─────────────
+    // Use public.users with current schema columns (password_hash, phone, role enum)
     const adminHash = "$2b$10$tngaG7DXZ927zLhCByW/FOuGbsXOxd.jDtuwrrI81lB8aleJp6Zt6";
     await client.query(
-      `INSERT INTO users (name, email, password, role)
-       VALUES ('Admin', 'admin@gigshub.store', $1, 'admin')
+      `INSERT INTO public.users (name, email, phone, password_hash, role)
+       VALUES ('Admin', 'admin@gigshub.store', '0000000000', $1, 'admin')
        ON CONFLICT (email) DO NOTHING`,
       [adminHash]
     );
