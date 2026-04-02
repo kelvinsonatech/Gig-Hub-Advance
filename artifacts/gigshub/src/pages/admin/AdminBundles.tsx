@@ -68,7 +68,6 @@ export default function AdminBundles() {
   const qc = useQueryClient();
   const { toast } = useToast();
   const [activeNetwork, setActiveNetwork] = useState("1");
-  const [activeType, setActiveType] = useState<"expiry" | "non-expiry">("expiry");
   const [showForm, setShowForm] = useState(false);
   const [editBundle, setEditBundle] = useState<Bundle | null>(null);
   const [form, setForm] = useState<BundleForm>(emptyForm());
@@ -79,8 +78,7 @@ export default function AdminBundles() {
     queryFn: () => apiFetch("/bundles"),
   });
 
-  const networkBundles = bundles.filter(b => b.networkId === activeNetwork);
-  const filtered = networkBundles.filter(b => b.type === activeType);
+  const filtered = bundles.filter(b => b.networkId === activeNetwork);
   const activeNet = NETWORKS.find(n => n.id === activeNetwork)!;
 
   const createMutation = useMutation({
@@ -172,7 +170,7 @@ export default function AdminBundles() {
       </div>
 
       {/* ── Network tabs ────────────────────────────────────────── */}
-      <div className="flex gap-3 mb-4 flex-wrap">
+      <div className="flex gap-3 mb-8 flex-wrap">
         {NETWORKS.map(net => {
           const count = bundles.filter(b => b.networkId === net.id).length;
           const isActive = activeNetwork === net.id;
@@ -193,36 +191,6 @@ export default function AdminBundles() {
                   isActive ? "bg-white/30 text-white" : "bg-gray-100 text-gray-500"
                 }`}
               >
-                {count}
-              </span>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* ── Expiry / Non-Expiry tabs ─────────────────────────────── */}
-      <div className="flex gap-2 mb-8">
-        {(["expiry", "non-expiry"] as const).map(t => {
-          const count = networkBundles.filter(b => b.type === t).length;
-          const isActive = activeType === t;
-          return (
-            <button
-              key={t}
-              onClick={() => setActiveType(t)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border transition-all ${
-                isActive
-                  ? t === "expiry"
-                    ? "bg-blue-50 text-blue-700 border-blue-200 shadow-sm"
-                    : "bg-green-50 text-green-700 border-green-200 shadow-sm"
-                  : "bg-white text-gray-400 border-gray-200 hover:border-gray-300 hover:text-gray-600"
-              }`}
-            >
-              <span>{t === "expiry" ? "Expiry" : "No Expiry"}</span>
-              <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full ${
-                isActive
-                  ? t === "expiry" ? "bg-blue-100 text-blue-600" : "bg-green-100 text-green-600"
-                  : "bg-gray-100 text-gray-400"
-              }`}>
                 {count}
               </span>
             </button>
