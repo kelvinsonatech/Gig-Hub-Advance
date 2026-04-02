@@ -62,7 +62,6 @@ export default function AdminBundles() {
   const [editBundle, setEditBundle] = useState<Bundle | null>(null);
   const [form, setForm] = useState<BundleForm>(emptyForm());
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [editingPrice, setEditingPrice] = useState<{ id: string; value: string } | null>(null);
 
   const { data: bundles = [], isLoading } = useQuery<Bundle[]>({
     queryKey: ["admin-bundles"],
@@ -124,18 +123,6 @@ export default function AdminBundles() {
     setShowForm(false);
     setEditBundle(null);
     setForm(emptyForm());
-  }
-
-  function commitPrice(b: Bundle) {
-    if (!editingPrice || editingPrice.id !== b.id) return;
-    const newPrice = parseFloat(editingPrice.value);
-    if (!isNaN(newPrice) && newPrice > 0 && newPrice !== b.price) {
-      updateMutation.mutate({
-        id: b.id,
-        data: { networkId: b.networkId, networkName: b.networkName, name: b.name, data: b.data, validity: b.validity, price: newPrice, type: b.type, popular: b.popular },
-      });
-    }
-    setEditingPrice(null);
   }
 
   function handleNetworkChange(id: string) {
@@ -215,36 +202,7 @@ export default function AdminBundles() {
                   <td className="px-5 py-3.5 font-medium text-gray-900">{b.name}</td>
                   <td className="px-5 py-3.5 text-gray-700">{b.data}</td>
                   <td className="px-5 py-3.5 text-gray-500">{b.validity}</td>
-                  <td className="px-5 py-3.5">
-                    {editingPrice?.id === b.id ? (
-                      <div className="flex items-center gap-1">
-                        <span className="text-xs text-gray-400 font-medium">GHS</span>
-                        <input
-                          autoFocus
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          value={editingPrice.value}
-                          onChange={e => setEditingPrice({ id: b.id, value: e.target.value })}
-                          onBlur={() => commitPrice(b)}
-                          onKeyDown={e => {
-                            if (e.key === "Enter") { e.preventDefault(); commitPrice(b); }
-                            if (e.key === "Escape") setEditingPrice(null);
-                          }}
-                          className="w-20 border border-[#E91E8C] rounded-lg px-2 py-1 text-sm font-semibold text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#fce7f3]"
-                        />
-                      </div>
-                    ) : (
-                      <button
-                        onClick={() => setEditingPrice({ id: b.id, value: b.price.toFixed(2) })}
-                        className="group flex items-center gap-1 rounded-lg px-2 py-1 -mx-2 hover:bg-pink-50 transition-colors"
-                        title="Click to edit price"
-                      >
-                        <span className="font-semibold text-gray-900">GHS {b.price.toFixed(2)}</span>
-                        <Pencil className="w-3 h-3 text-gray-300 group-hover:text-[#E91E8C] transition-colors" />
-                      </button>
-                    )}
-                  </td>
+                  <td className="px-5 py-3.5 font-semibold text-gray-900">GHS {b.price.toFixed(2)}</td>
                   <td className="px-5 py-3.5">
                     <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600 capitalize">{b.type}</span>
                   </td>
