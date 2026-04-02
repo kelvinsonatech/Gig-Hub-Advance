@@ -7,11 +7,12 @@ export const notificationsTable = pgTable("notifications", {
   userId: integer("user_id"),
   title: text("title").notNull(),
   message: text("message").notNull(),
-  imageUrl: text("image_url"),
-  isRead: boolean("is_read").notNull().default(false),
+  type: text("type").notNull().default("info"),
+  read: boolean("read").notNull().default(false),
+  broadcast: boolean("broadcast").notNull().default(false),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
-export const insertNotificationSchema = createInsertSchema(notificationsTable).omit({ id: true, createdAt: true, isRead: true });
+export const insertNotificationSchema = createInsertSchema(notificationsTable).omit({ id: true, createdAt: true, read: true });
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 export type Notification = typeof notificationsTable.$inferSelect;

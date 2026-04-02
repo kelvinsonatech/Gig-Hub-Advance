@@ -303,7 +303,7 @@ router.delete("/networks/:id", async (req, res) => {
 // ── Notifications ──────────────────────────────────────────────────────────────
 router.post("/notifications", async (req, res) => {
   try {
-    const { title, message, imageUrl, userId } = req.body;
+    const { title, message, type, userId } = req.body;
     if (!title || !message) {
       return res.status(400).json({ error: "validation_error", message: "Title and message are required" });
     }
@@ -312,7 +312,7 @@ router.post("/notifications", async (req, res) => {
     const [notification] = await db.insert(notificationsTable).values({
       title,
       message,
-      imageUrl: imageUrl || null,
+      type: type || "info",
       userId: targetUserId,
     }).returning();
 
@@ -332,7 +332,7 @@ router.post("/notifications", async (req, res) => {
 
       if (tokenRows.length > 0) {
         const tokens = tokenRows.map(r => r.token);
-        const { failedTokens } = await sendPushToTokens(tokens, title, message, imageUrl);
+        const { failedTokens } = await sendPushToTokens(tokens, title, message, undefined);
         if (failedTokens.length > 0) {
           await db.delete(deviceTokensTable).where(inArray(deviceTokensTable.token, failedTokens));
         }
@@ -345,8 +345,9 @@ router.post("/notifications", async (req, res) => {
       id: String(notification.id),
       title: notification.title,
       message: notification.message,
-      imageUrl: notification.imageUrl ?? null,
-      isRead: notification.isRead,
+      type: notification.type,
+      isRead: notification.read,
+      broadcast: notification.broadcast,
       createdAt: notification.createdAt.toISOString(),
     });
   } catch (err) {
@@ -362,8 +363,9 @@ router.get("/notifications", async (req, res) => {
       id: String(n.id),
       title: n.title,
       message: n.message,
-      imageUrl: n.imageUrl ?? null,
-      isRead: n.isRead,
+      type: n.type,
+      isRead: n.read,
+      broadcast: n.broadcast,
       userId: n.userId ? String(n.userId) : null,
       createdAt: n.createdAt.toISOString(),
     })));

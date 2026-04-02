@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { db } from "@workspace/db";
-import { notificationsTable, usersTable, deviceTokensTable } from "@workspace/db";
+import { notificationsTable, deviceTokensTable } from "@workspace/db";
 import { eq, or, isNull, desc } from "drizzle-orm";
 import { requireAuth } from "../middleware/auth";
 
@@ -21,8 +21,9 @@ router.get("/", async (req, res) => {
       id: String(n.id),
       title: n.title,
       message: n.message,
-      imageUrl: n.imageUrl ?? null,
-      isRead: n.isRead,
+      type: n.type,
+      isRead: n.read,
+      broadcast: n.broadcast,
       createdAt: n.createdAt.toISOString(),
     })));
   } catch (err) {
@@ -34,7 +35,7 @@ router.get("/", async (req, res) => {
 router.patch("/:id/read", async (req, res) => {
   try {
     const id = parseInt(req.params.id);
-    await db.update(notificationsTable).set({ isRead: true }).where(eq(notificationsTable.id, id));
+    await db.update(notificationsTable).set({ read: true }).where(eq(notificationsTable.id, id));
     return res.json({ success: true });
   } catch (err) {
     req.log.error(err, "mark read error");
@@ -47,7 +48,7 @@ router.patch("/read-all", async (req, res) => {
     const userId = (req as any).auth.userId;
     await db
       .update(notificationsTable)
-      .set({ isRead: true })
+      .set({ read: true })
       .where(or(eq(notificationsTable.userId, userId), isNull(notificationsTable.userId)));
     return res.json({ success: true });
   } catch (err) {
