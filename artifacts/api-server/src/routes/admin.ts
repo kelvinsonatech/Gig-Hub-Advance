@@ -313,7 +313,6 @@ router.post("/notifications", async (req, res) => {
       title,
       message,
       type: type || "info",
-      imageUrl: req.body.imageUrl || null,
       userId: targetUserId,
     }).returning();
 
@@ -346,7 +345,6 @@ router.post("/notifications", async (req, res) => {
       id: String(notification.id),
       title: notification.title,
       message: notification.message,
-      imageUrl: notification.imageUrl ?? null,
       type: notification.type,
       isRead: notification.read,
       broadcast: notification.broadcast,
@@ -365,7 +363,6 @@ router.get("/notifications", async (req, res) => {
       id: String(n.id),
       title: n.title,
       message: n.message,
-      imageUrl: n.imageUrl ?? null,
       type: n.type,
       isRead: n.read,
       broadcast: n.broadcast,

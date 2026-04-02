@@ -7,7 +7,6 @@ export const notificationsTable = pgTable("notifications", {
   userId: integer("user_id"),
   title: text("title").notNull(),
   message: text("message").notNull(),
-  imageUrl: text("image_url"),
   type: text("type").notNull().default("info"),
   read: boolean("read").notNull().default(false),
   broadcast: boolean("broadcast").notNull().default(false),
