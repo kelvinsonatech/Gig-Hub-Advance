@@ -303,7 +303,7 @@ router.delete("/networks/:id", async (req, res) => {
 // ── Notifications ──────────────────────────────────────────────────────────────
 router.post("/notifications", async (req, res) => {
   try {
-    const { title, message, type, userId } = req.body;
+    const { title, message, type, userId, imageUrl } = req.body;
     if (!title || !message) {
       return res.status(400).json({ error: "validation_error", message: "Title and message are required" });
     }
@@ -313,6 +313,7 @@ router.post("/notifications", async (req, res) => {
       title,
       message,
       type: type || "info",
+      imageUrl: imageUrl || null,
       userId: targetUserId,
     }).returning();
 
@@ -332,7 +333,7 @@ router.post("/notifications", async (req, res) => {
 
       if (tokenRows.length > 0) {
         const tokens = tokenRows.map(r => r.token);
-        const { failedTokens } = await sendPushToTokens(tokens, title, message, undefined);
+        const { failedTokens } = await sendPushToTokens(tokens, title, message, imageUrl || undefined);
         if (failedTokens.length > 0) {
           await db.delete(deviceTokensTable).where(inArray(deviceTokensTable.token, failedTokens));
         }
@@ -345,6 +346,7 @@ router.post("/notifications", async (req, res) => {
       id: String(notification.id),
       title: notification.title,
       message: notification.message,
+      imageUrl: notification.imageUrl ?? null,
       type: notification.type,
       isRead: notification.read,
       broadcast: notification.broadcast,
@@ -363,6 +365,7 @@ router.get("/notifications", async (req, res) => {
       id: String(n.id),
       title: n.title,
       message: n.message,
+      imageUrl: n.imageUrl ?? null,
       type: n.type,
       isRead: n.read,
       broadcast: n.broadcast,
