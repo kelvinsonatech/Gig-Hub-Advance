@@ -150,16 +150,55 @@ function NotificationsPanel({ onClose }: { onClose: () => void }) {
         ) : (
           <div className="divide-y divide-gray-50">
             {notifications.map(n => (
-              <div
-                key={n.id}
-                onClick={() => { if (!n.isRead) markReadMutation.mutate(n.id); }}
-                className={cn(
-                  "flex flex-col px-4 py-3 cursor-pointer transition-colors gap-2",
-                  "bg-white hover:bg-gray-50/50"
-                )}
-              >
-                {/* Header row: icon + title + unread dot */}
-                <div className="flex items-start gap-3">
+              n.imageUrl ? (
+                /* ── Highlight card (image notification) ── */
+                <div
+                  key={n.id}
+                  onClick={() => { if (!n.isRead) markReadMutation.mutate(n.id); }}
+                  className="relative mx-3 my-2 rounded-2xl overflow-hidden cursor-pointer shadow-sm group"
+                  style={{ minHeight: 160 }}
+                >
+                  {/* Background image */}
+                  <img
+                    src={n.imageUrl}
+                    alt=""
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+                    onError={e => { (e.target as HTMLImageElement).closest(".relative")!.classList.add("hidden"); }}
+                  />
+
+                  {/* Gradient shade at the bottom */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+
+                  {/* Unread dot — top right */}
+                  {!n.isRead && (
+                    <span className="absolute top-2.5 right-2.5 w-2.5 h-2.5 rounded-full bg-primary border-2 border-white" />
+                  )}
+
+                  {/* Bottom content overlay */}
+                  <div className="relative flex items-end gap-2.5 px-3 pb-3 pt-16">
+                    {/* Admin avatar — bottom left, white ring */}
+                    <div className="shrink-0 rounded-full ring-2 ring-white shadow-md">
+                      <UserAvatar name="GigsHub" size={32} />
+                    </div>
+
+                    {/* Text */}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold text-white leading-tight truncate">{n.title}</p>
+                      <p className="text-[11px] text-white/80 leading-snug line-clamp-2 mt-0.5">{n.message}</p>
+                      <p className="text-[10px] text-white/50 mt-1">{format(new Date(n.createdAt), "MMM d · h:mm a")}</p>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                /* ── Plain text notification ── */
+                <div
+                  key={n.id}
+                  onClick={() => { if (!n.isRead) markReadMutation.mutate(n.id); }}
+                  className={cn(
+                    "flex items-start gap-3 px-4 py-3 cursor-pointer transition-colors",
+                    "bg-white hover:bg-gray-50/50"
+                  )}
+                >
                   <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center shrink-0 mt-0.5">
                     <Bell className="w-4 h-4 text-primary" />
                   </div>
@@ -174,17 +213,7 @@ function NotificationsPanel({ onClose }: { onClose: () => void }) {
                     <p className="text-[10px] text-gray-400 mt-1">{format(new Date(n.createdAt), "MMM d · h:mm a")}</p>
                   </div>
                 </div>
-
-                {/* Full-width image below content */}
-                {n.imageUrl && (
-                  <img
-                    src={n.imageUrl}
-                    alt=""
-                    className="w-full rounded-xl object-cover border border-gray-100 max-h-44"
-                    onError={e => { (e.target as HTMLImageElement).style.display = "none"; }}
-                  />
-                )}
-              </div>
+              )
             ))}
           </div>
         )}
