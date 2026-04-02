@@ -154,35 +154,36 @@ function NotificationsPanel({ onClose }: { onClose: () => void }) {
                 key={n.id}
                 onClick={() => { if (!n.isRead) markReadMutation.mutate(n.id); }}
                 className={cn(
-                  "flex gap-3 px-4 py-3 cursor-pointer transition-colors",
+                  "flex flex-col px-4 py-3 cursor-pointer transition-colors gap-2",
                   "bg-white hover:bg-gray-50/50"
                 )}
               >
-                {/* Image or icon */}
-                {n.imageUrl ? (
+                {/* Header row: icon + title + unread dot */}
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center shrink-0 mt-0.5">
+                    <Bell className="w-4 h-4 text-primary" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-1">
+                      <p className={cn("text-sm leading-tight", n.isRead ? "font-medium text-gray-700" : "font-bold text-gray-900")}>
+                        {n.title}
+                      </p>
+                      {!n.isRead && <span className="w-2 h-2 rounded-full bg-primary shrink-0 mt-1" />}
+                    </div>
+                    <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">{n.message}</p>
+                    <p className="text-[10px] text-gray-400 mt-1">{format(new Date(n.createdAt), "MMM d · h:mm a")}</p>
+                  </div>
+                </div>
+
+                {/* Full-width image below content */}
+                {n.imageUrl && (
                   <img
                     src={n.imageUrl}
                     alt=""
-                    className="w-11 h-11 rounded-xl object-cover shrink-0 border border-gray-100"
+                    className="w-full rounded-xl object-cover border border-gray-100 max-h-44"
                     onError={e => { (e.target as HTMLImageElement).style.display = "none"; }}
                   />
-                ) : (
-                  <div className="w-11 h-11 rounded-xl bg-orange-100 flex items-center justify-center shrink-0">
-                    <Bell className="w-5 h-5 text-primary" />
-                  </div>
                 )}
-
-                {/* Content */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between gap-1">
-                    <p className={cn("text-sm leading-tight", n.isRead ? "font-medium text-gray-700" : "font-bold text-gray-900")}>
-                      {n.title}
-                    </p>
-                    {!n.isRead && <span className="w-2 h-2 rounded-full bg-primary shrink-0 mt-1" />}
-                  </div>
-                  <p className="text-xs text-gray-500 mt-0.5 line-clamp-2 leading-relaxed">{n.message}</p>
-                  <p className="text-[10px] text-gray-400 mt-1">{format(new Date(n.createdAt), "MMM d · h:mm a")}</p>
-                </div>
               </div>
             ))}
           </div>
