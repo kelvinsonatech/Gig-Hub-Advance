@@ -103,6 +103,10 @@ function NotificationsPanel({ onClose }: { onClose: () => void }) {
     return () => document.removeEventListener("mousedown", handleClick);
   }, [onClose]);
 
+  useEffect(() => {
+    markAllMutation.mutate();
+  }, []);
+
   const unread = notifications.filter(n => !n.isRead);
 
   return (
