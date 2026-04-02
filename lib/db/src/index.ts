@@ -4,7 +4,8 @@ import * as schema from "./schema";
 
 const { Pool } = pg;
 
-const connectionString = process.env.SUPABASE_DATABASE_URL ?? process.env.DATABASE_URL;
+// Prefer Replit's built-in DB; fall back to Supabase only if DATABASE_URL is absent
+const connectionString = process.env.DATABASE_URL ?? process.env.SUPABASE_DATABASE_URL;
 
 if (!connectionString) {
   console.error(
@@ -20,9 +21,9 @@ if (!connectionString) {
   }
 }
 
-const isSupabase = connectionString?.includes("supabase") ?? false;
 const isNeon = connectionString?.includes("neon") ?? false;
-const needsSsl = isSupabase || isNeon;
+const isSupabase = connectionString?.includes("supabase") ?? false;
+const needsSsl = isNeon || isSupabase;
 
 const pool_ = connectionString
   ? new Pool({
@@ -34,8 +35,7 @@ const pool_ = connectionString
     })
   : null;
 
-// Ensure Supabase connections always resolve tables in the public schema first,
-// not the internal auth schema which also has a `users` table.
+// Ensure Supabase connections resolve tables in the public schema first
 if (pool_ && isSupabase) {
   pool_.on("connect", (client) => {
     client.query("SET search_path TO public");
