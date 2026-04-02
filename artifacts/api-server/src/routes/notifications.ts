@@ -21,6 +21,7 @@ router.get("/", async (req, res) => {
       id: String(n.id),
       title: n.title,
       message: n.message,
+      imageUrl: n.imageUrl ?? null,
       type: n.type,
       isRead: n.read,
       broadcast: n.broadcast,
