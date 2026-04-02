@@ -177,15 +177,15 @@ function NotificationsPanel({ onClose }: { onClose: () => void }) {
                   {/* Bottom content overlay */}
                   <div className="relative flex items-end gap-2.5 px-3 pb-3 pt-20">
                     {/* Admin avatar — bottom left, white ring */}
-                    <div className="shrink-0 rounded-full ring-2 ring-white shadow-lg">
-                      <UserAvatar name="GigsHub" size={34} />
+                    <div className="shrink-0 rounded-full ring-2 ring-white shadow-md">
+                      <UserAvatar name="GigsHub" size={28} />
                     </div>
 
                     {/* Text */}
                     <div className="flex-1 min-w-0" style={{ textShadow: "0 1px 4px rgba(0,0,0,0.7)" }}>
-                      <p className="text-sm font-extrabold text-white leading-tight">{n.title}</p>
-                      <p className="text-[11px] text-white/90 leading-snug line-clamp-2 mt-0.5">{n.message}</p>
-                      <p className="text-[10px] text-white/60 mt-1">{format(new Date(n.createdAt), "MMM d · h:mm a")}</p>
+                      <p className="text-xs font-bold text-white leading-tight">{n.title}</p>
+                      <p className="text-[10px] text-white/90 leading-snug line-clamp-2 mt-0.5">{n.message}</p>
+                      <p className="text-[9px] text-white/60 mt-1">{format(new Date(n.createdAt), "MMM d · h:mm a")}</p>
                     </div>
                   </div>
                 </div>
