@@ -5,7 +5,7 @@ import { formatGHS } from "@/lib/utils";
 import { ShieldCheck, UserPlus, ArrowRight, ChevronRight, Wifi, Radio } from "lucide-react";
 import { motion } from "framer-motion";
 
-const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
+import { API as BASE } from "@/lib/api";
 
 /* ── colour helpers ── */
 function hexAdjust(hex: string, amount: number): string {

@@ -20,7 +20,7 @@ function isLightColor(hex: string): boolean {
   return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.55;
 }
 
-const API = import.meta.env.BASE_URL.replace(/\/$/, "");
+import { API } from "@/lib/api";
 
 async function apiFetch(path: string, opts?: RequestInit) {
   const token = localStorage.getItem("gigshub_token");

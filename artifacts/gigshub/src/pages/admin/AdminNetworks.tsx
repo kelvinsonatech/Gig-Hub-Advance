@@ -4,7 +4,7 @@ import { Plus, Pencil, Trash2, X, Loader2, Radio, ChevronRight } from "lucide-re
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 
-const API = import.meta.env.BASE_URL.replace(/\/$/, "");
+import { API } from "@/lib/api";
 
 async function apiFetch(path: string, opts?: RequestInit) {
   const token = localStorage.getItem("gigshub_token");

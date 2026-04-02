@@ -4,7 +4,7 @@ import { Plus, Pencil, Trash2, Star, X, Loader2, Wifi, Package, Clock, Tag } fro
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 
-const API = import.meta.env.BASE_URL.replace(/\/$/, "");
+import { API } from "@/lib/api";
 
 const NETWORKS = [
   { id: "1", name: "MTN",        color: "#FFCC00", text: "#9a7c00", bg: "from-yellow-400 to-amber-300",   ring: "ring-yellow-300" },

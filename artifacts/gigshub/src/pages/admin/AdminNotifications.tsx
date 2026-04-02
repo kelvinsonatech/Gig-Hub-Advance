@@ -4,7 +4,7 @@ import { Bell, Send, Trash2, ImageIcon, Users, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 
-const API = import.meta.env.BASE_URL.replace(/\/$/, "");
+import { API } from "@/lib/api";
 const token = () => localStorage.getItem("gigshub_token");
 
 async function fetchNotifications() {

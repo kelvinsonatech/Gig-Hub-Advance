@@ -19,7 +19,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-const API = import.meta.env.BASE_URL.replace(/\/$/, "");
+import { API } from "@/lib/api";
 
 function NavLink({ href, children }: { href: string; children: React.ReactNode }) {
   const [isActive] = useRoute(href);

@@ -3,7 +3,7 @@ import { requestFcmToken, onForegroundMessage } from "@/lib/firebase";
 import { useAuthStore } from "./use-auth";
 import { toast } from "sonner";
 
-const API = import.meta.env.VITE_API_URL as string;
+import { API } from "@/lib/api";
 const STORAGE_KEY = "fcm_token_registered";
 
 async function registerToken(token: string) {

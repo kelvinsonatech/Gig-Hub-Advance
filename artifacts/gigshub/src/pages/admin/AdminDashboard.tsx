@@ -5,7 +5,7 @@ import {
 } from "recharts";
 import { useAuth } from "@/hooks/use-auth";
 
-const API = import.meta.env.BASE_URL.replace(/\/$/, "");
+import { API } from "@/lib/api";
 
 async function fetchStats() {
   const token = localStorage.getItem("gigshub_token");
