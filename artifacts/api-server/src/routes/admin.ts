@@ -1,7 +1,7 @@
 import { Router, type IRouter } from "express";
 import { db } from "@workspace/db";
 import { bundlesTable, servicesTable, networksTable, ordersTable, usersTable, notificationsTable, deviceTokensTable } from "@workspace/db";
-import { eq, count, inArray, gte, sql } from "drizzle-orm";
+import { eq, count, inArray, gte, sql, desc } from "drizzle-orm";
 import { requireAuth, requireAdmin } from "../middleware/auth";
 import { sendPushToTokens } from "../lib/fcm";
 
@@ -403,6 +403,61 @@ router.delete("/notifications/:id", async (req, res) => {
   } catch (err) {
     req.log.error(err, "admin delete notification error");
     return res.status(500).json({ error: "internal_error", message: "Failed to delete notification" });
+  }
+});
+
+// ── Orders ─────────────────────────────────────────────────────────────────────
+router.get("/orders", async (req, res) => {
+  try {
+    const rows = await db
+      .select({
+        id: ordersTable.id,
+        type: ordersTable.type,
+        status: ordersTable.status,
+        amount: ordersTable.amount,
+        details: ordersTable.details,
+        createdAt: ordersTable.createdAt,
+        userName: usersTable.name,
+        userEmail: usersTable.email,
+        userPhone: usersTable.phone,
+      })
+      .from(ordersTable)
+      .innerJoin(usersTable, eq(ordersTable.userId, usersTable.id))
+      .orderBy(desc(ordersTable.createdAt));
+
+    return res.json(rows.map(o => ({
+      id: String(o.id),
+      type: o.type,
+      status: o.status,
+      amount: parseFloat(o.amount),
+      details: o.details,
+      createdAt: o.createdAt.toISOString(),
+      user: { name: o.userName, email: o.userEmail, phone: o.userPhone },
+    })));
+  } catch (err) {
+    req.log.error(err, "admin get orders error");
+    return res.status(500).json({ error: "internal_error", message: "Failed to get orders" });
+  }
+});
+
+router.patch("/orders/:id/status", async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const { status } = req.body;
+    const valid = ["pending", "processing", "completed", "failed"];
+    if (!valid.includes(status)) {
+      return res.status(400).json({ error: "validation_error", message: "Invalid status" });
+    }
+    const [order] = await db
+      .update(ordersTable)
+      .set({ status })
+      .where(eq(ordersTable.id, id))
+      .returning();
+    if (!order) return res.status(404).json({ error: "not_found", message: "Order not found" });
+    return res.json({ id: String(order.id), status: order.status });
+  } catch (err) {
+    req.log.error(err, "admin update order status error");
+    return res.status(500).json({ error: "internal_error", message: "Failed to update order status" });
   }
 });
 

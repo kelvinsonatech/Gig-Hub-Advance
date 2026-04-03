@@ -10,6 +10,7 @@ import {
   Menu,
   X,
   Radio,
+  ShoppingBag,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UserAvatar } from "@/components/ui/UserAvatar";
@@ -19,6 +20,7 @@ const navItems = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/networks", label: "Networks", icon: Radio },
   { href: "/admin/bundles", label: "Data Bundles", icon: Package },
+  { href: "/admin/orders", label: "Orders", icon: ShoppingBag },
   { href: "/admin/notifications", label: "Notifications", icon: Bell },
 ];
 

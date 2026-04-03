@@ -30,6 +30,7 @@ import AdminNetworks from "@/pages/admin/AdminNetworks";
 import AdminBundles from "@/pages/admin/AdminBundles";
 import AdminServices from "@/pages/admin/AdminServices";
 import AdminNotifications from "@/pages/admin/AdminNotifications";
+import AdminOrders from "@/pages/admin/AdminOrders";
 
 // Intercept fetch to automatically add Authorization Bearer token to all requests
 const originalFetch = window.fetch;
@@ -89,6 +90,7 @@ function Router() {
           <Route path="/admin/bundles" component={AdminBundles} />
           <Route path="/admin/services" component={AdminServices} />
           <Route path="/admin/notifications" component={AdminNotifications} />
+          <Route path="/admin/orders" component={AdminOrders} />
           <Route component={NotFound} />
         </Switch>
       </AdminLayout>
