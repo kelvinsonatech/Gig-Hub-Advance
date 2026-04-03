@@ -4,10 +4,9 @@ import { useGetOrders, useGetNetworks } from "@workspace/api-client-react";
 import { formatGHS } from "@/lib/utils";
 import {
   History, ShieldCheck, Wifi, UserPlus, Package,
-  Copy, Check, Phone, Clock, Hash
+  Copy, Check, Phone, Clock
 } from "lucide-react";
 import { format } from "date-fns";
-import { useToast } from "@/hooks/use-toast";
 
 type OrderDetails = {
   phoneNumber?: string;
@@ -27,10 +26,20 @@ const STATUS_META: Record<string, { label: string; dot: string; badge: string }>
   failed:     { label: "Failed",     dot: "bg-red-500",     badge: "bg-red-50 text-red-700 border-red-200" },
 };
 
+// Convert numeric order ID → short alphanumeric reference (e.g. 2 → "GH-2A3K5")
+function toOrderRef(id: string): string {
+  const num = parseInt(id, 10);
+  if (isNaN(num)) return id.slice(0, 8).toUpperCase();
+  // Add large offset so even ID=1 gives a 5-char base-36 string, then prefix
+  const code = (num + 916132832).toString(36).toUpperCase().slice(-5);
+  return `GH-${code}`;
+}
+
 function CopyId({ id }: { id: string }) {
   const [copied, setCopied] = useState(false);
+  const ref = toOrderRef(id);
   const copy = () => {
-    navigator.clipboard.writeText(id).then(() => {
+    navigator.clipboard.writeText(ref).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     });
@@ -38,11 +47,10 @@ function CopyId({ id }: { id: string }) {
   return (
     <button
       onClick={copy}
-      className="flex items-center gap-1.5 font-mono text-xs text-gray-400 hover:text-gray-700 transition-colors group/copy"
-      title="Copy order ID"
+      className="flex items-center gap-1.5 font-mono text-xs font-semibold text-gray-600 hover:text-gray-900 transition-colors group/copy"
+      title="Copy order reference"
     >
-      <Hash className="w-3 h-3" />
-      <span className="tracking-wide">{id}</span>
+      <span className="tracking-widest">{ref}</span>
       {copied
         ? <Check className="w-3 h-3 text-emerald-500" />
         : <Copy className="w-3 h-3 opacity-0 group-hover/copy:opacity-100 transition-opacity" />
@@ -52,7 +60,6 @@ function CopyId({ id }: { id: string }) {
 }
 
 export default function Orders() {
-  const { toast } = useToast();
   const { data: orders, isLoading } = useGetOrders();
   const { data: networks } = useGetNetworks();
 
