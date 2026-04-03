@@ -146,20 +146,26 @@ export default function Wallet() {
                 {/* Payment method */}
                 <div className="space-y-2">
                   <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Payment Method</p>
-                  <div className="flex items-center gap-4 w-full border-2 border-primary bg-primary/5 rounded-2xl px-4 py-3 shadow-sm">
-                    <div className="w-10 h-10 rounded-xl overflow-hidden shrink-0 border border-primary/20">
+                  <div className="relative overflow-hidden rounded-2xl border-2 border-primary shadow-md shadow-primary/10">
+                    {/* Background image layer */}
+                    <div className="absolute inset-0">
                       <img
-                        src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSSgtFIB8y9yU96wEcClkw-423BAZdFoeEyIg&s"
-                        alt="MoMo"
-                        className="w-full h-full object-cover"
+                        src="https://www.myjoyonline.com/wp-content/uploads/2021/02/Momo.jpg"
+                        alt=""
+                        className="w-full h-full object-cover object-center"
                       />
+                      <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-transparent" />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold text-primary leading-tight">Mobile Money</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">MTN · AirtelTigo · Telecel</p>
-                    </div>
-                    <div className="w-5 h-5 rounded-full border-2 border-primary flex items-center justify-center shrink-0">
-                      <div className="w-2.5 h-2.5 rounded-full bg-primary" />
+                    {/* Content */}
+                    <div className="relative z-10 flex items-center gap-4 px-4 py-4">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-extrabold text-white leading-tight tracking-wide">Mobile Money</p>
+                        <p className="text-xs text-white/70 mt-0.5 font-medium">MTN · AirtelTigo · Telecel</p>
+                      </div>
+                      <div className="shrink-0 flex items-center gap-1.5 bg-white/15 backdrop-blur-sm border border-white/30 rounded-full px-3 py-1">
+                        <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                        <span className="text-xs font-bold text-white">Selected</span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -188,7 +194,7 @@ export default function Wallet() {
             <div className="flex items-center gap-2.5 mb-4 sm:mb-6">
               <div className="w-9 h-9 rounded-2xl bg-emerald-50 flex items-center justify-center overflow-hidden">
                 <img
-                  src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSSgtFIB8y9yU96wEcClkw-423BAZdFoeEyIg&s"
+                  src="https://www.myjoyonline.com/wp-content/uploads/2021/02/Momo.jpg"
                   alt="MoMo"
                   className="w-full h-full object-cover"
                 />
@@ -218,7 +224,7 @@ export default function Wallet() {
                   <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
                     <div className="w-16 h-16 rounded-2xl bg-muted/60 flex items-center justify-center mb-4 overflow-hidden">
                       <img
-                        src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSSgtFIB8y9yU96wEcClkw-423BAZdFoeEyIg&s"
+                        src="https://www.myjoyonline.com/wp-content/uploads/2021/02/Momo.jpg"
                         alt="MoMo"
                         className="w-full h-full object-cover opacity-40"
                       />
@@ -235,7 +241,7 @@ export default function Wallet() {
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full overflow-hidden shrink-0 border border-border/50">
                         <img
-                          src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSSgtFIB8y9yU96wEcClkw-423BAZdFoeEyIg&s"
+                          src="https://www.myjoyonline.com/wp-content/uploads/2021/02/Momo.jpg"
                           alt="MoMo"
                           className="w-full h-full object-cover"
                         />
