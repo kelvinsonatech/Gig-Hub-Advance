@@ -202,7 +202,7 @@ function NotificationsPanel({ onClose }: { onClose: () => void }) {
                       <div className="rounded-full ring-2 ring-white shadow-lg">
                         <UserAvatar name="TurboGh" size={34} />
                       </div>
-                      <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-primary border-2 border-white flex items-center justify-center shadow-sm">
+                      <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full border-2 border-white flex items-center justify-center shadow-sm" style={{ background: "linear-gradient(135deg, #f97316, #ec4899, #8b5cf6)" }}>
                         <Megaphone className="w-2 h-2 text-white" />
                       </div>
                     </div>
