@@ -199,7 +199,7 @@ function NotificationsPanel({ onClose }: { onClose: () => void }) {
                   <div className="relative flex items-end gap-2.5 px-3 pb-3 pt-20">
                     {/* Admin avatar — bottom left, white ring */}
                     <div className="shrink-0 rounded-full ring-2 ring-white shadow-lg">
-                      <UserAvatar name="GigsHub" size={34} />
+                      <UserAvatar name="TurboGh" size={34} />
                     </div>
 
                     {/* Text */}

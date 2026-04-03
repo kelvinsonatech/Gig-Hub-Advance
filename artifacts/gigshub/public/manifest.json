@@ -1,6 +1,6 @@
 {
-  "name": "GigsHub - Digital Services",
-  "short_name": "GigsHub",
+  "name": "TurboGh - Digital Services",
+  "short_name": "TurboGh",
   "description": "Buy data bundles, AFA registration, wallet top-up and more.",
   "start_url": "/",
   "display": "standalone",

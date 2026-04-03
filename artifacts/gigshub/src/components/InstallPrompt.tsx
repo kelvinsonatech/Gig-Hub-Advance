@@ -103,16 +103,16 @@ export function InstallPrompt() {
 
               <div className="flex items-center gap-4 mb-3 relative z-10">
                 <div className="w-16 h-16 rounded-2xl bg-white shadow-lg flex items-center justify-center shrink-0">
-                  <img src={logoUrl} alt="GigsHub" className="w-11 h-auto" />
+                  <img src={logoUrl} alt="TurboGh" className="w-11 h-auto" />
                 </div>
                 <div>
-                  <p className="text-white/70 text-[11px] font-semibold uppercase tracking-widest mb-0.5">GigsHub</p>
+                  <p className="text-white/70 text-[11px] font-semibold uppercase tracking-widest mb-0.5">TurboGh</p>
                   <h2 className="text-xl font-extrabold leading-tight">Add to Home Screen</h2>
                 </div>
               </div>
 
               <p className="text-white/80 text-sm leading-relaxed relative z-10">
-                Install GigsHub for instant access to data bundles, your wallet, and all services — straight from your home screen.
+                Install TurboGh for instant access to data bundles, your wallet, and all services — straight from your home screen.
               </p>
             </div>
 
@@ -125,7 +125,7 @@ export function InstallPrompt() {
                   {[
                     { n: "1", icon: Share2,   text: 'Tap the Share button at the bottom of Safari' },
                     { n: "2", icon: Plus,     text: 'Scroll down and tap "Add to Home Screen"' },
-                    { n: "3", icon: Smartphone, text: 'Tap "Add" — done! GigsHub is now on your home screen.' },
+                    { n: "3", icon: Smartphone, text: 'Tap "Add" — done! TurboGh is now on your home screen.' },
                   ].map(({ n, icon: Icon, text }) => (
                     <div key={n} className="flex items-start gap-3">
                       <div className="w-7 h-7 rounded-full bg-[#0077C7] text-white text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">
