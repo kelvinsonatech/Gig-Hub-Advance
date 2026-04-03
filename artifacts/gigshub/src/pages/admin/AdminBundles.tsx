@@ -108,8 +108,9 @@ export default function AdminBundles() {
   const [form, setForm] = useState<BundleForm>(emptyBundleForm());
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  /* ── add-network form state ── */
+  /* ── add/edit-network form state ── */
   const [showNetForm, setShowNetForm] = useState(false);
+  const [editNet, setEditNet] = useState<Network | null>(null);
   const [netForm, setNetForm] = useState<NetForm>(emptyNetForm());
   const [netColorAuto, setNetColorAuto] = useState(false);
 
@@ -171,6 +172,18 @@ export default function AdminBundles() {
     onError: (e: Error) => toast({ title: "Failed to add network", description: e.message, variant: "destructive" }),
   });
 
+  const updateNetwork = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: NetForm }) =>
+      apiFetch(`/networks/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-networks"] });
+      qc.invalidateQueries({ queryKey: ["networks"] });
+      toast({ title: "Network updated" });
+      closeNetForm();
+    },
+    onError: (e: Error) => toast({ title: "Failed to update network", description: e.message, variant: "destructive" }),
+  });
+
   /* ── handlers ── */
   function openAdd() {
     setForm(emptyBundleForm(activeNet));
@@ -184,8 +197,16 @@ export default function AdminBundles() {
   }
   function closeForm() { setShowForm(false); setEditBundle(null); setForm(emptyBundleForm(activeNet)); }
 
+  function openEditNet(net: Network) {
+    setEditNet(net);
+    setNetForm({ name: net.name, code: net.code, tagline: net.tagline ?? "", logoUrl: net.logoUrl ?? "", color: net.color });
+    setNetColorAuto(false);
+    setShowNetForm(true);
+  }
+
   function closeNetForm() {
     setShowNetForm(false);
+    setEditNet(null);
     setNetForm(emptyNetForm());
     setNetColorAuto(false);
   }
@@ -203,7 +224,9 @@ export default function AdminBundles() {
 
   function handleNetSubmit(e: React.FormEvent) {
     e.preventDefault();
-    createNetwork.mutate({ ...netForm, code: netForm.code.toUpperCase() });
+    const data = { ...netForm, code: netForm.code.toUpperCase() };
+    if (editNet) updateNetwork.mutate({ id: editNet.id, data });
+    else createNetwork.mutate(data);
   }
 
   const isSaving = createBundle.isPending || updateBundle.isPending;
@@ -241,28 +264,37 @@ export default function AdminBundles() {
             const isActive = activeNetwork === net.id;
             const light = isLightColor(net.color);
             return (
-              <button
-                key={net.id}
-                onClick={() => setActiveNetwork(net.id)}
-                className={`relative flex items-center gap-2.5 px-5 py-3 rounded-2xl text-sm font-semibold transition-all border ${
-                  isActive
-                    ? "border-transparent shadow-md"
-                    : "bg-white text-gray-500 border-gray-200 hover:border-gray-300 hover:text-gray-700"
-                }`}
-                style={isActive
-                  ? { background: `linear-gradient(135deg, ${net.color}, ${net.color}cc)`, color: light ? "#111827" : "#fff" }
-                  : {}}
-              >
-                {net.logoUrl && (
-                  <img src={net.logoUrl} alt="" className="w-4 h-4 object-contain rounded" />
-                )}
-                <span>{net.name}</span>
-                <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full ${
-                  isActive ? "bg-white/30 text-current" : "bg-gray-100 text-gray-500"
-                }`}>
-                  {count}
-                </span>
-              </button>
+              <div key={net.id} className="relative group/tab">
+                <button
+                  onClick={() => setActiveNetwork(net.id)}
+                  className={`relative flex items-center gap-2.5 px-5 py-3 rounded-2xl text-sm font-semibold transition-all border ${
+                    isActive
+                      ? "border-transparent shadow-md"
+                      : "bg-white text-gray-500 border-gray-200 hover:border-gray-300 hover:text-gray-700"
+                  }`}
+                  style={isActive
+                    ? { background: `linear-gradient(135deg, ${net.color}, ${net.color}cc)`, color: light ? "#111827" : "#fff" }
+                    : {}}
+                >
+                  {net.logoUrl && (
+                    <img src={net.logoUrl} alt="" className="w-4 h-4 object-contain rounded" />
+                  )}
+                  <span>{net.name}</span>
+                  <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full ${
+                    isActive ? "bg-white/30 text-current" : "bg-gray-100 text-gray-500"
+                  }`}>
+                    {count}
+                  </span>
+                </button>
+                {/* Edit pencil — appears on tab hover */}
+                <button
+                  onClick={e => { e.stopPropagation(); openEditNet(net); }}
+                  className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-white border border-gray-200 shadow-sm text-gray-400 hover:text-[#E91E8C] hover:border-[#E91E8C] flex items-center justify-center opacity-0 group-hover/tab:opacity-100 transition-all z-10"
+                  title="Edit network"
+                >
+                  <Pencil className="w-2.5 h-2.5" />
+                </button>
+              </div>
             );
           })}
 
@@ -375,8 +407,8 @@ export default function AdminBundles() {
             <div className="h-1.5 w-full" style={{ background: `linear-gradient(90deg, ${netForm.color}, ${netForm.color}88)` }} />
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
               <div>
-                <h2 className="font-bold text-gray-900">Add Network</h2>
-                <p className="text-xs text-gray-400 mt-0.5">New network tab on the Services page</p>
+                <h2 className="font-bold text-gray-900">{editNet ? "Edit Network" : "Add Network"}</h2>
+                <p className="text-xs text-gray-400 mt-0.5">{editNet ? `Editing "${editNet.name}"` : "New network tab on the Services page"}</p>
               </div>
               <button onClick={closeNetForm} className="p-1.5 rounded-xl hover:bg-gray-100 text-gray-400 transition-colors">
                 <X className="w-4 h-4" />
@@ -448,10 +480,10 @@ export default function AdminBundles() {
                 </button>
                 <button
                   type="submit"
-                  disabled={createNetwork.isPending}
+                  disabled={createNetwork.isPending || updateNetwork.isPending}
                   className="flex-1 py-2.5 rounded-xl bg-[#E91E8C] hover:bg-[#d4197f] text-white text-sm font-semibold shadow-lg shadow-pink-200 transition-all disabled:opacity-60 flex items-center justify-center gap-2"
                 >
-                  {createNetwork.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Add Network"}
+                  {(createNetwork.isPending || updateNetwork.isPending) ? <Loader2 className="w-4 h-4 animate-spin" /> : editNet ? "Save Changes" : "Add Network"}
                 </button>
               </div>
             </form>
