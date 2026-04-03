@@ -6,7 +6,6 @@ import {
   CreditCard,
   History,
   ShieldCheck,
-  Settings,
   Wifi,
 } from "lucide-react";
 
@@ -50,11 +49,6 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           <SidebarLink href="/orders" icon={History}>Order History</SidebarLink>
           <SidebarLink href="/afa-registration" icon={ShieldCheck}>AFA Registration</SidebarLink>
         </nav>
-        <div className="pt-6 border-t border-border">
-          <nav className="space-y-2">
-            <SidebarLink href="/settings" icon={Settings}>Settings</SidebarLink>
-          </nav>
-        </div>
       </aside>
 
       {/* Main Content */}
