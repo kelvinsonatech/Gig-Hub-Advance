@@ -88,7 +88,7 @@ export default function Bundles() {
       }
     }
     createOrder.mutate({
-      data: { type: "bundle", bundleId: selectedBundle.id, phoneNumber, details: { paymentMethod } }
+      data: { type: "bundle", bundleId: selectedBundle.id, phoneNumber, paymentMethod, details: { paymentMethod } }
     });
   };
 
