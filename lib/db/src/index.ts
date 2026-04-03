@@ -4,8 +4,8 @@ import * as schema from "./schema";
 
 const { Pool } = pg;
 
-// Prefer Replit's built-in DB; fall back to Supabase only if DATABASE_URL is absent
-const connectionString = process.env.DATABASE_URL ?? process.env.SUPABASE_DATABASE_URL;
+// Prefer Supabase; fall back to Replit's built-in DB
+const connectionString = process.env.SUPABASE_DATABASE_URL ?? process.env.DATABASE_URL;
 
 if (!connectionString) {
   console.error(

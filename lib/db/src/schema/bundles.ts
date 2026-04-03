@@ -2,7 +2,7 @@ import { pgTable, text, serial, numeric, boolean, pgEnum, integer } from "drizzl
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
-export const bundleTypeEnum = pgEnum("bundle_type", ["daily", "weekly", "monthly", "special"]);
+export const bundleTypeEnum = pgEnum("bundle_type", ["expiry", "non-expiry"]);
 
 export const bundlesTable = pgTable("bundles", {
   id: serial("id").primaryKey(),
