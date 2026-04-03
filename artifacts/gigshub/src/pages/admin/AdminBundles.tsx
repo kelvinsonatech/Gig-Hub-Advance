@@ -286,23 +286,14 @@ export default function AdminBundles() {
                     {count}
                   </span>
                 </button>
-                {/* Edit + Delete buttons — appear on tab hover */}
-                <div className="absolute -top-2.5 -right-1 flex gap-1 opacity-0 group-hover/tab:opacity-100 transition-all z-10">
-                  <button
-                    onClick={e => { e.stopPropagation(); openEditNet(net); }}
-                    className="w-5 h-5 rounded-full bg-white border border-gray-200 shadow-sm text-gray-400 hover:text-[#E91E8C] hover:border-[#E91E8C] flex items-center justify-center transition-all"
-                    title="Edit network"
-                  >
-                    <Pencil className="w-2.5 h-2.5" />
-                  </button>
-                  <button
-                    onClick={e => { e.stopPropagation(); setDeleteNetId(net.id); }}
-                    className="w-5 h-5 rounded-full bg-white border border-gray-200 shadow-sm text-gray-400 hover:text-red-500 hover:border-red-400 flex items-center justify-center transition-all"
-                    title="Delete network"
-                  >
-                    <Trash2 className="w-2.5 h-2.5" />
-                  </button>
-                </div>
+                {/* Edit pencil — appears on tab hover */}
+                <button
+                  onClick={e => { e.stopPropagation(); openEditNet(net); }}
+                  className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-white border border-gray-200 shadow-sm text-gray-400 hover:text-[#E91E8C] hover:border-[#E91E8C] flex items-center justify-center opacity-0 group-hover/tab:opacity-100 transition-all z-10"
+                  title="Edit network"
+                >
+                  <Pencil className="w-2.5 h-2.5" />
+                </button>
               </div>
             );
           })}
@@ -488,6 +479,19 @@ export default function AdminBundles() {
                   {(createNetwork.isPending || updateNetwork.isPending) ? <Loader2 className="w-4 h-4 animate-spin" /> : editNet ? "Save Changes" : "Add Network"}
                 </button>
               </div>
+
+              {editNet && (
+                <div className="pt-1 border-t border-gray-100 mt-1">
+                  <button
+                    type="button"
+                    onClick={() => { closeNetForm(); setDeleteNetId(editNet.id); }}
+                    className="w-full py-2 rounded-xl text-xs font-semibold text-red-400 hover:text-red-600 hover:bg-red-50 transition-colors flex items-center justify-center gap-1.5"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    Delete this network
+                  </button>
+                </div>
+              )}
             </form>
           </div>
         </div>
