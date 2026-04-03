@@ -5,7 +5,6 @@ import {
   Home,
   CreditCard,
   History,
-  UserPlus,
   ShieldCheck,
   Settings,
   Wifi,
@@ -50,7 +49,6 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           <SidebarLink href="/wallet" icon={CreditCard}>Wallet & Top-up</SidebarLink>
           <SidebarLink href="/orders" icon={History}>Order History</SidebarLink>
           <SidebarLink href="/afa-registration" icon={ShieldCheck}>AFA Registration</SidebarLink>
-          <SidebarLink href="/agent-registration" icon={UserPlus}>Become an Agent</SidebarLink>
         </nav>
         <div className="pt-6 border-t border-border">
           <nav className="space-y-2">

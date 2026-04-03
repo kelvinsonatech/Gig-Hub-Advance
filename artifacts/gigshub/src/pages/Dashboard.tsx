@@ -38,14 +38,6 @@ const quickActions = [
     shadow: "shadow-orange-200",
   },
   {
-    href: "/agent-registration",
-    label: "Agent Reg",
-    sublabel: "Earn commissions",
-    icon: Users,
-    gradient: "from-emerald-400 to-teal-500",
-    shadow: "shadow-emerald-200",
-  },
-  {
     href: "/orders",
     label: "Orders",
     sublabel: "View history",
