@@ -38,10 +38,12 @@ window.fetch = async (input, init) => {
   const token = localStorage.getItem("gigshub_token");
   if (token) {
     init = init || {};
-    init.headers = {
-      ...init.headers,
-      Authorization: `Bearer ${token}`
-    };
+    // Normalise existing headers into a Headers instance so spreading a
+    // Headers object (whose keys are not enumerable) doesn't silently wipe
+    // Content-Type and other headers set by the API client.
+    const headers = new Headers(init.headers as HeadersInit | undefined);
+    headers.set("Authorization", `Bearer ${token}`);
+    init = { ...init, headers };
   }
   return originalFetch(input, init);
 };
