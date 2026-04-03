@@ -3,7 +3,7 @@ import { Link, useRoute } from "wouter";
 import { motion, LayoutGroup, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
-import { Wallet, Sun, Users, Menu, LogOut, X, LayoutDashboard, ShoppingBag, Bell, CheckCheck, Trash2, Megaphone } from "lucide-react";
+import { Wallet, Sun, Users, Menu, LogOut, X, LayoutDashboard, ShoppingBag, Bell, CheckCheck, Trash2 } from "lucide-react";
 import { useGetWallet } from "@workspace/api-client-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { formatGHS, cn } from "@/lib/utils";
@@ -197,9 +197,9 @@ function NotificationsPanel({ onClose }: { onClose: () => void }) {
 
                   {/* Bottom content overlay */}
                   <div className="relative flex items-end gap-2.5 px-3 pb-3 pt-20">
-                    {/* Announcement icon — bottom left */}
-                    <div className="shrink-0 w-9 h-9 rounded-full ring-2 ring-white shadow-lg bg-primary flex items-center justify-center">
-                      <Megaphone className="w-4 h-4 text-white" />
+                    {/* Admin avatar — bottom left, white ring */}
+                    <div className="shrink-0 rounded-full ring-2 ring-white shadow-lg">
+                      <UserAvatar name="TurboGh" size={34} />
                     </div>
 
                     {/* Text */}
