@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import confetti from "canvas-confetti";
 import { useGetBundles, useGetNetworks, useCreateOrder, useGetWallet, type Bundle } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,6 +19,39 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+
+function fireCelebration() {
+  const burst = (x: number, angle: number) =>
+    confetti({
+      particleCount: 80,
+      spread: 70,
+      angle,
+      origin: { x, y: 0.9 },
+      colors: ["#FFD700", "#FF6B35", "#4CAF50", "#2196F3", "#E91E63", "#9C27B0"],
+      scalar: 1.1,
+      startVelocity: 45,
+      gravity: 0.8,
+      ticks: 200,
+    });
+
+  // Two side poppers at the same time
+  burst(0.1, 60);
+  burst(0.9, 120);
+
+  // Centre burst after a short delay
+  setTimeout(() => {
+    confetti({
+      particleCount: 120,
+      spread: 100,
+      origin: { x: 0.5, y: 0.6 },
+      colors: ["#FFD700", "#FF6B35", "#4CAF50", "#2196F3", "#E91E63", "#9C27B0"],
+      scalar: 1.2,
+      startVelocity: 55,
+      gravity: 0.75,
+      ticks: 250,
+    });
+  }, 150);
+}
 
 export default function Bundles() {
   const { toast } = useToast();
@@ -55,7 +89,8 @@ export default function Bundles() {
   const createOrder = useCreateOrder({
     mutation: {
       onSuccess: () => {
-        toast({ title: "Purchase successful!", description: "Your data bundle will be activated shortly." });
+        fireCelebration();
+        toast({ title: "🎉 Purchase successful!", description: "Your data bundle will be activated shortly." });
         setIsModalOpen(false);
         setPhoneNumber("");
         setPhoneTouched(false);
