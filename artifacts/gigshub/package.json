@@ -76,6 +76,7 @@
     "zod": "catalog:"
   },
   "dependencies": {
+    "@paystack/inline-js": "^2.22.8",
     "canvas-confetti": "^1.9.4",
     "firebase": "^12.11.0",
     "zustand": "^5.0.12"

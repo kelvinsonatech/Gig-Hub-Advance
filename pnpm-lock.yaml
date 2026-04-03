@@ -239,6 +239,9 @@ importers:
 
   artifacts/gigshub:
     dependencies:
+      '@paystack/inline-js':
+        specifier: ^2.22.8
+        version: 2.22.8
       canvas-confetti:
         specifier: ^1.9.4
         version: 1.9.4
@@ -1251,6 +1254,10 @@ packages:
 
   '@orval/zod@8.5.3':
     resolution: {integrity: sha512-qcbnpGE0VrgCDm0hNWQSOmzbfgdnr1xo+PYQ3PJjxfLuk3kGdJmFANTr53/1lI3sZUvWZwX5nKJCLWVxvwJEgg==}
+
+  '@paystack/inline-js@2.22.8':
+    resolution: {integrity: sha512-NDcVzK8kxEpZYs3YbdJzIVYZL7x1GzjWpqcG7veperQXhma4wkQptTDGqEbOVlNmGD8K3PtW7BKQ7TO4uUG+2w==}
+    engines: {node: '>= 22.0.0'}
 
   '@pinojs/redact@0.4.0':
     resolution: {integrity: sha512-k2ENnmBugE/rzQfEcdWHcCY+/FM3VLzH9cYEsbdsoqrvzAKRhUZeRNhAZvB8OitQJ1TBed3yqWtdjzS6wJKBwg==}
@@ -5077,6 +5084,8 @@ snapshots:
       - '@faker-js/faker'
       - supports-color
       - typescript
+
+  '@paystack/inline-js@2.22.8': {}
 
   '@pinojs/redact@0.4.0': {}
 

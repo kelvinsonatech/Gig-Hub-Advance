@@ -1,45 +1,68 @@
 import { useState } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
-import { useGetWallet, useTopupWallet, type TopupRequestPaymentMethod } from "@workspace/api-client-react";
+import { useGetWallet } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatGHS } from "@/lib/utils";
-import {
-  Wallet as WalletIcon,
-  Loader2,
-  Zap,
-} from "lucide-react";
+import { Wallet as WalletIcon, Loader2, Zap } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
+import { useAuth } from "@/hooks/use-auth";
+import { API } from "@/lib/api";
+// @ts-ignore
+import PaystackPop from "@paystack/inline-js";
 
 const QUICK_AMOUNTS = [20, 50, 100, 200, 500];
+const PUBLIC_KEY = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY as string;
 
 export default function Wallet() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { data: wallet, isLoading } = useGetWallet();
+  const { user } = useAuth();
   const [amount, setAmount] = useState("");
-  const [method, setMethod] = useState<TopupRequestPaymentMethod>("momo");
-
-  const topupMutation = useTopupWallet({
-    mutation: {
-      onSuccess: () => {
-        toast({ title: "Top-up successful!", description: `Added ${formatGHS(Number(amount))} to your wallet.` });
-        setAmount("");
-        queryClient.invalidateQueries({ queryKey: ["/api/wallet"] });
-      },
-      onError: (err: any) => {
-        toast({ variant: "destructive", title: "Top-up failed", description: err?.message || "Could not process payment." });
-      },
-    },
-  });
+  const [isPaying, setIsPaying] = useState(false);
 
   const handleTopup = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) return;
-    topupMutation.mutate({ data: { amount: Number(amount), paymentMethod: method } });
+    const amt = Number(amount);
+    if (!amt || isNaN(amt) || amt < 1) return;
+
+    setIsPaying(true);
+    const popup = new PaystackPop();
+    popup.newTransaction({
+      key: PUBLIC_KEY,
+      email: user?.email || "customer@turborghcustomer.com",
+      amount: Math.round(amt * 100), // pesewas
+      currency: "GHS",
+      label: "TurboGh Wallet Top-up",
+      onSuccess: async (response: { reference: string }) => {
+        try {
+          const token = localStorage.getItem("gigshub_token");
+          const res = await fetch(`${API}/api/wallet/topup/verify`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+            body: JSON.stringify({ reference: response.reference }),
+          });
+          if (!res.ok) throw new Error("Verification failed");
+          toast({ title: "Top-up successful!", description: `GHS ${amt.toFixed(2)} added to your wallet.` });
+          setAmount("");
+          queryClient.invalidateQueries({ queryKey: ["/api/wallet"] });
+        } catch {
+          toast({ variant: "destructive", title: "Verification failed", description: "Payment received but could not credit wallet. Contact support." });
+        } finally {
+          setIsPaying(false);
+        }
+      },
+      onCancel: () => {
+        setIsPaying(false);
+      },
+    });
   };
 
   return (
@@ -173,10 +196,10 @@ export default function Wallet() {
                 {/* Submit */}
                 <Button
                   type="submit"
-                  disabled={!amount || topupMutation.isPending}
+                  disabled={!amount || isPaying}
                   className="w-full h-13 rounded-2xl text-base font-bold shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-all"
                 >
-                  {topupMutation.isPending ? (
+                  {isPaying ? (
                     <Loader2 className="w-5 h-5 animate-spin" />
                   ) : (
                     <>

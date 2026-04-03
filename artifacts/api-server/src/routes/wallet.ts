@@ -80,4 +80,65 @@ router.post("/topup", async (req, res) => {
   }
 });
 
+// ── Paystack: verify payment and credit wallet ─────────────────────────────
+router.post("/topup/verify", async (req, res) => {
+  try {
+    const userId = getUserId(req);
+    if (!userId) return res.status(401).json({ error: "auth_error", message: "Not authenticated" });
+
+    const { reference } = req.body;
+    if (!reference) return res.status(400).json({ error: "validation_error", message: "Payment reference is required" });
+
+    const secretKey = process.env.PAYSTACK_SECRET_KEY;
+    if (!secretKey) return res.status(500).json({ error: "config_error", message: "Payment not configured" });
+
+    // Verify with Paystack
+    const paystackRes = await fetch(`https://api.paystack.co/transaction/verify/${encodeURIComponent(reference)}`, {
+      headers: { Authorization: `Bearer ${secretKey}` },
+    });
+    const paystackData = await paystackRes.json() as any;
+
+    if (!paystackData.status || paystackData.data?.status !== "success") {
+      return res.status(400).json({ error: "payment_failed", message: "Payment was not successful" });
+    }
+
+    // Amount from Paystack is in pesewas (1 GHS = 100 pesewas)
+    const amountGHS = paystackData.data.amount / 100;
+
+    const [wallet] = await db.select().from(walletsTable).where(eq(walletsTable.userId, userId)).limit(1);
+    if (!wallet) return res.status(404).json({ error: "not_found", message: "Wallet not found" });
+
+    const newBalance = parseFloat(wallet.balance) + amountGHS;
+    const [updated] = await db.update(walletsTable)
+      .set({ balance: String(newBalance) })
+      .where(eq(walletsTable.id, wallet.id))
+      .returning();
+
+    await db.insert(transactionsTable).values({
+      walletId: wallet.id,
+      type: "credit",
+      amount: String(amountGHS),
+      description: `Top up via Paystack (${reference})`,
+    });
+
+    const transactions = await db.select().from(transactionsTable).where(eq(transactionsTable.walletId, wallet.id));
+    return res.json({
+      id: String(updated.id),
+      userId: String(updated.userId),
+      balance: parseFloat(updated.balance),
+      currency: updated.currency,
+      transactions: transactions.map(t => ({
+        id: String(t.id),
+        type: t.type,
+        amount: parseFloat(t.amount),
+        description: t.description,
+        createdAt: t.createdAt.toISOString(),
+      })).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()),
+    });
+  } catch (err) {
+    req.log.error(err, "paystack verify error");
+    return res.status(500).json({ error: "internal_error", message: "Payment verification failed" });
+  }
+});
+
 export default router;
