@@ -198,7 +198,11 @@ export default function Orders() {
                           <span className={`w-1.5 h-1.5 rounded-full ${status.dot}`} />
                           {status.label}
                         </span>
-                        <CopyId id={order.id} />
+                        <div className="flex items-center gap-1.5 bg-gray-50 border border-gray-200 rounded-lg px-2.5 py-1">
+                          <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Order ID</span>
+                          <span className="w-px h-3 bg-gray-200" />
+                          <CopyId id={order.id} />
+                        </div>
                       </div>
                     </div>
                   </div>
