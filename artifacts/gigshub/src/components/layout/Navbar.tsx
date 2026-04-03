@@ -3,7 +3,7 @@ import { Link, useRoute } from "wouter";
 import { motion, LayoutGroup, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
-import { Wallet, Sun, Users, Menu, LogOut, X, LayoutDashboard, ShoppingBag, Bell, CheckCheck, ImageIcon } from "lucide-react";
+import { Wallet, Sun, Users, Menu, LogOut, X, LayoutDashboard, ShoppingBag, Bell, CheckCheck, Trash2 } from "lucide-react";
 import { useGetWallet } from "@workspace/api-client-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { formatGHS, cn } from "@/lib/utils";
@@ -93,6 +93,13 @@ function NotificationsPanel({ onClose }: { onClose: () => void }) {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["notifications"] }),
   });
 
+  const clearAllMutation = useMutation({
+    mutationFn: async () => {
+      await fetch(`${API}/api/notifications/clear-all`, { method: "DELETE" });
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["notifications"] }),
+  });
+
   useEffect(() => {
     function handleClick(e: MouseEvent) {
       if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
@@ -129,14 +136,24 @@ function NotificationsPanel({ onClose }: { onClose: () => void }) {
             </span>
           )}
         </div>
-        {unread.length > 0 && (
-          <button
-            onClick={() => markAllMutation.mutate()}
-            className="flex items-center gap-1 text-[11px] text-primary font-semibold hover:underline"
-          >
-            <CheckCheck className="w-3 h-3" /> Mark all read
-          </button>
-        )}
+        <div className="flex items-center gap-2">
+          {unread.length > 0 && (
+            <button
+              onClick={() => markAllMutation.mutate()}
+              className="flex items-center gap-1 text-[11px] text-primary font-semibold hover:underline"
+            >
+              <CheckCheck className="w-3 h-3" /> Mark all read
+            </button>
+          )}
+          {notifications.length > 0 && (
+            <button
+              onClick={() => { if (confirm("Clear all notifications?")) clearAllMutation.mutate(); }}
+              className="flex items-center gap-1 text-[11px] text-gray-400 hover:text-red-500 font-semibold transition-colors"
+            >
+              <Trash2 className="w-3 h-3" /> Clear
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Body */}

@@ -58,6 +58,19 @@ router.patch("/read-all", async (req, res) => {
   }
 });
 
+router.delete("/clear-all", async (req, res) => {
+  try {
+    const userId = (req as any).auth.userId;
+    await db
+      .delete(notificationsTable)
+      .where(or(eq(notificationsTable.userId, userId), isNull(notificationsTable.userId)));
+    return res.json({ success: true });
+  } catch (err) {
+    req.log.error(err, "clear all notifications error");
+    return res.status(500).json({ error: "internal_error", message: "Failed to clear notifications" });
+  }
+});
+
 router.post("/token", async (req, res) => {
   try {
     const userId = (req as any).auth.userId;
