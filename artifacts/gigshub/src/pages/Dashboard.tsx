@@ -182,10 +182,10 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* ── Recent Transactions ── */}
+        {/* ── Recent Orders ── */}
         <div>
           <div className="mb-4">
-            <h2 className="text-base font-bold text-gray-900">Recent Transactions</h2>
+            <h2 className="text-base font-bold text-gray-900">Recent Orders</h2>
             <p className="text-xs text-gray-400 mt-0.5">Your last {recentOrders.length} purchases</p>
           </div>
 
