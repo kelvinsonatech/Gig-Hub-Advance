@@ -57,7 +57,7 @@ const STATUS_META: Record<StatusKey, {
   failed:     { label: "Failed",     color: "text-red-700",     bg: "bg-red-50",     border: "border-red-200",    dot: "bg-red-500",     stripe: "bg-red-500",     icon: CircleX },
 };
 
-const ALL_STATUSES: StatusKey[] = ["pending", "processing", "completed", "failed"];
+const ALL_STATUSES: StatusKey[] = ["pending", "processing", "completed"];
 
 const TYPE_META: Record<string, { label: string; icon: any; color: string }> = {
   bundle:             { label: "Data Bundle",        icon: Wifi,        color: "text-blue-600 bg-blue-50 border-blue-200" },
