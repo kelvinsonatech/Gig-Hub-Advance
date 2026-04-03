@@ -106,10 +106,9 @@ function CopyBtn({ value, children }: { value: string; children: ReactNode }) {
 }
 
 function StatusDropdown({
-  current, orderId, isPending, onSelect,
+  current, isPending, onSelect,
 }: {
   current: StatusKey;
-  orderId: string;
   isPending: boolean;
   onSelect: (status: StatusKey) => void;
 }) {
@@ -129,48 +128,61 @@ function StatusDropdown({
 
   return (
     <div ref={ref} className="relative shrink-0">
+      {/* Trigger */}
       <button
         onClick={() => setOpen(o => !o)}
         disabled={isPending}
-        className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border transition-all disabled:opacity-60 select-none cursor-pointer hover:shadow-sm active:scale-95 ${meta.bg} ${meta.color} ${meta.border}`}
+        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border-2 transition-all disabled:opacity-60 select-none hover:shadow-md active:scale-95 ${meta.bg} ${meta.color} ${meta.border}`}
       >
         {isPending
           ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
           : <Icon className="w-3.5 h-3.5" />
         }
         {meta.label}
-        <ChevronDown className={`w-3 h-3 transition-transform ${open ? "rotate-180" : ""}`} />
+        <ChevronDown className={`w-3.5 h-3.5 ml-0.5 transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
       </button>
 
+      {/* Dropdown panel */}
       {open && (
-        <div className="absolute right-0 top-full mt-2 z-50 w-48 bg-white rounded-2xl border border-gray-100 shadow-xl overflow-hidden">
-          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-3 pt-3 pb-1.5">
-            Set status
-          </p>
-          {ALL_STATUSES.map(s => {
-            const m = STATUS_META[s];
-            const SIcon = m.icon;
-            const isActive = s === current;
-            return (
-              <button
-                key={s}
-                disabled={isActive}
-                onClick={() => { onSelect(s); setOpen(false); }}
-                className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-sm font-medium transition-colors text-left
-                  ${isActive
-                    ? `${m.bg} ${m.color} cursor-default`
-                    : "text-gray-600 hover:bg-gray-50"
-                  }`}
-              >
-                <span className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${m.bg} ${m.color}`}>
-                  <SIcon className="w-3.5 h-3.5" />
-                </span>
-                <span className="flex-1">{m.label}</span>
-                {isActive && <Check className="w-3.5 h-3.5 shrink-0" />}
-              </button>
-            );
-          })}
-          <div className="h-2" />
+        <div className="absolute right-0 top-full mt-2.5 z-50 w-52 bg-white rounded-2xl border border-gray-100 shadow-2xl">
+          {/* Header */}
+          <div className="px-4 pt-3.5 pb-2">
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Update Status</p>
+          </div>
+
+          <div className="px-2 pb-2 flex flex-col gap-0.5">
+            {ALL_STATUSES.map(s => {
+              const m = STATUS_META[s];
+              const SIcon = m.icon;
+              const isActive = s === current;
+              return (
+                <button
+                  key={s}
+                  disabled={isActive}
+                  onClick={() => { onSelect(s); setOpen(false); }}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all text-left group
+                    ${isActive
+                      ? `${m.bg} ${m.color} cursor-default`
+                      : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
+                    }`}
+                >
+                  {/* Icon bubble */}
+                  <span className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 transition-colors
+                    ${isActive ? `${m.bg} ${m.color}` : "bg-gray-100 text-gray-400 group-hover:bg-gray-200"}`}
+                  >
+                    <SIcon className="w-3.5 h-3.5" />
+                  </span>
+                  <span className="flex-1 leading-none">{m.label}</span>
+                  {isActive
+                    ? <span className={`w-5 h-5 rounded-full flex items-center justify-center ${m.bg} ${m.color}`}>
+                        <Check className="w-3 h-3" />
+                      </span>
+                    : <ChevronDown className="w-3.5 h-3.5 -rotate-90 opacity-0 group-hover:opacity-40 transition-opacity" />
+                  }
+                </button>
+              );
+            })}
+          </div>
         </div>
       )}
     </div>
@@ -269,10 +281,10 @@ export default function AdminOrders() {
             return (
               <div
                 key={order.id}
-                className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all overflow-hidden"
+                className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all"
               >
                 {/* Network colour stripe */}
-                <div className="h-1 w-full" style={{ backgroundColor: netColor }} />
+                <div className="h-1 w-full rounded-t-2xl" style={{ backgroundColor: netColor }} />
 
                 <div className="p-5 flex gap-4">
 
@@ -301,7 +313,6 @@ export default function AdminOrders() {
                       </div>
                       <StatusDropdown
                         current={order.status as StatusKey}
-                        orderId={order.id}
                         isPending={isPending}
                         onSelect={status => updateStatus.mutate({ id: order.id, status })}
                       />
