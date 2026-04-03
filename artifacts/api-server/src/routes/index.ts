@@ -8,6 +8,7 @@ import ordersRouter from "./orders";
 import walletRouter from "./wallet";
 import adminRouter from "./admin";
 import notificationsRouter from "./notifications";
+import utilsRouter from "./utils";
 
 const router: IRouter = Router();
 
@@ -20,5 +21,6 @@ router.use("/orders", ordersRouter);
 router.use("/wallet", walletRouter);
 router.use("/admin", adminRouter);
 router.use("/notifications", notificationsRouter);
+router.use("/utils", utilsRouter);
 
 export default router;

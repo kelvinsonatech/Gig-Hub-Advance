@@ -1,10 +1,15 @@
+import { API } from "./api";
+
 /**
  * Extracts the dominant non-white, non-transparent color from an image URL.
- * Uses the Canvas API to sample pixels. Returns null on CORS failure or error.
+ * Routes the image through the API proxy to bypass browser cross-origin restrictions.
  */
 export async function extractDominantColor(url: string): Promise<string | null> {
+  if (!url) return null;
+
+  const proxied = `${API}/api/utils/image-proxy?url=${encodeURIComponent(url)}`;
+
   return new Promise((resolve) => {
-    if (!url) { resolve(null); return; }
     const img = new Image();
     img.crossOrigin = "anonymous";
     img.onload = () => {
@@ -45,6 +50,6 @@ export async function extractDominantColor(url: string): Promise<string | null> 
       }
     };
     img.onerror = () => resolve(null);
-    img.src = url;
+    img.src = proxied;
   });
 }
