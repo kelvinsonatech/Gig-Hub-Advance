@@ -409,31 +409,44 @@ router.delete("/notifications/:id", async (req, res) => {
 // ── Orders ─────────────────────────────────────────────────────────────────────
 router.get("/orders", async (req, res) => {
   try {
-    const rows = await db
-      .select({
-        id: ordersTable.id,
-        type: ordersTable.type,
-        status: ordersTable.status,
-        amount: ordersTable.amount,
-        details: ordersTable.details,
-        createdAt: ordersTable.createdAt,
-        userName: usersTable.name,
-        userEmail: usersTable.email,
-        userPhone: usersTable.phone,
-      })
-      .from(ordersTable)
-      .innerJoin(usersTable, eq(ordersTable.userId, usersTable.id))
-      .orderBy(desc(ordersTable.createdAt));
+    const [rows, networks] = await Promise.all([
+      db
+        .select({
+          id: ordersTable.id,
+          type: ordersTable.type,
+          status: ordersTable.status,
+          amount: ordersTable.amount,
+          details: ordersTable.details,
+          createdAt: ordersTable.createdAt,
+          userName: usersTable.name,
+          userEmail: usersTable.email,
+          userPhone: usersTable.phone,
+        })
+        .from(ordersTable)
+        .innerJoin(usersTable, eq(ordersTable.userId, usersTable.id))
+        .orderBy(desc(ordersTable.createdAt)),
+      db.select({ name: networksTable.name, logoUrl: networksTable.logoUrl, color: networksTable.color }).from(networksTable),
+    ]);
 
-    return res.json(rows.map(o => ({
-      id: String(o.id),
-      type: o.type,
-      status: o.status,
-      amount: parseFloat(o.amount),
-      details: o.details,
-      createdAt: o.createdAt.toISOString(),
-      user: { name: o.userName, email: o.userEmail, phone: o.userPhone },
-    })));
+    const networkMap = Object.fromEntries(networks.map(n => [n.name, { logoUrl: n.logoUrl, color: n.color }]));
+
+    return res.json(rows.map(o => {
+      const det = (o.details ?? {}) as Record<string, unknown>;
+      const net = det.networkName ? networkMap[det.networkName as string] : null;
+      return {
+        id: String(o.id),
+        type: o.type,
+        status: o.status,
+        amount: parseFloat(o.amount),
+        details: {
+          ...det,
+          networkLogoUrl: net?.logoUrl ?? null,
+          networkColor: net?.color ?? null,
+        },
+        createdAt: o.createdAt.toISOString(),
+        user: { name: o.userName, email: o.userEmail, phone: o.userPhone },
+      };
+    }));
   } catch (err) {
     req.log.error(err, "admin get orders error");
     return res.status(500).json({ error: "internal_error", message: "Failed to get orders" });
