@@ -7,7 +7,7 @@ import {
   History, ShieldCheck, Wifi, UserPlus, Package,
   Copy, Check, Phone, Clock
 } from "lucide-react";
-import { format } from "date-fns";
+import { format, isToday, isYesterday, parseISO } from "date-fns";
 
 type OrderDetails = {
   phoneNumber?: string;
@@ -146,6 +146,95 @@ export default function Orders() {
     );
   }
 
+  function dateGroupLabel(iso: string): string {
+    const d = parseISO(iso);
+    if (isToday(d)) return "Today";
+    if (isYesterday(d)) return "Yesterday";
+    return format(d, "EEEE, MMM d, yyyy");
+  }
+
+  // Group orders by calendar date (newest first)
+  const grouped: { label: string; orders: NonNullable<typeof orders> }[] = [];
+  if (orders && orders.length > 0) {
+    let currentLabel = "";
+    for (const order of orders) {
+      const label = dateGroupLabel(order.createdAt);
+      if (label !== currentLabel) {
+        grouped.push({ label, orders: [] });
+        currentLabel = label;
+      }
+      grouped[grouped.length - 1].orders.push(order);
+    }
+  }
+
+  function OrderCard({ order }: { order: NonNullable<typeof orders>[number] }) {
+    const details = (order.details ?? {}) as OrderDetails;
+    const status = STATUS_META[order.status] ?? STATUS_META.pending;
+    const title = getOrderTitle(order.type, details);
+    const subtitle = getSubtitle(order.type, details);
+    const isBundle = order.type === "bundle";
+
+    return (
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all overflow-hidden">
+        {/* Colored status stripe */}
+        <div className={`h-0.5 w-full ${status.dot}`} />
+
+        <div className="p-4 flex items-start gap-4">
+          {/* Logo / Icon */}
+          <div className="shrink-0 mt-0.5">
+            {isBundle
+              ? <NetworkLogo networkName={details.networkName} />
+              : <ServiceIcon type={order.type} />
+            }
+          </div>
+
+          {/* Main content */}
+          <div className="flex-1 min-w-0">
+            {/* Top row: title + amount */}
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <p className="font-bold text-gray-900 text-sm leading-tight truncate">{title}</p>
+                {subtitle && (
+                  <p className="text-xs text-gray-400 mt-0.5">{subtitle}</p>
+                )}
+              </div>
+              <span className="font-black text-gray-900 text-base shrink-0 ml-2">
+                {formatGHS(order.amount)}
+              </span>
+            </div>
+
+            {/* Middle row: phone + time */}
+            <div className="flex flex-wrap items-center gap-3 mt-2">
+              {details.phoneNumber && (
+                <CopyText value={details.phoneNumber}>
+                  <Phone className="w-3 h-3" />
+                  {details.phoneNumber}
+                </CopyText>
+              )}
+              <span className="flex items-center gap-1 text-xs text-gray-400">
+                <Clock className="w-3 h-3" />
+                {format(parseISO(order.createdAt), "h:mm a")}
+              </span>
+            </div>
+
+            {/* Bottom row: status + order ID */}
+            <div className="flex items-center justify-between mt-2.5 gap-2 flex-wrap">
+              <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border ${status.badge}`}>
+                <span className={`w-1.5 h-1.5 rounded-full ${status.dot}`} />
+                {status.label}
+              </span>
+              <div className="flex items-center gap-1.5 bg-gray-50 border border-gray-200 rounded-lg px-2.5 py-1">
+                <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Order ID</span>
+                <span className="w-px h-3 bg-gray-200" />
+                <CopyId id={order.id} />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -169,77 +258,28 @@ export default function Orders() {
             <p className="text-gray-300 text-xs mt-1">Your purchases will appear here.</p>
           </div>
         ) : (
-          <div className="space-y-3">
-            {orders.map((order) => {
-              const details = (order.details ?? {}) as OrderDetails;
-              const status = STATUS_META[order.status] ?? STATUS_META.pending;
-              const title = getOrderTitle(order.type, details);
-              const subtitle = getSubtitle(order.type, details);
-              const isBundle = order.type === "bundle";
-
-              return (
-                <div
-                  key={order.id}
-                  className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all overflow-hidden"
-                >
-                  {/* Colored status stripe */}
-                  <div className={`h-0.5 w-full ${status.dot}`} />
-
-                  <div className="p-4 flex items-start gap-4">
-                    {/* Logo / Icon */}
-                    <div className="shrink-0 mt-0.5">
-                      {isBundle
-                        ? <NetworkLogo networkName={details.networkName} />
-                        : <ServiceIcon type={order.type} />
-                      }
-                    </div>
-
-                    {/* Main content */}
-                    <div className="flex-1 min-w-0">
-                      {/* Top row: title + amount */}
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="min-w-0">
-                          <p className="font-bold text-gray-900 text-sm leading-tight truncate">{title}</p>
-                          {subtitle && (
-                            <p className="text-xs text-gray-400 mt-0.5">{subtitle}</p>
-                          )}
-                        </div>
-                        <span className="font-black text-gray-900 text-base shrink-0 ml-2">
-                          {formatGHS(order.amount)}
-                        </span>
-                      </div>
-
-                      {/* Middle row: phone + date */}
-                      <div className="flex flex-wrap items-center gap-3 mt-2">
-                        {details.phoneNumber && (
-                          <CopyText value={details.phoneNumber}>
-                            <Phone className="w-3 h-3" />
-                            {details.phoneNumber}
-                          </CopyText>
-                        )}
-                        <span className="flex items-center gap-1 text-xs text-gray-400">
-                          <Clock className="w-3 h-3" />
-                          {format(new Date(order.createdAt), "MMM d, yyyy · h:mm a")}
-                        </span>
-                      </div>
-
-                      {/* Bottom row: status + order ID */}
-                      <div className="flex items-center justify-between mt-2.5 gap-2 flex-wrap">
-                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border ${status.badge}`}>
-                          <span className={`w-1.5 h-1.5 rounded-full ${status.dot}`} />
-                          {status.label}
-                        </span>
-                        <div className="flex items-center gap-1.5 bg-gray-50 border border-gray-200 rounded-lg px-2.5 py-1">
-                          <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Order ID</span>
-                          <span className="w-px h-3 bg-gray-200" />
-                          <CopyId id={order.id} />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+          <div className="space-y-6">
+            {grouped.map(group => (
+              <div key={group.label}>
+                {/* Date group header */}
+                <div className="flex items-center gap-3 mb-3">
+                  <span className="text-xs font-bold text-gray-500 uppercase tracking-widest whitespace-nowrap">
+                    {group.label}
+                  </span>
+                  <div className="flex-1 h-px bg-gray-100" />
+                  <span className="text-[10px] font-semibold text-gray-300">
+                    {group.orders.length} {group.orders.length === 1 ? "order" : "orders"}
+                  </span>
                 </div>
-              );
-            })}
+
+                {/* Orders in this group */}
+                <div className="space-y-3">
+                  {group.orders.map(order => (
+                    <OrderCard key={order.id} order={order} />
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </div>
