@@ -112,6 +112,7 @@ export default function AdminBundles() {
   const [showNetForm, setShowNetForm] = useState(false);
   const [editNet, setEditNet] = useState<Network | null>(null);
   const [netForm, setNetForm] = useState<NetForm>(emptyNetForm());
+  const [deleteNetId, setDeleteNetId] = useState<string | null>(null);
   /* ── mutations ── */
   const createBundle = useMutation({
     mutationFn: (d: BundleForm) => apiFetch("/bundles", { method: "POST", body: JSON.stringify(d) }),
@@ -173,6 +174,18 @@ export default function AdminBundles() {
     onError: (e: Error) => toast({ title: "Failed to update network", description: e.message, variant: "destructive" }),
   });
 
+  const deleteNetwork = useMutation({
+    mutationFn: (id: string) => apiFetch(`/networks/${id}`, { method: "DELETE" }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-networks"] });
+      qc.invalidateQueries({ queryKey: ["networks"] });
+      toast({ title: "Network deleted" });
+      setDeleteNetId(null);
+      setActiveNetwork(null);
+    },
+    onError: (e: Error) => toast({ title: "Failed to delete network", description: e.message, variant: "destructive" }),
+  });
+
   /* ── handlers ── */
   function openAdd() {
     setForm(emptyBundleForm(activeNet));
@@ -189,7 +202,6 @@ export default function AdminBundles() {
   function openEditNet(net: Network) {
     setEditNet(net);
     setNetForm({ name: net.name, code: net.code, tagline: net.tagline ?? "", logoUrl: net.logoUrl ?? "", color: net.color });
-    setNetColorAuto(false);
     setShowNetForm(true);
   }
 
@@ -197,7 +209,6 @@ export default function AdminBundles() {
     setShowNetForm(false);
     setEditNet(null);
     setNetForm(emptyNetForm());
-    setNetColorAuto(false);
   }
 
   function handleNetworkChange(id: string) {
@@ -275,14 +286,23 @@ export default function AdminBundles() {
                     {count}
                   </span>
                 </button>
-                {/* Edit pencil — appears on tab hover */}
-                <button
-                  onClick={e => { e.stopPropagation(); openEditNet(net); }}
-                  className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-white border border-gray-200 shadow-sm text-gray-400 hover:text-[#E91E8C] hover:border-[#E91E8C] flex items-center justify-center opacity-0 group-hover/tab:opacity-100 transition-all z-10"
-                  title="Edit network"
-                >
-                  <Pencil className="w-2.5 h-2.5" />
-                </button>
+                {/* Edit + Delete buttons — appear on tab hover */}
+                <div className="absolute -top-2.5 -right-1 flex gap-1 opacity-0 group-hover/tab:opacity-100 transition-all z-10">
+                  <button
+                    onClick={e => { e.stopPropagation(); openEditNet(net); }}
+                    className="w-5 h-5 rounded-full bg-white border border-gray-200 shadow-sm text-gray-400 hover:text-[#E91E8C] hover:border-[#E91E8C] flex items-center justify-center transition-all"
+                    title="Edit network"
+                  >
+                    <Pencil className="w-2.5 h-2.5" />
+                  </button>
+                  <button
+                    onClick={e => { e.stopPropagation(); setDeleteNetId(net.id); }}
+                    className="w-5 h-5 rounded-full bg-white border border-gray-200 shadow-sm text-gray-400 hover:text-red-500 hover:border-red-400 flex items-center justify-center transition-all"
+                    title="Delete network"
+                  >
+                    <Trash2 className="w-2.5 h-2.5" />
+                  </button>
+                </div>
               </div>
             );
           })}
@@ -589,7 +609,7 @@ export default function AdminBundles() {
         </div>
       )}
 
-      {/* ── Delete confirm ── */}
+      {/* ── Delete bundle confirm ── */}
       {deleteId && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl w-full max-w-sm p-7 shadow-2xl text-center">
@@ -609,6 +629,34 @@ export default function AdminBundles() {
           </div>
         </div>
       )}
+
+      {/* ── Delete network confirm ── */}
+      {deleteNetId && (() => {
+        const net = networks.find(n => n.id === deleteNetId);
+        return (
+          <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="bg-white rounded-3xl w-full max-w-sm p-7 shadow-2xl text-center">
+              <div className="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-4">
+                <Trash2 className="w-6 h-6 text-red-500" />
+              </div>
+              <h3 className="font-bold text-gray-900 text-lg mb-1">Delete "{net?.name}"?</h3>
+              <p className="text-sm text-gray-400 mb-6">This will permanently remove the network and all its bundles. This cannot be undone.</p>
+              <div className="flex gap-3">
+                <button onClick={() => setDeleteNetId(null)} className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors">
+                  Cancel
+                </button>
+                <button
+                  disabled={deleteNetwork.isPending}
+                  onClick={() => deleteNetwork.mutate(deleteNetId)}
+                  className="flex-1 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 text-white text-sm font-semibold transition-colors disabled:opacity-60 flex items-center justify-center gap-2"
+                >
+                  {deleteNetwork.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Delete Network"}
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
