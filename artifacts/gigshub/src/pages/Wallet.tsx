@@ -50,11 +50,14 @@ export default function Wallet() {
             body: JSON.stringify({ reference: response.reference }),
           });
           if (!res.ok) throw new Error("Verification failed");
+          const updatedWallet = await res.json();
+          // Update cache directly so the balance shows immediately
+          queryClient.setQueryData(["/api/wallet"], updatedWallet);
           toast({ title: "Top-up successful!", description: `GHS ${amt.toFixed(2)} added to your wallet.` });
           setAmount("");
-          queryClient.invalidateQueries({ queryKey: ["/api/wallet"] });
         } catch {
           toast({ variant: "destructive", title: "Verification failed", description: "Payment received but could not credit wallet. Contact support." });
+          queryClient.invalidateQueries({ queryKey: ["/api/wallet"] });
         } finally {
           setIsPaying(false);
         }
@@ -236,13 +239,7 @@ export default function Wallet() {
                   ))}
                 </div>
               ) : (() => {
-                const topups = (wallet?.transactions ?? []).filter(tx => tx.type === "credit").length > 0
-                  ? (wallet?.transactions ?? []).filter(tx => tx.type === "credit")
-                  : [
-                      { id: "s1", type: "credit", amount: 50, description: "Top up via MoMo", createdAt: new Date(Date.now() - 1000 * 60 * 30).toISOString() },
-                      { id: "s2", type: "credit", amount: 100, description: "Top up via MoMo", createdAt: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString() },
-                      { id: "s3", type: "credit", amount: 20, description: "Top up via MoMo", createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString() },
-                    ];
+                const topups = (wallet?.transactions ?? []).filter(tx => tx.type === "credit");
                 if (topups.length === 0) return (
                   <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
                     <div className="w-16 h-16 rounded-2xl bg-muted/60 flex items-center justify-center mb-4 overflow-hidden">
