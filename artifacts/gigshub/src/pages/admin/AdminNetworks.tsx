@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { extractDominantColor } from "@/lib/extract-color";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, Pencil, Trash2, X, Loader2, Radio, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -106,6 +107,16 @@ export default function AdminNetworks() {
   const [editNetwork, setEditNetwork] = useState<Network | null>(null);
   const [form, setForm] = useState<NetworkForm>(emptyForm());
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [colorAuto, setColorAuto] = useState(false);
+
+  useEffect(() => {
+    if (!form.logoUrl) return;
+    const timer = setTimeout(async () => {
+      const detected = await extractDominantColor(form.logoUrl!);
+      if (detected) { setForm(f => ({ ...f, color: detected })); setColorAuto(true); }
+    }, 600);
+    return () => clearTimeout(timer);
+  }, [form.logoUrl]);
 
   const { data: networks = [], isLoading } = useQuery<Network[]>({
     queryKey: ["admin-networks"],
@@ -146,7 +157,7 @@ export default function AdminNetworks() {
     onError: (e: Error) => toast({ title: "Failed to remove network", description: e.message, variant: "destructive" }),
   });
 
-  function openAdd() { setForm(emptyForm()); setEditNetwork(null); setShowForm(true); }
+  function openAdd() { setForm(emptyForm()); setEditNetwork(null); setShowForm(true); setColorAuto(false); }
   function openEdit(n: Network) {
     setForm({ name: n.name, code: n.code, color: n.color, logoUrl: n.logoUrl ?? "", tagline: n.tagline ?? "" });
     setEditNetwork(n);
@@ -279,9 +290,16 @@ export default function AdminNetworks() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-2">Brand Colour</label>
+                <label className="block text-xs font-semibold text-gray-600 mb-2 flex items-center gap-2">
+                  Brand Colour
+                  {colorAuto && (
+                    <span className="text-[10px] font-semibold text-emerald-600 bg-emerald-50 border border-emerald-200 rounded-full px-2 py-0.5 leading-none">
+                      ✦ auto-detected
+                    </span>
+                  )}
+                </label>
                 <div className="flex items-start gap-3">
-                  <input type="color" value={form.color} onChange={e => setForm(f => ({ ...f, color: e.target.value }))} className="w-10 h-10 rounded-xl border border-gray-200 cursor-pointer p-0.5 shrink-0" />
+                  <input type="color" value={form.color} onChange={e => { setColorAuto(false); setForm(f => ({ ...f, color: e.target.value })); }} className="w-10 h-10 rounded-xl border border-gray-200 cursor-pointer p-0.5 shrink-0" />
                   <div className="flex-1">
                     <CardPreview form={form} />
                   </div>
