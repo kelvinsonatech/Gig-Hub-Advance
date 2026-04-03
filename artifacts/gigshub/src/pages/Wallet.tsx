@@ -14,7 +14,7 @@ import { API } from "@/lib/api";
 // @ts-ignore
 import PaystackPop from "@paystack/inline-js";
 
-const QUICK_AMOUNTS = [20, 50, 100, 200, 500];
+const QUICK_AMOUNTS = [10, 20, 50, 100, 200, 500];
 const PUBLIC_KEY = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY as string;
 
 export default function Wallet() {
