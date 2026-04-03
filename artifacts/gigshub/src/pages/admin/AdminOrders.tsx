@@ -202,8 +202,8 @@ export default function AdminOrders() {
                 key={order.id}
                 className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all overflow-hidden"
               >
-                {/* Status stripe */}
-                <div className={`h-1 w-full ${statusMeta.stripe}`} />
+                {/* Status stripe — matches network brand colour */}
+                <div className="h-1 w-full" style={{ backgroundColor: netColor }} />
 
                 <div className="p-5 flex gap-4">
 
