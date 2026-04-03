@@ -1,4 +1,4 @@
-import { pgTable, text, serial } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
@@ -9,6 +9,7 @@ export const networksTable = pgTable("networks", {
   color: text("color").notNull(),
   logoUrl: text("logo_url"),
   tagline: text("tagline"),
+  sortOrder: integer("sort_order").notNull().default(0),
 });
 
 export const insertNetworkSchema = createInsertSchema(networksTable).omit({ id: true });

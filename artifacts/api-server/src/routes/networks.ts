@@ -6,7 +6,7 @@ const router: IRouter = Router();
 
 router.get("/", async (req, res) => {
   try {
-    const networks = await db.select().from(networksTable);
+    const networks = await db.select().from(networksTable).orderBy(networksTable.sortOrder);
     return res.json(networks.map(n => ({
       id: String(n.id),
       name: n.name,

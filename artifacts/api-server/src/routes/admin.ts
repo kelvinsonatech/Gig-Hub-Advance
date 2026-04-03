@@ -246,12 +246,13 @@ function serializeNetwork(n: typeof networksTable.$inferSelect) {
     color: n.color,
     logoUrl: n.logoUrl,
     tagline: n.tagline,
+    sortOrder: n.sortOrder,
   };
 }
 
 router.get("/networks", async (req, res) => {
   try {
-    const networks = await db.select().from(networksTable).orderBy(networksTable.id);
+    const networks = await db.select().from(networksTable).orderBy(networksTable.sortOrder);
     return res.json(networks.map(serializeNetwork));
   } catch (err) {
     req.log.error(err, "admin get networks error");
@@ -265,7 +266,9 @@ router.post("/networks", async (req, res) => {
     if (!name || !code || !color) {
       return res.status(400).json({ error: "validation_error", message: "name, code and color are required" });
     }
-    const [network] = await db.insert(networksTable).values({ name, code: code.toUpperCase(), color, logoUrl, tagline }).returning();
+    const [maxRow] = await db.select({ max: sql<number>`max(sort_order)` }).from(networksTable);
+    const nextOrder = (maxRow?.max ?? 0) + 1;
+    const [network] = await db.insert(networksTable).values({ name, code: code.toUpperCase(), color, logoUrl, tagline, sortOrder: nextOrder }).returning();
     return res.status(201).json(serializeNetwork(network));
   } catch (err: any) {
     if (err?.code === "23505") return res.status(409).json({ error: "conflict", message: "A network with that code already exists" });
@@ -286,6 +289,20 @@ router.put("/networks/:id", async (req, res) => {
   } catch (err) {
     req.log.error(err, "admin update network error");
     return res.status(500).json({ error: "internal_error", message: "Failed to update network" });
+  }
+});
+
+router.patch("/networks/reorder", async (req, res) => {
+  try {
+    const { ids } = req.body as { ids: string[] };
+    if (!Array.isArray(ids)) return res.status(400).json({ error: "validation_error", message: "ids must be an array" });
+    await Promise.all(ids.map((id, index) =>
+      db.update(networksTable).set({ sortOrder: index + 1 }).where(eq(networksTable.id, parseInt(id)))
+    ));
+    return res.json({ success: true });
+  } catch (err) {
+    req.log.error(err, "admin reorder networks error");
+    return res.status(500).json({ error: "internal_error", message: "Failed to reorder networks" });
   }
 });
 

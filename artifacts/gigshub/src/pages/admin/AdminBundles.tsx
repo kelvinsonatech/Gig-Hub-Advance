@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Pencil, Trash2, Star, X, Loader2, Wifi, Package, Clock, Tag, Radio } from "lucide-react";
+import { Plus, Pencil, Trash2, Star, X, Loader2, Wifi, Package, Clock, Tag, Radio, ChevronLeft, ChevronRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { API } from "@/lib/api";
 
@@ -45,6 +45,7 @@ type Network = {
   color: string;
   logoUrl?: string | null;
   tagline?: string | null;
+  sortOrder?: number;
 };
 type Bundle = {
   id: string;
@@ -186,6 +187,15 @@ export default function AdminBundles() {
     onError: (e: Error) => toast({ title: "Failed to delete network", description: e.message, variant: "destructive" }),
   });
 
+  const reorderNetworks = useMutation({
+    mutationFn: (ids: string[]) => apiFetch("/networks/reorder", { method: "PATCH", body: JSON.stringify({ ids }) }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-networks"] });
+      qc.invalidateQueries({ queryKey: ["networks"] });
+    },
+    onError: (e: Error) => toast({ title: "Failed to reorder networks", description: e.message, variant: "destructive" }),
+  });
+
   /* ── handlers ── */
   function openAdd() {
     setForm(emptyBundleForm(activeNet));
@@ -209,6 +219,17 @@ export default function AdminBundles() {
     setShowNetForm(false);
     setEditNet(null);
     setNetForm(emptyNetForm());
+  }
+
+  function moveNetwork(id: string, direction: "left" | "right") {
+    const idx = networks.findIndex(n => n.id === id);
+    if (idx === -1) return;
+    if (direction === "left" && idx === 0) return;
+    if (direction === "right" && idx === networks.length - 1) return;
+    const newOrder = [...networks];
+    const swapIdx = direction === "left" ? idx - 1 : idx + 1;
+    [newOrder[idx], newOrder[swapIdx]] = [newOrder[swapIdx], newOrder[idx]];
+    reorderNetworks.mutate(newOrder.map(n => n.id));
   }
 
   function handleNetworkChange(id: string) {
@@ -259,7 +280,7 @@ export default function AdminBundles() {
         </div>
       ) : (
         <div className="flex gap-3 mb-8 flex-wrap items-center">
-          {networks.map(net => {
+          {networks.map((net, netIdx) => {
             const count = bundles.filter(b => b.networkId === net.id).length;
             const isActive = activeNetwork === net.id;
             const light = isLightColor(net.color);
@@ -294,6 +315,25 @@ export default function AdminBundles() {
                 >
                   <Pencil className="w-2.5 h-2.5" />
                 </button>
+                {/* Left / Right reorder arrows — appear on hover */}
+                {netIdx > 0 && (
+                  <button
+                    onClick={e => { e.stopPropagation(); moveNetwork(net.id, "left"); }}
+                    className="absolute -bottom-2 left-1 w-5 h-5 rounded-full bg-white border border-gray-200 shadow-sm text-gray-400 hover:text-gray-700 hover:border-gray-400 flex items-center justify-center opacity-0 group-hover/tab:opacity-100 transition-all z-10"
+                    title="Move left"
+                  >
+                    <ChevronLeft className="w-3 h-3" />
+                  </button>
+                )}
+                {netIdx < networks.length - 1 && (
+                  <button
+                    onClick={e => { e.stopPropagation(); moveNetwork(net.id, "right"); }}
+                    className="absolute -bottom-2 right-1 w-5 h-5 rounded-full bg-white border border-gray-200 shadow-sm text-gray-400 hover:text-gray-700 hover:border-gray-400 flex items-center justify-center opacity-0 group-hover/tab:opacity-100 transition-all z-10"
+                    title="Move right"
+                  >
+                    <ChevronRight className="w-3 h-3" />
+                  </button>
+                )}
               </div>
             );
           })}
