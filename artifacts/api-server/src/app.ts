@@ -27,7 +27,9 @@ app.use(
   }),
 );
 app.use(cors());
-app.use(express.json());
+// Accept JSON body regardless of Content-Type (handles cases where proxies
+// or fetch interceptors strip the header before reaching Express)
+app.use(express.json({ type: "*/*" }));
 app.use(express.urlencoded({ extended: true }));
 
 app.use("/api", (req, res, next) => {
