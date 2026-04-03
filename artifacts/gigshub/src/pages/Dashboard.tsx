@@ -1,14 +1,14 @@
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { useAuth } from "@/hooks/use-auth";
-import { useGetWallet, useGetOrders } from "@workspace/api-client-react";
+import { useGetWallet, useGetOrders, useGetNetworks } from "@workspace/api-client-react";
 import { formatGHS } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import {
   Wifi, ShieldCheck, Plus, ArrowRight, Users, Eye, EyeOff,
-  TrendingUp, Package, CheckCircle2, Clock, XCircle, ChevronRight,
+  TrendingUp, Package, CheckCircle2, Clock, XCircle, ChevronRight, Phone,
 } from "lucide-react";
-import { format } from "date-fns";
+import { format, isToday, parseISO } from "date-fns";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { UserAvatar } from "@/components/ui/UserAvatar";
@@ -60,6 +60,12 @@ export default function Dashboard() {
   const { data: wallet, isLoading: isLoadingWallet } = useGetWallet();
   const { data: orders, isLoading: isLoadingOrders } = useGetOrders();
   const [balanceHidden, setBalanceHidden] = useState(false);
+
+  const { data: networks } = useGetNetworks();
+  const networkMap = (networks ?? []).reduce<Record<string, { logoUrl?: string; color: string }>>((acc, n) => {
+    acc[n.name] = { logoUrl: n.logoUrl ?? undefined, color: n.color };
+    return acc;
+  }, {});
 
   const recentOrders = orders?.slice(0, 5) || [];
   const completedCount = orders?.filter(o => o.status === "completed").length ?? 0;
@@ -186,11 +192,9 @@ export default function Dashboard() {
 
         {/* ── Recent Transactions ── */}
         <div>
-          <div className="flex items-center justify-between mb-4">
+          <div className="mb-4">
             <h2 className="text-base font-bold text-gray-900">Recent Transactions</h2>
-            <Link href="/orders" className="text-sm font-semibold text-primary flex items-center gap-1 hover:gap-2 transition-all">
-              See all <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
+            <p className="text-xs text-gray-400 mt-0.5">Your last {recentOrders.length} purchases</p>
           </div>
 
           {isLoadingOrders ? (
@@ -211,50 +215,108 @@ export default function Dashboard() {
               </Button>
             </div>
           ) : (
-            <div className="bg-white border border-gray-100 rounded-3xl overflow-hidden shadow-sm divide-y divide-gray-50">
+            <div className="space-y-2.5">
               {recentOrders.map((order) => {
                 const status = statusConfig[order.status] ?? statusConfig.pending;
                 const StatusIcon = status.icon;
+                const det = (order.details ?? {}) as Record<string, unknown>;
+                const networkName = det.networkName as string | undefined;
+                const bundleName = det.bundleName as string | undefined;
+                const dataSize = det.data as string | undefined;
+                const phoneNumber = det.phoneNumber as string | undefined;
+                const net = networkName ? networkMap[networkName] : undefined;
+                const netColor = net?.color ?? "#6366f1";
+                const isBundle = order.type === "bundle";
+                const timestamp = parseISO(order.createdAt);
+                const timeLabel = isToday(timestamp)
+                  ? format(timestamp, "h:mm a")
+                  : format(timestamp, "MMM d · h:mm a");
+
                 return (
-                  <div key={order.id} className="flex items-center gap-3 px-3 sm:px-5 py-3 sm:py-4 hover:bg-gray-50/50 transition-colors">
-                    {/* Icon */}
-                    <div className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 ${
-                      order.type === "bundle"
-                        ? "bg-orange-50"
-                        : order.type === "afa"
-                        ? "bg-amber-50"
-                        : "bg-emerald-50"
-                    }`}>
-                      {order.type === "bundle" ? (
-                        <Wifi className="w-5 h-5 text-primary" />
-                      ) : order.type === "afa" ? (
-                        <ShieldCheck className="w-5 h-5 text-amber-600" />
-                      ) : (
-                        <Users className="w-5 h-5 text-emerald-600" />
-                      )}
-                    </div>
+                  <motion.div
+                    key={order.id}
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all"
+                  >
+                    {/* Network colour stripe */}
+                    <div
+                      className="h-0.5 w-full"
+                      style={{ backgroundColor: isBundle ? netColor : "#f3f4f6" }}
+                    />
 
-                    {/* Info */}
-                    <div className="flex-1 min-w-0">
-                      <p className="font-bold text-gray-900 text-sm capitalize leading-tight">
-                        {order.type === "bundle" ? "Data Bundle" : order.type === "afa" ? "AFA Registration" : "Agent Registration"}
-                      </p>
-                      <p className="text-xs text-muted-foreground truncate">
-                        {format(new Date(order.createdAt), "MMM d, yyyy · h:mm a")}
-                      </p>
-                    </div>
+                    <div className="flex items-center gap-3 px-3 py-3">
+                      {/* Logo / icon */}
+                      <div className="shrink-0">
+                        {isBundle ? (
+                          net?.logoUrl ? (
+                            <img
+                              src={net.logoUrl}
+                              alt={networkName}
+                              className="w-11 h-11 rounded-xl object-contain border border-gray-100 shadow-sm bg-white p-0.5"
+                              onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                            />
+                          ) : (
+                            <div className="w-11 h-11 rounded-xl flex items-center justify-center shadow-sm"
+                              style={{ backgroundColor: netColor + "20" }}>
+                              <Wifi className="w-5 h-5" style={{ color: netColor }} />
+                            </div>
+                          )
+                        ) : (
+                          <div className={`w-11 h-11 rounded-xl flex items-center justify-center shadow-sm ${
+                            order.type === "afa_registration" ? "bg-amber-50" : "bg-emerald-50"
+                          }`}>
+                            {order.type === "afa_registration"
+                              ? <ShieldCheck className="w-5 h-5 text-amber-600" />
+                              : <Users className="w-5 h-5 text-emerald-600" />
+                            }
+                          </div>
+                        )}
+                      </div>
 
-                    {/* Amount + status */}
-                    <div className="text-right shrink-0">
-                      <p className="font-extrabold text-gray-900 text-sm">{formatGHS(order.amount)}</p>
-                      <span className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full border ${status.color}`}>
-                        <StatusIcon className="w-3 h-3" />
-                        {status.label}
-                      </span>
+                      {/* Info */}
+                      <div className="flex-1 min-w-0">
+                        <p className="font-bold text-gray-900 text-sm leading-tight truncate">
+                          {isBundle
+                            ? (networkName && bundleName ? `${networkName} – ${bundleName}` : networkName ?? bundleName ?? "Data Bundle")
+                            : order.type === "afa_registration" ? "AFA Registration" : "Agent Registration"
+                          }
+                        </p>
+                        <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                          {dataSize && (
+                            <span className="text-[10px] font-bold text-blue-600 bg-blue-50 border border-blue-100 px-1.5 py-0.5 rounded-full">
+                              {dataSize}
+                            </span>
+                          )}
+                          {phoneNumber && (
+                            <span className="flex items-center gap-0.5 text-[10px] text-gray-400 font-medium">
+                              <Phone className="w-2.5 h-2.5" />{phoneNumber}
+                            </span>
+                          )}
+                          <span className="text-[10px] text-gray-400 flex items-center gap-0.5">
+                            <Clock className="w-2.5 h-2.5" />{timeLabel}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Amount + status */}
+                      <div className="text-right shrink-0 flex flex-col items-end gap-1">
+                        <p className="font-extrabold text-gray-900 text-sm tabular-nums">{formatGHS(order.amount)}</p>
+                        <span className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full border ${status.color}`}>
+                          <StatusIcon className="w-2.5 h-2.5" />
+                          {status.label}
+                        </span>
+                      </div>
                     </div>
-                  </div>
+                  </motion.div>
                 );
               })}
+
+              <Link href="/orders">
+                <div className="flex items-center justify-center gap-1.5 py-3 text-sm font-semibold text-primary hover:text-primary/80 transition-colors">
+                  View all orders <ArrowRight className="w-3.5 h-3.5" />
+                </div>
+              </Link>
             </div>
           )}
         </div>
