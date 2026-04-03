@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useGetServices } from "@workspace/api-client-react";
 import { Link } from "wouter";
 import { formatGHS } from "@/lib/utils";
-import { ShieldCheck, UserPlus, ArrowRight, ChevronRight, Wifi, Radio } from "lucide-react";
+import { ShieldCheck, ArrowRight, ChevronRight, Wifi, Radio } from "lucide-react";
 import { motion } from "framer-motion";
 
 import { API as BASE } from "@/lib/api";
@@ -32,14 +32,7 @@ const OTHER_SERVICES = [
     title: "AFA / Ghana Card Registration",
     desc: "Register your SIM card with your Ghana Card quickly and securely.",
   },
-  {
-    href: "/agent-registration",
-    icon: UserPlus,
-    color: "bg-emerald-100 text-emerald-600",
-    glow: "group-hover:shadow-emerald-100",
-    title: "Become an Agent",
-    desc: "Start your own business selling TurboGH services and earn commissions.",
-  },
+
 ];
 
 type Network = {
