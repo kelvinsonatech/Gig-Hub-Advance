@@ -1,4 +1,5 @@
 import { useState } from "react";
+import type { ReactNode } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { useGetOrders, useGetNetworks } from "@workspace/api-client-react";
 import { formatGHS } from "@/lib/utils";
@@ -54,6 +55,29 @@ function CopyId({ id }: { id: string }) {
       {copied
         ? <Check className="w-3 h-3 text-emerald-500" />
         : <Copy className="w-3 h-3 opacity-0 group-hover/copy:opacity-100 transition-opacity" />
+      }
+    </button>
+  );
+}
+
+function CopyText({ value, children }: { value: string; children: ReactNode }) {
+  const [copied, setCopied] = useState(false);
+  const copy = () => {
+    navigator.clipboard.writeText(value).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+  return (
+    <button
+      onClick={copy}
+      className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-700 transition-colors group/cp"
+      title="Copy"
+    >
+      {children}
+      {copied
+        ? <Check className="w-3 h-3 text-emerald-500 ml-0.5" />
+        : <Copy className="w-3 h-3 ml-0.5 opacity-0 group-hover/cp:opacity-100 transition-opacity" />
       }
     </button>
   );
@@ -188,10 +212,10 @@ export default function Orders() {
                       {/* Middle row: phone + date */}
                       <div className="flex flex-wrap items-center gap-3 mt-2">
                         {details.phoneNumber && (
-                          <span className="flex items-center gap-1 text-xs text-gray-400">
+                          <CopyText value={details.phoneNumber}>
                             <Phone className="w-3 h-3" />
                             {details.phoneNumber}
-                          </span>
+                          </CopyText>
                         )}
                         <span className="flex items-center gap-1 text-xs text-gray-400">
                           <Clock className="w-3 h-3" />
