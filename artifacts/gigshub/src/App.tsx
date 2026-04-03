@@ -12,6 +12,7 @@ import { InstallPrompt } from "@/components/InstallPrompt";
 import { LoginConfetti } from "@/components/LoginConfetti";
 import { AdminLayout } from "@/pages/admin/AdminLayout";
 import { useFcm } from "@/hooks/use-fcm";
+import { useImagePreloader } from "@/hooks/use-image-preloader";
 
 // Pages
 import Login from "@/pages/Login";
@@ -132,6 +133,11 @@ function FcmInit() {
   return null;
 }
 
+function ImagePreloader() {
+  useImagePreloader();
+  return null;
+}
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -141,6 +147,7 @@ function App() {
           <LoginConfetti />
           <InstallPrompt />
           <FcmInit />
+          <ImagePreloader />
         </WouterRouter>
         <Toaster />
       </TooltipProvider>
