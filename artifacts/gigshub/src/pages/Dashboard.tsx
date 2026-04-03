@@ -9,7 +9,7 @@ import {
   TrendingUp, Package, CheckCircle2, Clock, XCircle, ChevronRight, Phone,
 } from "lucide-react";
 import { format, isToday, parseISO } from "date-fns";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { UserAvatar } from "@/components/ui/UserAvatar";
 
@@ -58,6 +58,15 @@ export default function Dashboard() {
     acc[n.name] = { logoUrl: n.logoUrl ?? undefined, color: n.color };
     return acc;
   }, {});
+
+  useEffect(() => {
+    (networks ?? []).forEach(n => {
+      if (n.logoUrl) {
+        const img = new Image();
+        img.src = n.logoUrl;
+      }
+    });
+  }, [networks]);
 
   const recentOrders = orders?.slice(0, 5) || [];
   const completedCount = orders?.filter(o => o.status === "completed").length ?? 0;
