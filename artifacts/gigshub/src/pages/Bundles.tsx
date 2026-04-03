@@ -103,6 +103,7 @@ export default function Bundles() {
         setPaymentMethod("momo");
         queryClient.invalidateQueries({ queryKey: ["/api/wallet"] });
         queryClient.invalidateQueries({ queryKey: ["/api/orders"] });
+        setTimeout(() => navigate("/orders"), 1500);
       },
       onError: (err: any) => {
         setIsPaying(false);
