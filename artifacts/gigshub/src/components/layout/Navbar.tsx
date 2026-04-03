@@ -262,6 +262,15 @@ export function Navbar() {
 
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
+  useEffect(() => {
+    notifications.forEach(n => {
+      if (n.imageUrl) {
+        const img = new Image();
+        img.src = n.imageUrl;
+      }
+    });
+  }, [notifications]);
+
   const close = () => setIsMobileMenuOpen(false);
 
   return (
