@@ -75,7 +75,7 @@ export default function Dashboard() {
             </h1>
           </div>
           <div className="ring-2 ring-white shadow-lg shadow-orange-100 rounded-full">
-            <UserAvatar name={user?.name} size={40} />
+            <UserAvatar name={user?.name} seed={user?.email} size={40} />
           </div>
         </div>
 

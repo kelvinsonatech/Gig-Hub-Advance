@@ -299,7 +299,7 @@ export default function AdminOrders() {
                         : <Wifi className={`w-6 h-6 ${logoText}`} />
                       }
                     </div>
-                    <UserAvatar name={order.user.name} size={28} className="ring-1 ring-white shadow" />
+                    <UserAvatar name={order.user.name} seed={order.user.email} size={28} className="ring-1 ring-white shadow" />
                   </div>
 
                   {/* ── Right: all details ── */}
