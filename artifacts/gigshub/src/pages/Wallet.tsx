@@ -9,8 +9,6 @@ import {
   CreditCard,
   Wallet as WalletIcon,
   Loader2,
-  ArrowUpRight,
-  ArrowDownLeft,
   Smartphone,
   Zap,
 } from "lucide-react";
@@ -197,9 +195,21 @@ export default function Wallet() {
             </div>
           </div>
 
-          {/* ── Right column: Transaction History ── */}
+          {/* ── Right column: Top-up History ── */}
           <div className="bg-white border border-border rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-sm flex flex-col">
-            <h3 className="text-base sm:text-xl font-bold mb-4 sm:mb-6">Recent Transactions</h3>
+            <div className="flex items-center gap-2.5 mb-4 sm:mb-6">
+              <div className="w-9 h-9 rounded-2xl bg-emerald-50 flex items-center justify-center overflow-hidden">
+                <img
+                  src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSSgtFIB8y9yU96wEcClkw-423BAZdFoeEyIg&s"
+                  alt="MoMo"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div>
+                <h3 className="text-base font-bold leading-tight">Top-up History</h3>
+                <p className="text-xs text-muted-foreground">Your wallet funding records</p>
+              </div>
+            </div>
 
             <div className="flex-1 overflow-y-auto pr-1 space-y-3 max-h-[560px]">
               {isLoading ? (
@@ -208,31 +218,33 @@ export default function Wallet() {
                     <div key={i} className="h-16 bg-muted rounded-2xl" />
                   ))}
                 </div>
-              ) : !wallet?.transactions || wallet.transactions.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-                  <div className="w-16 h-16 rounded-2xl bg-muted/60 flex items-center justify-center mb-4">
-                    <WalletIcon className="w-8 h-8 opacity-30" />
+              ) : (() => {
+                const topups = (wallet?.transactions ?? []).filter(tx => tx.type === "credit");
+                if (topups.length === 0) return (
+                  <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
+                    <div className="w-16 h-16 rounded-2xl bg-muted/60 flex items-center justify-center mb-4 overflow-hidden">
+                      <img
+                        src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSSgtFIB8y9yU96wEcClkw-423BAZdFoeEyIg&s"
+                        alt="MoMo"
+                        className="w-full h-full object-cover opacity-40"
+                      />
+                    </div>
+                    <p className="font-semibold text-sm">No top-ups yet</p>
+                    <p className="text-xs mt-1">Add funds to get started</p>
                   </div>
-                  <p className="font-semibold text-sm">No transactions yet</p>
-                  <p className="text-xs mt-1">Top up your wallet to get started</p>
-                </div>
-              ) : (
-                wallet.transactions.map((tx) => (
+                );
+                return topups.map((tx) => (
                   <div
                     key={tx.id}
-                    className="flex items-center justify-between p-4 rounded-2xl border border-border/50 hover:bg-slate-50/80 transition-colors"
+                    className="flex items-center justify-between p-4 rounded-2xl border border-border/50 hover:bg-emerald-50/40 transition-colors"
                   >
                     <div className="flex items-center gap-3">
-                      <div
-                        className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
-                          tx.type === "credit" ? "bg-emerald-100 text-emerald-600" : "bg-red-100 text-red-500"
-                        }`}
-                      >
-                        {tx.type === "credit" ? (
-                          <ArrowDownLeft className="w-5 h-5" />
-                        ) : (
-                          <ArrowUpRight className="w-5 h-5" />
-                        )}
+                      <div className="w-10 h-10 rounded-full overflow-hidden shrink-0 border border-border/50">
+                        <img
+                          src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSSgtFIB8y9yU96wEcClkw-423BAZdFoeEyIg&s"
+                          alt="MoMo"
+                          className="w-full h-full object-cover"
+                        />
                       </div>
                       <div>
                         <p className="font-bold text-sm text-foreground leading-tight">{tx.description}</p>
@@ -241,12 +253,12 @@ export default function Wallet() {
                         </p>
                       </div>
                     </div>
-                    <p className={`font-extrabold text-sm ${tx.type === "credit" ? "text-emerald-600" : "text-foreground"}`}>
-                      {tx.type === "credit" ? "+" : "-"}{formatGHS(tx.amount)}
+                    <p className="font-extrabold text-sm text-emerald-600">
+                      +{formatGHS(tx.amount)}
                     </p>
                   </div>
-                ))
-              )}
+                ));
+              })()}
             </div>
           </div>
 
