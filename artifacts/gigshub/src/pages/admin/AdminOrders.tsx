@@ -53,7 +53,6 @@ const STATUS_META: Record<string, { label: string; color: string; bg: string; bo
 
 const STATUS_FLOW: Record<string, string> = {
   pending: "processing",
-  processing: "completed",
 };
 
 const TYPE_META: Record<string, { label: string; icon: any; color: string }> = {
