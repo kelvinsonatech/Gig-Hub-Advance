@@ -175,15 +175,15 @@ export default function Orders() {
     const isBundle = order.type === "bundle";
 
     return (
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all overflow-hidden">
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm active:shadow-md transition-all overflow-hidden">
         {/* Colored status stripe */}
         <div className={`h-0.5 w-full ${status.dot}`} />
 
-        <div className="p-4 flex items-start gap-4">
-          {/* Logo / Icon */}
+        <div className="p-3 sm:p-4 flex items-start gap-3 sm:gap-4">
+          {/* Logo / Icon — slightly smaller on mobile */}
           <div className="shrink-0 mt-0.5">
             {isBundle
-              ? <NetworkLogo networkName={details.networkName} />
+              ? <NetworkLogo networkName={details.networkName} size={36} />
               : <ServiceIcon type={order.type} />
             }
           </div>
@@ -192,19 +192,19 @@ export default function Orders() {
           <div className="flex-1 min-w-0">
             {/* Top row: title + amount */}
             <div className="flex items-start justify-between gap-2">
-              <div className="min-w-0">
-                <p className="font-bold text-gray-900 text-sm leading-tight truncate">{title}</p>
+              <div className="min-w-0 flex-1">
+                <p className="font-bold text-gray-900 text-sm leading-snug line-clamp-2">{title}</p>
                 {subtitle && (
                   <p className="text-xs text-gray-400 mt-0.5">{subtitle}</p>
                 )}
               </div>
-              <span className="font-black text-gray-900 text-base shrink-0 ml-2">
+              <span className="font-black text-gray-900 text-sm sm:text-base shrink-0 ml-2 tabular-nums">
                 {formatGHS(order.amount)}
               </span>
             </div>
 
             {/* Middle row: phone + time */}
-            <div className="flex flex-wrap items-center gap-3 mt-2">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-1.5">
               {details.phoneNumber && (
                 <CopyText value={details.phoneNumber}>
                   <Phone className="w-3 h-3" />
@@ -218,13 +218,13 @@ export default function Orders() {
             </div>
 
             {/* Bottom row: status + order ID */}
-            <div className="flex items-center justify-between mt-2.5 gap-2 flex-wrap">
-              <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border ${status.badge}`}>
+            <div className="flex items-center justify-between mt-2 gap-2 flex-wrap">
+              <span className={`inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-bold border ${status.badge}`}>
                 <span className={`w-1.5 h-1.5 rounded-full ${status.dot}`} />
                 {status.label}
               </span>
-              <div className="flex items-center gap-1.5 bg-gray-50 border border-gray-200 rounded-lg px-2.5 py-1">
-                <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Order ID</span>
+              <div className="flex items-center gap-1 sm:gap-1.5 bg-gray-50 border border-gray-200 rounded-lg px-2 sm:px-2.5 py-0.5 sm:py-1">
+                <span className="text-[9px] sm:text-[10px] font-semibold text-gray-400 uppercase tracking-wider">ID</span>
                 <span className="w-px h-3 bg-gray-200" />
                 <CopyId id={order.id} />
               </div>
@@ -237,12 +237,12 @@ export default function Orders() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-5">
         <header>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <History className="w-6 h-6 text-primary" /> Order History
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 flex items-center gap-2">
+            <History className="w-5 h-5 sm:w-6 sm:h-6 text-primary" /> Order History
           </h1>
-          <p className="text-gray-400 text-sm mt-0.5">Track all your purchases and registrations.</p>
+          <p className="text-gray-400 text-xs sm:text-sm mt-0.5">Track all your purchases and registrations.</p>
         </header>
 
         {isLoading ? (
@@ -262,12 +262,12 @@ export default function Orders() {
             {grouped.map(group => (
               <div key={group.label}>
                 {/* Date group header */}
-                <div className="flex items-center gap-3 mb-3">
-                  <span className="text-xs font-bold text-gray-500 uppercase tracking-widest whitespace-nowrap">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-[10px] sm:text-xs font-bold text-gray-500 uppercase tracking-wide sm:tracking-widest whitespace-nowrap">
                     {group.label}
                   </span>
                   <div className="flex-1 h-px bg-gray-100" />
-                  <span className="text-[10px] font-semibold text-gray-300">
+                  <span className="text-[10px] font-semibold text-gray-300 whitespace-nowrap">
                     {group.orders.length} {group.orders.length === 1 ? "order" : "orders"}
                   </span>
                 </div>
