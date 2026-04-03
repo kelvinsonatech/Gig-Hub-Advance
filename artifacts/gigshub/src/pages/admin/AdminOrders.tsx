@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import type { ReactNode } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Loader2, ShoppingBag, Clock, Wifi, Package, UserCheck,
-  ChevronRight, Copy, Check, Phone,
+  Copy, Check, Phone, ChevronDown,
+  CircleDot, CircleCheck, CircleX, Timer,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { UserAvatar } from "@/components/ui/UserAvatar";
@@ -44,16 +45,19 @@ type Order = {
   user: { name: string; email: string; phone: string };
 };
 
-const STATUS_META: Record<string, { label: string; color: string; bg: string; border: string; dot: string; stripe: string }> = {
-  pending:    { label: "Pending",    color: "text-amber-700",   bg: "bg-amber-50",   border: "border-amber-200",  dot: "bg-amber-400",    stripe: "bg-amber-400" },
-  processing: { label: "Processing", color: "text-blue-700",    bg: "bg-blue-50",    border: "border-blue-200",   dot: "bg-blue-500",     stripe: "bg-blue-500" },
-  completed:  { label: "Delivered",  color: "text-emerald-700", bg: "bg-emerald-50", border: "border-emerald-200",dot: "bg-emerald-500",  stripe: "bg-emerald-500" },
-  failed:     { label: "Failed",     color: "text-red-700",     bg: "bg-red-50",     border: "border-red-200",    dot: "bg-red-500",      stripe: "bg-red-500" },
+type StatusKey = "pending" | "processing" | "completed" | "failed";
+
+const STATUS_META: Record<StatusKey, {
+  label: string; color: string; bg: string; border: string;
+  dot: string; stripe: string; icon: any;
+}> = {
+  pending:    { label: "Pending",    color: "text-amber-700",   bg: "bg-amber-50",   border: "border-amber-200",  dot: "bg-amber-400",   stripe: "bg-amber-400",   icon: Timer },
+  processing: { label: "Processing", color: "text-blue-700",    bg: "bg-blue-50",    border: "border-blue-200",   dot: "bg-blue-500",    stripe: "bg-blue-500",    icon: CircleDot },
+  completed:  { label: "Delivered",  color: "text-emerald-700", bg: "bg-emerald-50", border: "border-emerald-200",dot: "bg-emerald-500", stripe: "bg-emerald-500", icon: CircleCheck },
+  failed:     { label: "Failed",     color: "text-red-700",     bg: "bg-red-50",     border: "border-red-200",    dot: "bg-red-500",     stripe: "bg-red-500",     icon: CircleX },
 };
 
-const STATUS_FLOW: Record<string, string> = {
-  pending: "processing",
-};
+const ALL_STATUSES: StatusKey[] = ["pending", "processing", "completed", "failed"];
 
 const TYPE_META: Record<string, { label: string; icon: any; color: string }> = {
   bundle:             { label: "Data Bundle",        icon: Wifi,        color: "text-blue-600 bg-blue-50 border-blue-200" },
@@ -91,17 +95,85 @@ function CopyBtn({ value, children }: { value: string; children: ReactNode }) {
       setTimeout(() => setCopied(false), 2000);
     });
   return (
-    <button
-      onClick={copy}
-      title="Copy"
-      className="flex items-center gap-1 group/c transition-colors hover:text-gray-800"
-    >
+    <button onClick={copy} title="Copy" className="flex items-center gap-1 group/c transition-colors hover:text-gray-800">
       {children}
       {copied
         ? <Check className="w-3 h-3 text-emerald-500 shrink-0" />
         : <Copy className="w-3 h-3 shrink-0 opacity-0 group-hover/c:opacity-100 transition-opacity" />
       }
     </button>
+  );
+}
+
+function StatusDropdown({
+  current, orderId, isPending, onSelect,
+}: {
+  current: StatusKey;
+  orderId: string;
+  isPending: boolean;
+  onSelect: (status: StatusKey) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const meta = STATUS_META[current];
+  const Icon = meta.icon;
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open]);
+
+  return (
+    <div ref={ref} className="relative shrink-0">
+      <button
+        onClick={() => setOpen(o => !o)}
+        disabled={isPending}
+        className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border transition-all disabled:opacity-60 select-none cursor-pointer hover:shadow-sm active:scale-95 ${meta.bg} ${meta.color} ${meta.border}`}
+      >
+        {isPending
+          ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+          : <Icon className="w-3.5 h-3.5" />
+        }
+        {meta.label}
+        <ChevronDown className={`w-3 h-3 transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
+
+      {open && (
+        <div className="absolute right-0 top-full mt-2 z-50 w-48 bg-white rounded-2xl border border-gray-100 shadow-xl overflow-hidden">
+          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-3 pt-3 pb-1.5">
+            Set status
+          </p>
+          {ALL_STATUSES.map(s => {
+            const m = STATUS_META[s];
+            const SIcon = m.icon;
+            const isActive = s === current;
+            return (
+              <button
+                key={s}
+                disabled={isActive}
+                onClick={() => { onSelect(s); setOpen(false); }}
+                className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-sm font-medium transition-colors text-left
+                  ${isActive
+                    ? `${m.bg} ${m.color} cursor-default`
+                    : "text-gray-600 hover:bg-gray-50"
+                  }`}
+              >
+                <span className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${m.bg} ${m.color}`}>
+                  <SIcon className="w-3.5 h-3.5" />
+                </span>
+                <span className="flex-1">{m.label}</span>
+                {isActive && <Check className="w-3.5 h-3.5 shrink-0" />}
+              </button>
+            );
+          })}
+          <div className="h-2" />
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -121,7 +193,7 @@ export default function AdminOrders() {
       apiFetch(`/orders/${id}/status`, { method: "PATCH", body: JSON.stringify({ status }) }),
     onSuccess: (_data, vars) => {
       qc.invalidateQueries({ queryKey: ["admin-orders"] });
-      toast({ title: `Order marked as ${STATUS_META[vars.status]?.label ?? vars.status}` });
+      toast({ title: `Order updated to ${STATUS_META[vars.status as StatusKey]?.label ?? vars.status}` });
     },
     onError: (e: Error) =>
       toast({ title: "Failed to update status", description: e.message, variant: "destructive" }),
@@ -145,7 +217,7 @@ export default function AdminOrders() {
       {/* Filter tabs */}
       <div className="flex gap-2 mb-6 flex-wrap">
         {FILTER_STATUSES.map(s => {
-          const meta = s === "all" ? null : STATUS_META[s];
+          const meta = s === "all" ? null : STATUS_META[s as StatusKey];
           const isActive = filter === s;
           return (
             <button
@@ -178,7 +250,7 @@ export default function AdminOrders() {
         <div className="bg-white rounded-2xl border-2 border-dashed border-gray-200 py-20 text-center">
           <Package className="w-10 h-10 text-gray-200 mx-auto mb-3" />
           <p className="text-gray-400 text-sm font-medium">
-            {filter === "all" ? "No orders yet." : `No ${STATUS_META[filter]?.label.toLowerCase()} orders.`}
+            {filter === "all" ? "No orders yet." : `No ${STATUS_META[filter as StatusKey]?.label.toLowerCase()} orders.`}
           </p>
         </div>
       ) : (
@@ -187,58 +259,55 @@ export default function AdminOrders() {
             const statusMeta = STATUS_META[order.status];
             const typeMeta   = TYPE_META[order.type] ?? TYPE_META.bundle;
             const TypeIcon   = typeMeta.icon;
-            const nextStatus = STATUS_FLOW[order.status];
-            const nextMeta   = nextStatus ? STATUS_META[nextStatus] : null;
             const details    = order.details ?? {};
             const isPending  = updateStatus.isPending && (updateStatus.variables as any)?.id === order.id;
 
-            const netColor   = details.networkColor ?? "#6366f1";
-            const netLogo    = details.networkLogoUrl;
-            const logoText   = isLight(netColor) ? "text-gray-800" : "text-white";
+            const netColor = details.networkColor ?? "#6366f1";
+            const netLogo  = details.networkLogoUrl;
+            const logoText = isLight(netColor) ? "text-gray-800" : "text-white";
 
             return (
               <div
                 key={order.id}
                 className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all overflow-hidden"
               >
-                {/* Status stripe — matches network brand colour */}
+                {/* Network colour stripe */}
                 <div className="h-1 w-full" style={{ backgroundColor: netColor }} />
 
                 <div className="p-5 flex gap-4">
 
-                  {/* ── Left column: network logo + user avatar ── */}
+                  {/* ── Left: network logo + user avatar ── */}
                   <div className="shrink-0 flex flex-col items-center gap-2">
-                    {/* Network logo */}
                     <div
                       className="w-14 h-14 rounded-2xl flex items-center justify-center shadow-sm overflow-hidden"
                       style={{ backgroundColor: netColor }}
                     >
-                      {netLogo ? (
-                        <img src={netLogo} alt={details.networkName ?? "network"} className="w-10 h-10 object-contain" />
-                      ) : (
-                        <Wifi className={`w-6 h-6 ${logoText}`} />
-                      )}
+                      {netLogo
+                        ? <img src={netLogo} alt={details.networkName ?? "network"} className="w-10 h-10 object-contain" />
+                        : <Wifi className={`w-6 h-6 ${logoText}`} />
+                      }
                     </div>
-                    {/* User avatar (small) */}
                     <UserAvatar name={order.user.name} size={28} className="ring-1 ring-white shadow" />
                   </div>
 
-                  {/* ── Right column: all details ── */}
+                  {/* ── Right: all details ── */}
                   <div className="flex-1 min-w-0">
 
-                    {/* Row 1: user info + status badge */}
+                    {/* Row 1: user info + status dropdown */}
                     <div className="flex items-start justify-between gap-2 flex-wrap">
                       <div className="min-w-0">
                         <p className="font-bold text-gray-900 text-sm leading-tight truncate">{order.user.name}</p>
                         <p className="text-xs text-gray-400 truncate">{order.user.email}</p>
                       </div>
-                      <span className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border shrink-0 ${statusMeta.bg} ${statusMeta.color} ${statusMeta.border}`}>
-                        <span className={`w-1.5 h-1.5 rounded-full ${statusMeta.dot}`} />
-                        {statusMeta.label}
-                      </span>
+                      <StatusDropdown
+                        current={order.status as StatusKey}
+                        orderId={order.id}
+                        isPending={isPending}
+                        onSelect={status => updateStatus.mutate({ id: order.id, status })}
+                      />
                     </div>
 
-                    {/* Row 2: bundle name + data size (prominent) */}
+                    {/* Row 2: bundle name + data size */}
                     {(details.networkName || details.bundleName) && (
                       <div className="mt-2 flex flex-wrap items-center gap-x-1.5 gap-y-1">
                         {details.networkName && (
@@ -266,7 +335,7 @@ export default function AdminOrders() {
                       </span>
                     </div>
 
-                    {/* Row 4: phone (copyable) + date */}
+                    {/* Row 4: phone + date */}
                     <div className="mt-2.5 flex flex-wrap items-center gap-3">
                       {details.phoneNumber && (
                         <CopyBtn value={details.phoneNumber}>
@@ -282,37 +351,14 @@ export default function AdminOrders() {
                       </span>
                     </div>
 
-                    {/* Row 5: amount + order ref + action button */}
-                    <div className="mt-3 flex items-center justify-between gap-3 flex-wrap">
-                      <div className="flex items-center gap-3">
-                        <span className="text-base font-black text-gray-900">GHS {order.amount.toFixed(2)}</span>
-                        <CopyBtn value={toOrderRef(order.id)}>
-                          <span className="flex items-center gap-1 text-[10px] font-mono font-semibold text-gray-400 bg-gray-50 border border-gray-200 rounded-md px-2 py-0.5">
-                            {toOrderRef(order.id)}
-                          </span>
-                        </CopyBtn>
-                      </div>
-
-                      {nextMeta ? (
-                        <button
-                          disabled={isPending}
-                          onClick={() => updateStatus.mutate({ id: order.id, status: nextStatus })}
-                          className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold border transition-all disabled:opacity-60 shadow-sm hover:opacity-80 ${nextMeta.bg} ${nextMeta.color} ${nextMeta.border}`}
-                        >
-                          {isPending ? (
-                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                          ) : (
-                            <>
-                              Mark as {nextMeta.label}
-                              <ChevronRight className="w-3.5 h-3.5" />
-                            </>
-                          )}
-                        </button>
-                      ) : (
-                        order.status === "completed" && (
-                          <span className="text-xs text-emerald-600 font-semibold">✓ Delivered</span>
-                        )
-                      )}
+                    {/* Row 5: amount + order ref */}
+                    <div className="mt-3 flex items-center gap-3 flex-wrap">
+                      <span className="text-base font-black text-gray-900">GHS {order.amount.toFixed(2)}</span>
+                      <CopyBtn value={toOrderRef(order.id)}>
+                        <span className="flex items-center gap-1 text-[10px] font-mono font-semibold text-gray-400 bg-gray-50 border border-gray-200 rounded-md px-2 py-0.5">
+                          {toOrderRef(order.id)}
+                        </span>
+                      </CopyBtn>
                     </div>
 
                   </div>
