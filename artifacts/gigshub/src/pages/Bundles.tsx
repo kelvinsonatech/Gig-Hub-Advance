@@ -11,6 +11,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { navigate } from "wouter/use-browser-location";
 import { useSearch } from "wouter";
+// @ts-ignore
+import PaystackPop from "@paystack/inline-js";
 import {
   Dialog,
   DialogContent,
@@ -53,10 +55,12 @@ function fireCelebration() {
   }, 150);
 }
 
+const PAYSTACK_PUBLIC_KEY = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY as string;
+
 export default function Bundles() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const { data: networks, isLoading: loadingNetworks } = useGetNetworks();
   const { data: wallet } = useGetWallet({ query: { enabled: isAuthenticated } });
   const search = useSearch();
@@ -85,10 +89,12 @@ export default function Bundles() {
   const [phoneTouched, setPhoneTouched] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<"momo" | "wallet">("momo");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isPaying, setIsPaying] = useState(false);
 
   const createOrder = useCreateOrder({
     mutation: {
       onSuccess: () => {
+        setIsPaying(false);
         fireCelebration();
         toast({ title: "🎉 Purchase successful!", description: "Your data bundle will be activated shortly." });
         setIsModalOpen(false);
@@ -99,6 +105,7 @@ export default function Bundles() {
         queryClient.invalidateQueries({ queryKey: ["/api/orders"] });
       },
       onError: (err: any) => {
+        setIsPaying(false);
         toast({ variant: "destructive", title: "Purchase failed", description: err?.message || "Something went wrong." });
       }
     }
@@ -116,14 +123,42 @@ export default function Bundles() {
 
   const handlePurchase = () => {
     if (!selectedBundle || phoneNumber.replace(/\D/g, "").length < 10) return;
+
     if (paymentMethod === "wallet") {
       if (!wallet || wallet.balance < selectedBundle.price) {
         toast({ variant: "destructive", title: "Insufficient wallet balance", description: "Please top up your wallet first." });
         return;
       }
+      createOrder.mutate({
+        data: { type: "bundle", bundleId: selectedBundle.id, phoneNumber, paymentMethod, details: { paymentMethod } }
+      });
+      return;
     }
-    createOrder.mutate({
-      data: { type: "bundle", bundleId: selectedBundle.id, phoneNumber, paymentMethod, details: { paymentMethod } }
+
+    // MoMo → open Paystack popup first, then create order on success
+    setIsPaying(true);
+    const popup = new PaystackPop();
+    popup.newTransaction({
+      key: PAYSTACK_PUBLIC_KEY,
+      email: user?.email || "customer@turboghcustomer.com",
+      amount: Math.round(selectedBundle.price * 100), // pesewas
+      currency: "GHS",
+      label: `TurboGh – ${selectedBundle.data} bundle`,
+      onSuccess: (response: { reference: string }) => {
+        createOrder.mutate({
+          data: {
+            type: "bundle",
+            bundleId: selectedBundle.id,
+            phoneNumber,
+            paymentMethod: "momo",
+            paystackReference: response.reference,
+            details: { paymentMethod: "momo", paystackReference: response.reference },
+          } as any,
+        });
+      },
+      onCancel: () => {
+        setIsPaying(false);
+      },
     });
   };
 
@@ -376,7 +411,7 @@ export default function Bundles() {
             <Button variant="outline" onClick={() => setIsModalOpen(false)} className="rounded-xl h-12 flex-1">Cancel</Button>
             <Button
               onClick={handlePurchase}
-              disabled={phoneNumber.replace(/\D/g, "").length < 10 || createOrder.isPending || (paymentMethod === "wallet" && !!wallet && wallet.balance < (selectedBundle?.price ?? 0))}
+              disabled={phoneNumber.replace(/\D/g, "").length < 10 || isPaying || createOrder.isPending || (paymentMethod === "wallet" && !!wallet && wallet.balance < (selectedBundle?.price ?? 0))}
               className={cn(
                 "rounded-xl h-12 flex-1 shadow-md",
                 paymentMethod === "wallet"
@@ -384,7 +419,7 @@ export default function Bundles() {
                   : "shadow-primary/20"
               )}
             >
-              {createOrder.isPending
+              {isPaying || createOrder.isPending
                 ? <Loader2 className="w-5 h-5 animate-spin" />
                 : paymentMethod === "wallet" ? "Pay from Wallet" : "Pay with MoMo"
               }

@@ -119,11 +119,39 @@ router.post("/", async (req, res) => {
       });
     }
 
-    // ── MoMo payment: create pending order, no wallet deduction ─────────────
+    // ── MoMo payment via Paystack ────────────────────────────────────────────
+    const { paystackReference } = req.body;
+    let orderStatus: string = "pending";
+
+    if (paystackReference) {
+      const secretKey = process.env.PAYSTACK_SECRET_KEY;
+      if (!secretKey) {
+        return res.status(500).json({ error: "config_error", message: "Payment not configured" });
+      }
+      const psRes = await fetch(
+        `https://api.paystack.co/transaction/verify/${encodeURIComponent(paystackReference)}`,
+        { headers: { Authorization: `Bearer ${secretKey}` } }
+      );
+      const psData = await psRes.json() as any;
+
+      if (!psData.status || psData.data?.status !== "success") {
+        return res.status(400).json({ error: "payment_failed", message: "Paystack payment was not successful" });
+      }
+
+      // Confirm the paid amount matches the bundle price (within rounding)
+      const paidGHS = psData.data.amount / 100;
+      if (Math.abs(paidGHS - amount) > 0.5) {
+        return res.status(400).json({ error: "amount_mismatch", message: "Payment amount does not match order total" });
+      }
+
+      orderDetails = { ...orderDetails, paystackReference };
+      orderStatus = "processing";
+    }
+
     const [order] = await db.insert(ordersTable).values({
       userId,
       type,
-      status: "pending",
+      status: orderStatus,
       amount: String(amount),
       details: orderDetails,
     }).returning();
