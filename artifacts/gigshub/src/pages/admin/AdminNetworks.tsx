@@ -182,9 +182,16 @@ export default function AdminNetworks() {
             These cards appear on the Services page under "Data Bundles by Network"
           </p>
         </div>
-        <Button onClick={openAdd} className="bg-[#E91E8C] hover:bg-[#d4197f] gap-2 shrink-0">
-          <Plus className="w-4 h-4" /> Add Network
-        </Button>
+        <button
+          onClick={openAdd}
+          className="shrink-0 flex items-center gap-2 px-5 py-2.5 rounded-2xl font-bold text-sm text-white shadow-lg shadow-pink-200 transition-all duration-200 hover:scale-105 hover:shadow-pink-300 active:scale-95"
+          style={{ background: "linear-gradient(135deg, #f72585 0%, #E91E8C 55%, #c2185b 100%)" }}
+        >
+          <span className="flex items-center justify-center w-5 h-5 rounded-lg bg-white/20">
+            <Plus className="w-3.5 h-3.5" />
+          </span>
+          Add Network
+        </button>
       </div>
 
       {isLoading ? (
