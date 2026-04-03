@@ -6,10 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatGHS } from "@/lib/utils";
 import {
-  CreditCard,
   Wallet as WalletIcon,
   Loader2,
-  Smartphone,
   Zap,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -148,31 +146,21 @@ export default function Wallet() {
                 {/* Payment method */}
                 <div className="space-y-2">
                   <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Payment Method</p>
-                  <div className="grid grid-cols-2 gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setMethod("momo")}
-                      className={`h-16 rounded-2xl border-2 font-bold flex flex-col items-center justify-center gap-1 transition-all text-sm ${
-                        method === "momo"
-                          ? "border-primary bg-primary/5 text-primary shadow-sm"
-                          : "border-border text-muted-foreground hover:bg-slate-50 hover:border-primary/30"
-                      }`}
-                    >
-                      <Smartphone className="w-5 h-5" />
-                      <span>Mobile Money</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setMethod("card")}
-                      className={`h-16 rounded-2xl border-2 font-bold flex flex-col items-center justify-center gap-1 transition-all text-sm ${
-                        method === "card"
-                          ? "border-primary bg-primary/5 text-primary shadow-sm"
-                          : "border-border text-muted-foreground hover:bg-slate-50 hover:border-primary/30"
-                      }`}
-                    >
-                      <CreditCard className="w-5 h-5" />
-                      <span>Card</span>
-                    </button>
+                  <div className="flex items-center gap-4 w-full border-2 border-primary bg-primary/5 rounded-2xl px-4 py-3 shadow-sm">
+                    <div className="w-10 h-10 rounded-xl overflow-hidden shrink-0 border border-primary/20">
+                      <img
+                        src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSSgtFIB8y9yU96wEcClkw-423BAZdFoeEyIg&s"
+                        alt="MoMo"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold text-primary leading-tight">Mobile Money</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">MTN · AirtelTigo · Telecel</p>
+                    </div>
+                    <div className="w-5 h-5 rounded-full border-2 border-primary flex items-center justify-center shrink-0">
+                      <div className="w-2.5 h-2.5 rounded-full bg-primary" />
+                    </div>
                   </div>
                 </div>
 
@@ -224,7 +212,7 @@ export default function Wallet() {
                   : [
                       { id: "s1", type: "credit", amount: 50, description: "Top up via MoMo", createdAt: new Date(Date.now() - 1000 * 60 * 30).toISOString() },
                       { id: "s2", type: "credit", amount: 100, description: "Top up via MoMo", createdAt: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString() },
-                      { id: "s3", type: "credit", amount: 20, description: "Top up via Card", createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString() },
+                      { id: "s3", type: "credit", amount: 20, description: "Top up via MoMo", createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString() },
                     ];
                 if (topups.length === 0) return (
                   <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
