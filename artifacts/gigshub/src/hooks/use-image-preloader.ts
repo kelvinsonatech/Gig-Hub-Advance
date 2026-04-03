@@ -5,6 +5,7 @@ import { API } from "@/lib/api";
 const STATIC_IMAGES = [
   `${import.meta.env.BASE_URL}wallet-bg.jpg`,
   "https://occ-0-8407-2219.1.nflxso.net/dnm/api/v6/6AYY37jfdO6hpXcMjf9Yu5cnmO0/AAAABUV_jDjJ4_X_PSYgTJthNlfoStaN1fqwW1vcTx8bKIwYizu5-VL1365SJPeFB1FIig2dpPVvYdgfODQ9DEKR8t9Ak3G5NIa1HeWv.jpg?r=513",
+  "https://www.myjoyonline.com/wp-content/uploads/2021/02/Momo.jpg",
 ];
 
 function preloadUrls(urls: string[]) {
