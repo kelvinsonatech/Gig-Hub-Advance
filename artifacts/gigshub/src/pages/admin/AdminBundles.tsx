@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, Pencil, Trash2, Star, X, Loader2, Wifi, Package, Clock, Tag, Radio } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { API } from "@/lib/api";
-import { extractDominantColor } from "@/lib/extract-color";
+
 
 const TYPE_COLORS: Record<string, string> = {
   "expiry":     "bg-blue-50  text-blue-600  border border-blue-200",
@@ -112,17 +112,6 @@ export default function AdminBundles() {
   const [showNetForm, setShowNetForm] = useState(false);
   const [editNet, setEditNet] = useState<Network | null>(null);
   const [netForm, setNetForm] = useState<NetForm>(emptyNetForm());
-  const [netColorAuto, setNetColorAuto] = useState(false);
-
-  useEffect(() => {
-    if (!netForm.logoUrl) return;
-    const t = setTimeout(async () => {
-      const c = await extractDominantColor(netForm.logoUrl);
-      if (c) { setNetForm(f => ({ ...f, color: c })); setNetColorAuto(true); }
-    }, 600);
-    return () => clearTimeout(t);
-  }, [netForm.logoUrl]);
-
   /* ── mutations ── */
   const createBundle = useMutation({
     mutationFn: (d: BundleForm) => apiFetch("/bundles", { method: "POST", body: JSON.stringify(d) }),
@@ -444,19 +433,12 @@ export default function AdminBundles() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide flex items-center gap-2">
-                  Brand Colour
-                  {netColorAuto && (
-                    <span className="text-[10px] font-semibold text-emerald-600 bg-emerald-50 border border-emerald-200 rounded-full px-2 py-0.5 leading-none normal-case">
-                      ✦ auto-detected
-                    </span>
-                  )}
-                </label>
+                <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Brand Colour</label>
                 <div className="flex items-center gap-3">
                   <input
                     type="color"
                     value={netForm.color}
-                    onChange={e => { setNetColorAuto(false); setNetForm(f => ({ ...f, color: e.target.value })); }}
+                    onChange={e => setNetForm(f => ({ ...f, color: e.target.value }))}
                     className="w-10 h-10 rounded-xl border border-gray-200 cursor-pointer p-0.5 shrink-0"
                   />
                   {/* Live preview tab */}

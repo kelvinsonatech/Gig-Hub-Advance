@@ -1,5 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
-import { extractDominantColor } from "@/lib/extract-color";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, Pencil, Trash2, X, Loader2, Wrench, Package, ChevronRight, Wifi } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -74,16 +73,6 @@ export default function AdminServices() {
   const [editService, setEditService] = useState<Service | null>(null);
   const [form, setForm] = useState<ServiceForm>(emptyForm());
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [colorAuto, setColorAuto] = useState(false);
-
-  useEffect(() => {
-    if (!form.iconUrl) return;
-    const timer = setTimeout(async () => {
-      const detected = await extractDominantColor(form.iconUrl!);
-      if (detected) { setForm(f => ({ ...f, brandColor: detected })); setColorAuto(true); }
-    }, 600);
-    return () => clearTimeout(timer);
-  }, [form.iconUrl]);
 
   /* ── fetch networks for dropdown ── */
   const { data: networks = [] } = useQuery<Network[]>({
@@ -337,19 +326,12 @@ export default function AdminServices() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-2 flex items-center gap-2">
-                  Brand Colour
-                  {colorAuto && (
-                    <span className="text-[10px] font-semibold text-emerald-600 bg-emerald-50 border border-emerald-200 rounded-full px-2 py-0.5 leading-none">
-                      ✦ auto-detected
-                    </span>
-                  )}
-                </label>
+                <label className="block text-xs font-semibold text-gray-600 mb-2">Brand Colour</label>
                 <div className="flex items-center gap-3">
                   <input
                     type="color"
                     value={form.brandColor ?? "#6366f1"}
-                    onChange={e => { setColorAuto(false); setForm(f => ({ ...f, brandColor: e.target.value })); }}
+                    onChange={e => setForm(f => ({ ...f, brandColor: e.target.value }))}
                     className="w-10 h-10 rounded-xl border border-gray-200 cursor-pointer p-0.5"
                   />
                   <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-100" style={{ backgroundColor: (form.brandColor ?? "#6366f1") + "15" }}>
