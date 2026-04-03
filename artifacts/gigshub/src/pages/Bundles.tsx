@@ -11,8 +11,6 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { navigate } from "wouter/use-browser-location";
 import { useSearch } from "wouter";
-// @ts-ignore
-import PaystackPop from "@paystack/inline-js";
 import {
   Dialog,
   DialogContent,
@@ -21,6 +19,8 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+
+declare const PaystackPop: any;
 
 function fireCelebration() {
   const burst = (x: number, angle: number) =>

@@ -11,8 +11,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { useAuth } from "@/hooks/use-auth";
 import { API } from "@/lib/api";
-// @ts-ignore
-import PaystackPop from "@paystack/inline-js";
+
+declare const PaystackPop: any;
 
 const QUICK_AMOUNTS = [10, 20, 50, 100, 200, 500];
 const PUBLIC_KEY = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY as string;
