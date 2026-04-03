@@ -135,31 +135,38 @@ export default function Bundles() {
       return;
     }
 
-    // MoMo → open Paystack popup first, then create order on success
-    setIsPaying(true);
-    const popup = new PaystackPop();
-    popup.newTransaction({
-      key: PAYSTACK_PUBLIC_KEY,
-      email: user?.email || "customer@turboghcustomer.com",
-      amount: Math.round(selectedBundle.price * 100), // pesewas
-      currency: "GHS",
-      label: `TurboGh – ${selectedBundle.data} bundle`,
-      onSuccess: (response: { reference: string }) => {
-        createOrder.mutate({
-          data: {
-            type: "bundle",
-            bundleId: selectedBundle.id,
-            phoneNumber,
-            paymentMethod: "momo",
-            paystackReference: response.reference,
-            details: { paymentMethod: "momo", paystackReference: response.reference },
-          } as any,
-        });
-      },
-      onCancel: () => {
-        setIsPaying(false);
-      },
-    });
+    // MoMo → close dialog first (focus trap blocks Paystack popup), then open Paystack
+    setIsModalOpen(false);
+
+    // Small delay so the dialog finishes unmounting before Paystack injects its iframe
+    setTimeout(() => {
+      setIsPaying(true);
+      const popup = new PaystackPop();
+      popup.newTransaction({
+        key: PAYSTACK_PUBLIC_KEY,
+        email: user?.email || "customer@turboghcustomer.com",
+        amount: Math.round(selectedBundle.price * 100), // pesewas
+        currency: "GHS",
+        label: `TurboGh – ${selectedBundle.data} bundle`,
+        onSuccess: (response: { reference: string }) => {
+          createOrder.mutate({
+            data: {
+              type: "bundle",
+              bundleId: selectedBundle.id,
+              phoneNumber,
+              paymentMethod: "momo",
+              paystackReference: response.reference,
+              details: { paymentMethod: "momo", paystackReference: response.reference },
+            } as any,
+          });
+        },
+        onCancel: () => {
+          setIsPaying(false);
+          // Re-open the modal so the user can try again
+          setIsModalOpen(true);
+        },
+      });
+    }, 150);
   };
 
   const getNetworkAccent = (code: string) => {
