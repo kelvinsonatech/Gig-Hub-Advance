@@ -336,12 +336,12 @@ export function Navbar() {
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <button className="ring-2 ring-transparent hover:ring-primary/30 rounded-full transition-all focus:outline-none focus:ring-primary/50">
-                      <UserAvatar name={user?.name} size={34} />
+                      <UserAvatar name={user?.name} seed={user?.email} size={34} />
                     </button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-60 p-2 rounded-xl mt-2">
                     <div className="flex items-center gap-3 p-2">
-                      <UserAvatar name={user?.name} size={40} />
+                      <UserAvatar name={user?.name} seed={user?.email} size={40} />
                       <div className="flex flex-col space-y-0.5 leading-none min-w-0">
                         <p className="font-semibold text-sm truncate">{user?.name}</p>
                         <p className="w-[160px] truncate text-xs text-muted-foreground">{user?.email}</p>
