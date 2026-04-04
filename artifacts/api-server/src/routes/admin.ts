@@ -528,6 +528,32 @@ router.get("/orders", async (req, res) => {
   }
 });
 
+// ── Clear delivered orders ──────────────────────────────────────────────────
+router.delete("/orders/completed", async (req, res) => {
+  try {
+    // First fetch the rows we're about to delete so we can return a meaningful summary
+    const toDelete = await db
+      .select({ id: ordersTable.id, userId: ordersTable.userId, amount: ordersTable.amount })
+      .from(ordersTable)
+      .where(eq(ordersTable.status, "completed"));
+
+    if (toDelete.length === 0) {
+      return res.json({ deleted: 0, usersAffected: 0, totalValue: 0 });
+    }
+
+    const idsToDelete = toDelete.map(o => o.id);
+    const uniqueUsers = new Set(toDelete.map(o => o.userId)).size;
+    const totalValue = toDelete.reduce((sum, o) => sum + parseFloat(o.amount), 0);
+
+    await db.delete(ordersTable).where(inArray(ordersTable.id, idsToDelete));
+
+    return res.json({ deleted: toDelete.length, usersAffected: uniqueUsers, totalValue });
+  } catch (err) {
+    req.log.error(err, "admin clear delivered orders error");
+    return res.status(500).json({ error: "internal_error", message: "Failed to clear delivered orders" });
+  }
+});
+
 router.patch("/orders/:id/status", async (req, res) => {
   try {
     const id = parseInt(req.params.id);
