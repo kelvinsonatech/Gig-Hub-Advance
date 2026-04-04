@@ -13,6 +13,9 @@ export const ordersTable = pgTable("orders", {
   amount: numeric("amount", { precision: 12, scale: 2 }).notNull(),
   details: jsonb("details"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
+  // Soft-archive: set by admin "Clear Storage" — hides from the admin panel
+  // but never affects the user-facing order history.
+  archivedAt: timestamp("archived_at"),
 });
 
 export const insertOrderSchema = createInsertSchema(ordersTable).omit({ id: true, createdAt: true });

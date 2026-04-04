@@ -191,28 +191,57 @@ function StatusDropdown({
 }
 
 // ── Clear Delivered Modal ───────────────────────────────────────────────────
-type ClearResult = { deleted: number; usersAffected: number; totalValue: number };
+type ClearResult = { cleared: number; usersAffected: number; totalValue: number };
+type TimeRange   = "today" | "yesterday" | "7days" | "30days" | "all";
+
+const TIME_RANGES: { id: TimeRange; label: string; sub: string }[] = [
+  { id: "today",     label: "Today",         sub: "Orders delivered today" },
+  { id: "yesterday", label: "Yesterday",     sub: "Orders delivered yesterday" },
+  { id: "7days",     label: "Past 7 days",   sub: "Last week of deliveries" },
+  { id: "30days",    label: "Past 30 days",  sub: "Last month of deliveries" },
+  { id: "all",       label: "All time",      sub: "Every delivered order in the panel" },
+];
+
+function countInRange(orders: Order[], range: TimeRange): number {
+  const delivered = orders.filter(o => o.status === "completed");
+  const now = new Date();
+  const todayStart     = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+  const yesterdayStart = new Date(todayStart.getTime() - 86_400_000);
+  const sevenDaysAgo   = new Date(todayStart.getTime() - 7  * 86_400_000);
+  const thirtyDaysAgo  = new Date(todayStart.getTime() - 30 * 86_400_000);
+
+  return delivered.filter(o => {
+    const d = new Date(o.createdAt);
+    switch (range) {
+      case "today":     return d >= todayStart;
+      case "yesterday": return d >= yesterdayStart && d < todayStart;
+      case "7days":     return d >= sevenDaysAgo;
+      case "30days":    return d >= thirtyDaysAgo;
+      case "all":       return true;
+    }
+  }).length;
+}
 
 function ClearDeliveredModal({
-  deliveredCount,
+  orders,
   onClose,
   onSuccess,
 }: {
-  deliveredCount: number;
+  orders: Order[];
   onClose: () => void;
   onSuccess: (result: ClearResult) => void;
 }) {
-  const [confirmText, setConfirmText] = useState("");
-  const [phase, setPhase] = useState<"confirm" | "deleting" | "done">("confirm");
+  const [range, setRange]   = useState<TimeRange>("7days");
+  const [phase, setPhase]   = useState<"pick" | "confirm" | "clearing" | "done">("pick");
   const [result, setResult] = useState<ClearResult | null>(null);
 
-  const canConfirm = confirmText === "CLEAR";
+  const rangeCount = countInRange(orders, range);
 
   async function handleClear() {
-    setPhase("deleting");
+    setPhase("clearing");
     try {
       const token = localStorage.getItem("gigshub_token");
-      const res = await fetch(`${API}/api/admin/orders/completed`, {
+      const res = await fetch(`${API}/api/admin/orders/completed?range=${range}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -220,22 +249,25 @@ function ClearDeliveredModal({
       if (!res.ok) throw new Error(data.message || "Request failed");
       setResult(data);
       setPhase("done");
-      setTimeout(() => onSuccess(data), 1800);
+      setTimeout(() => onSuccess(data), 2000);
     } catch (err: any) {
       setPhase("confirm");
       alert(err.message);
     }
   }
 
-  // Close on outside click
+  // Close on backdrop click (only in pick/confirm phase)
   const backdropRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
+    if (phase === "clearing" || phase === "done") return;
     const handler = (e: MouseEvent) => {
       if (backdropRef.current === e.target) onClose();
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
-  }, [onClose]);
+  }, [onClose, phase]);
+
+  const selectedMeta = TIME_RANGES.find(r => r.id === range)!;
 
   return (
     <div
@@ -244,114 +276,162 @@ function ClearDeliveredModal({
     >
       <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden">
 
-        {/* ── Confirm phase ── */}
-        {phase !== "done" && (
+        {/* ══ STEP 1: Time range picker ══ */}
+        {(phase === "pick" || phase === "confirm") && (
           <>
-            {/* Header stripe */}
-            <div className="relative bg-gradient-to-br from-red-500 to-rose-600 px-6 pt-8 pb-10">
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-gray-100">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-red-50 flex items-center justify-center">
+                  <Trash2 className="w-4.5 h-4.5 text-red-500" />
+                </div>
+                <div>
+                  <h2 className="text-base font-black text-gray-900 leading-tight">Clear Storage</h2>
+                  <p className="text-[11px] text-gray-400">Admin panel only · users keep their history</p>
+                </div>
+              </div>
               <button
                 onClick={onClose}
-                className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-white hover:bg-white/30 transition-colors"
+                className="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-400 transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
-
-              {/* Animated icon */}
-              <div className="relative flex items-center justify-center mb-4">
-                <div className="absolute w-20 h-20 rounded-full bg-white/10 animate-ping" />
-                <div className="w-16 h-16 rounded-2xl bg-white/20 flex items-center justify-center shadow-lg">
-                  <Trash2 className="w-8 h-8 text-white" />
-                </div>
-              </div>
-
-              <h2 className="text-center text-xl font-black text-white">Clear Delivered Orders</h2>
-              <p className="text-center text-sm text-red-100 mt-1">This action is permanent and cannot be undone.</p>
             </div>
 
-            {/* Stats cards */}
-            <div className="px-6 -mt-5 grid grid-cols-2 gap-3 mb-6">
-              <div className="bg-white rounded-2xl border border-gray-100 shadow-lg px-4 py-3 flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center shrink-0">
-                  <CircleCheck className="w-5 h-5 text-emerald-500" />
-                </div>
-                <div>
-                  <p className="text-[11px] text-gray-400 font-semibold uppercase tracking-wide leading-none mb-0.5">Delivered</p>
-                  <p className="text-xl font-black text-gray-900 leading-none">{deliveredCount}</p>
-                </div>
-              </div>
-              <div className="bg-white rounded-2xl border border-gray-100 shadow-lg px-4 py-3 flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center shrink-0">
-                  <AlertTriangle className="w-5 h-5 text-red-500" />
-                </div>
-                <div>
-                  <p className="text-[11px] text-gray-400 font-semibold uppercase tracking-wide leading-none mb-0.5">Will Delete</p>
-                  <p className="text-xl font-black text-red-600 leading-none">{deliveredCount}</p>
-                </div>
+            {/* Time range label */}
+            <div className="px-6 pt-5 pb-2">
+              <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-3">Time range</p>
+              <div className="flex flex-col gap-1">
+                {TIME_RANGES.map(({ id, label, sub }) => {
+                  const n = countInRange(orders, id);
+                  const active = range === id;
+                  return (
+                    <button
+                      key={id}
+                      onClick={() => { setRange(id); if (phase === "confirm") setPhase("pick"); }}
+                      className={`group flex items-center gap-3 w-full px-4 py-3 rounded-2xl text-left transition-all
+                        ${active
+                          ? "bg-red-50 border-2 border-red-200"
+                          : "border-2 border-transparent hover:bg-gray-50"
+                        }`}
+                    >
+                      {/* Custom radio */}
+                      <span className={`w-4.5 h-4.5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all
+                        ${active ? "border-red-500 bg-red-500" : "border-gray-300 group-hover:border-gray-400"}`}
+                      >
+                        {active && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
+                      </span>
+
+                      <div className="flex-1 min-w-0">
+                        <p className={`text-sm font-bold leading-tight ${active ? "text-red-700" : "text-gray-700"}`}>{label}</p>
+                        <p className="text-[11px] text-gray-400 mt-0.5">{sub}</p>
+                      </div>
+
+                      {/* Count badge */}
+                      <span className={`text-xs font-black px-2.5 py-1 rounded-full shrink-0 transition-colors
+                        ${active
+                          ? n > 0 ? "bg-red-500 text-white" : "bg-red-100 text-red-400"
+                          : n > 0 ? "bg-gray-100 text-gray-600" : "bg-gray-50 text-gray-300"
+                        }`}
+                      >
+                        {n} order{n !== 1 ? "s" : ""}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
-            {/* Warning banner */}
-            <div className="mx-6 mb-5 flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3">
-              <AlertTriangle className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" />
-              <p className="text-xs text-amber-700 leading-relaxed">
-                All <strong>{deliveredCount}</strong> delivered order{deliveredCount !== 1 ? "s" : ""} will be permanently removed from the database. Client purchase history for these orders will be lost.
+            {/* Info strip */}
+            <div className="mx-6 my-4 flex items-start gap-2.5 bg-blue-50 border border-blue-100 rounded-2xl px-4 py-3">
+              <CircleCheck className="w-4 h-4 text-blue-400 mt-0.5 shrink-0" />
+              <p className="text-[11px] text-blue-600 leading-relaxed">
+                Archived orders are <strong>hidden from this panel only</strong>. Customers can still view their full order history in their account.
               </p>
             </div>
 
-            {/* Confirmation input */}
-            <div className="mx-6 mb-6">
-              <p className="text-xs text-gray-500 font-semibold mb-2">
-                Type <span className="font-black text-gray-900 tracking-widest">CLEAR</span> to confirm
-              </p>
-              <input
-                type="text"
-                value={confirmText}
-                onChange={e => setConfirmText(e.target.value)}
-                placeholder="Type CLEAR"
-                autoFocus
-                disabled={phase === "deleting"}
-                className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-red-400 outline-none text-sm font-mono font-bold tracking-widest placeholder:font-normal placeholder:tracking-normal placeholder:text-gray-300 transition-colors"
-              />
-            </div>
+            {/* ── Confirm sub-section ── */}
+            {phase === "confirm" && (
+              <div className="mx-6 mb-2 p-4 rounded-2xl bg-red-50 border-2 border-red-200">
+                <p className="text-xs font-bold text-red-700 mb-1">
+                  This will archive <strong>{rangeCount}</strong> delivered order{rangeCount !== 1 ? "s" : ""} ({selectedMeta.label.toLowerCase()}) from the panel.
+                </p>
+                <p className="text-[11px] text-red-500">Customers keep their data. This cannot be undone.</p>
+              </div>
+            )}
 
-            {/* Action buttons */}
-            <div className="px-6 pb-6 flex gap-3">
+            {/* Actions */}
+            <div className="px-6 pb-6 pt-2 flex gap-3">
               <button
                 onClick={onClose}
-                disabled={phase === "deleting"}
-                className="flex-1 py-3 rounded-xl border-2 border-gray-200 text-sm font-bold text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-50"
+                className="flex-1 py-3 rounded-xl border-2 border-gray-200 text-sm font-bold text-gray-600 hover:bg-gray-50 transition-colors"
               >
                 Cancel
               </button>
-              <button
-                onClick={handleClear}
-                disabled={!canConfirm || phase === "deleting"}
-                className="flex-1 py-3 rounded-xl text-sm font-black text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed
-                  bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 active:scale-95 shadow-lg shadow-red-200
-                  flex items-center justify-center gap-2"
-              >
-                {phase === "deleting"
-                  ? <><Loader2 className="w-4 h-4 animate-spin" /> Clearing…</>
-                  : <><Trash2 className="w-4 h-4" /> Clear Storage</>
-                }
-              </button>
+              {phase === "pick" ? (
+                <button
+                  onClick={() => setPhase("confirm")}
+                  disabled={rangeCount === 0}
+                  className="flex-1 py-3 rounded-xl text-sm font-black text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed
+                    bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 active:scale-95
+                    shadow-lg shadow-red-200 flex items-center justify-center gap-2"
+                >
+                  Review →
+                </button>
+              ) : (
+                <button
+                  onClick={handleClear}
+                  className="flex-1 py-3 rounded-xl text-sm font-black text-white transition-all
+                    bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 active:scale-95
+                    shadow-lg shadow-red-200 flex items-center justify-center gap-2"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Clear {rangeCount} order{rangeCount !== 1 ? "s" : ""}
+                </button>
+              )}
             </div>
           </>
         )}
 
-        {/* ── Done phase ── */}
+        {/* ══ STEP 2: Clearing in progress ══ */}
+        {phase === "clearing" && (
+          <div className="px-8 py-16 flex flex-col items-center text-center">
+            <div className="relative w-20 h-20 mb-6">
+              <div className="absolute inset-0 rounded-full border-4 border-red-100" />
+              <div className="absolute inset-0 rounded-full border-4 border-t-red-500 animate-spin" />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Trash2 className="w-7 h-7 text-red-400" />
+              </div>
+            </div>
+            <h3 className="text-lg font-black text-gray-900 mb-1">Clearing storage…</h3>
+            <p className="text-sm text-gray-400">Archiving {rangeCount} delivered order{rangeCount !== 1 ? "s" : ""}</p>
+          </div>
+        )}
+
+        {/* ══ STEP 3: Done ══ */}
         {phase === "done" && result && (
           <div className="px-8 py-12 flex flex-col items-center text-center">
-            <div className="w-20 h-20 rounded-full bg-emerald-50 flex items-center justify-center mb-5 shadow-inner">
-              <Check className="w-10 h-10 text-emerald-500 stroke-[2.5]" />
+            {/* Animated checkmark */}
+            <div className="relative w-20 h-20 mb-6">
+              <div className="absolute inset-0 rounded-full bg-emerald-50" />
+              <div className="absolute inset-0 rounded-full border-4 border-emerald-200 animate-ping opacity-50" />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Check className="w-9 h-9 text-emerald-500 stroke-[2.5]" />
+              </div>
             </div>
+
             <h3 className="text-xl font-black text-gray-900 mb-1">Storage Cleared</h3>
-            <p className="text-sm text-gray-400 mb-8">Delivered orders have been permanently removed.</p>
+            <p className="text-sm text-gray-400 mb-2">
+              Archived <strong className="text-gray-600">{selectedMeta.label.toLowerCase()}</strong>
+            </p>
+            <p className="text-[11px] text-blue-500 mb-8 bg-blue-50 rounded-full px-3 py-1">
+              Customer order history is untouched
+            </p>
 
             <div className="w-full grid grid-cols-3 gap-3">
               <div className="rounded-2xl bg-emerald-50 border border-emerald-100 px-3 py-4">
-                <p className="text-2xl font-black text-emerald-600">{result.deleted}</p>
-                <p className="text-[10px] text-emerald-600/70 font-semibold uppercase tracking-wide mt-0.5">Cleared</p>
+                <p className="text-2xl font-black text-emerald-600">{result.cleared}</p>
+                <p className="text-[10px] text-emerald-600/70 font-semibold uppercase tracking-wide mt-0.5">Archived</p>
               </div>
               <div className="rounded-2xl bg-blue-50 border border-blue-100 px-3 py-4">
                 <p className="text-2xl font-black text-blue-600">{result.usersAffected}</p>
@@ -595,13 +675,13 @@ export default function AdminOrders() {
       {/* Clear delivered modal */}
       {clearOpen && (
         <ClearDeliveredModal
-          deliveredCount={deliveredCount}
+          orders={orders}
           onClose={() => setClearOpen(false)}
           onSuccess={(result) => {
             setClearOpen(false);
             qc.invalidateQueries({ queryKey: ["admin-orders"] });
             toast({
-              title: `Storage cleared — ${result.deleted} order${result.deleted !== 1 ? "s" : ""} removed`,
+              title: `Storage cleared — ${result.cleared} order${result.cleared !== 1 ? "s" : ""} archived`,
               description: `${result.usersAffected} client${result.usersAffected !== 1 ? "s" : ""} affected · GHS ${result.totalValue.toFixed(2)} total volume`,
             });
           }}

@@ -1,7 +1,7 @@
 import { Router, type IRouter } from "express";
 import { db } from "@workspace/db";
 import { bundlesTable, servicesTable, networksTable, ordersTable, usersTable, notificationsTable, deviceTokensTable, walletsTable, transactionsTable } from "@workspace/db";
-import { eq, count, inArray, gte, sql, desc } from "drizzle-orm";
+import { eq, count, inArray, gte, lt, lte, sql, desc, isNull, and } from "drizzle-orm";
 import { requireAuth, requireAdmin } from "../middleware/auth";
 import { sendPushToTokens } from "../lib/fcm";
 
@@ -499,6 +499,9 @@ router.get("/orders", async (req, res) => {
         })
         .from(ordersTable)
         .innerJoin(usersTable, eq(ordersTable.userId, usersTable.id))
+        // Exclude soft-archived orders from the admin panel view.
+        // Archived orders remain untouched in the DB so users still see their history.
+        .where(isNull(ordersTable.archivedAt))
         .orderBy(desc(ordersTable.createdAt)),
       db.select({ name: networksTable.name, logoUrl: networksTable.logoUrl, color: networksTable.color }).from(networksTable),
     ]);
@@ -528,29 +531,68 @@ router.get("/orders", async (req, res) => {
   }
 });
 
-// ── Clear delivered orders ──────────────────────────────────────────────────
+// ── Archive (clear) delivered orders by time range ─────────────────────────
+// Soft-archive: sets archivedAt timestamp on matching rows so they vanish
+// from the admin panel. The rows are NOT deleted, so users still see their
+// full order history on their side.
+//
+// Query param: range = "today" | "yesterday" | "7days" | "30days" | "all"
 router.delete("/orders/completed", async (req, res) => {
   try {
-    // First fetch the rows we're about to delete so we can return a meaningful summary
-    const toDelete = await db
-      .select({ id: ordersTable.id, userId: ordersTable.userId, amount: ordersTable.amount })
-      .from(ordersTable)
-      .where(eq(ordersTable.status, "completed"));
+    const range = (req.query.range as string) || "all";
 
-    if (toDelete.length === 0) {
-      return res.json({ deleted: 0, usersAffected: 0, totalValue: 0 });
+    // Build date window in UTC
+    const now = new Date();
+    const todayStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+    const yesterdayStart = new Date(todayStart.getTime() - 86_400_000);
+    const sevenDaysAgo  = new Date(todayStart.getTime() - 7  * 86_400_000);
+    const thirtyDaysAgo = new Date(todayStart.getTime() - 30 * 86_400_000);
+
+    type WhereExpr = ReturnType<typeof eq>;
+    const baseConditions: WhereExpr[] = [
+      eq(ordersTable.status, "completed"),
+      isNull(ordersTable.archivedAt) as unknown as WhereExpr,
+    ];
+
+    switch (range) {
+      case "today":
+        baseConditions.push(gte(ordersTable.createdAt, todayStart) as unknown as WhereExpr);
+        break;
+      case "yesterday":
+        baseConditions.push(gte(ordersTable.createdAt, yesterdayStart) as unknown as WhereExpr);
+        baseConditions.push(lt(ordersTable.createdAt, todayStart) as unknown as WhereExpr);
+        break;
+      case "7days":
+        baseConditions.push(gte(ordersTable.createdAt, sevenDaysAgo) as unknown as WhereExpr);
+        break;
+      case "30days":
+        baseConditions.push(gte(ordersTable.createdAt, thirtyDaysAgo) as unknown as WhereExpr);
+        break;
+      // "all" — no extra date condition
     }
 
-    const idsToDelete = toDelete.map(o => o.id);
-    const uniqueUsers = new Set(toDelete.map(o => o.userId)).size;
-    const totalValue = toDelete.reduce((sum, o) => sum + parseFloat(o.amount), 0);
+    const toArchive = await db
+      .select({ id: ordersTable.id, userId: ordersTable.userId, amount: ordersTable.amount })
+      .from(ordersTable)
+      .where(and(...baseConditions));
 
-    await db.delete(ordersTable).where(inArray(ordersTable.id, idsToDelete));
+    if (toArchive.length === 0) {
+      return res.json({ cleared: 0, usersAffected: 0, totalValue: 0 });
+    }
 
-    return res.json({ deleted: toDelete.length, usersAffected: uniqueUsers, totalValue });
+    const ids          = toArchive.map(o => o.id);
+    const uniqueUsers  = new Set(toArchive.map(o => o.userId)).size;
+    const totalValue   = toArchive.reduce((sum, o) => sum + parseFloat(o.amount), 0);
+
+    await db
+      .update(ordersTable)
+      .set({ archivedAt: now })
+      .where(inArray(ordersTable.id, ids));
+
+    return res.json({ cleared: toArchive.length, usersAffected: uniqueUsers, totalValue });
   } catch (err) {
-    req.log.error(err, "admin clear delivered orders error");
-    return res.status(500).json({ error: "internal_error", message: "Failed to clear delivered orders" });
+    req.log.error(err, "admin archive delivered orders error");
+    return res.status(500).json({ error: "internal_error", message: "Failed to archive delivered orders" });
   }
 });
 
