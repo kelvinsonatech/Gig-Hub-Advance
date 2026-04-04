@@ -1,8 +1,8 @@
 import { Router, type IRouter } from "express";
 import jwt from "jsonwebtoken";
 import { db } from "@workspace/db";
-import { ordersTable, walletsTable, transactionsTable, bundlesTable } from "@workspace/db";
-import { eq, desc } from "drizzle-orm";
+import { ordersTable, walletsTable, transactionsTable, bundlesTable, paymentIntentsTable } from "@workspace/db";
+import { eq, desc, and } from "drizzle-orm";
 
 const router: IRouter = Router();
 const JWT_SECRET = process.env.JWT_SECRET || "gigshub-secret-key-change-in-production";
@@ -16,6 +16,10 @@ function getUserId(req: any): number | null {
   } catch {
     return null;
   }
+}
+
+function isValidReference(ref: string): boolean {
+  return /^[a-zA-Z0-9_\-]{5,100}$/.test(ref);
 }
 
 router.get("/", async (req, res) => {
@@ -50,6 +54,146 @@ router.post("/", async (req, res) => {
     const { type, bundleId, phoneNumber, serviceId, paymentMethod: pmTopLevel, details } = req.body;
     const paymentMethod: string = pmTopLevel ?? details?.paymentMethod ?? "momo";
 
+    // ── Paystack / MoMo redirect flow ────────────────────────────────────────
+    // The client sends only the Paystack reference; all intent details come from
+    // the server-side payment_intents table — the client cannot tamper with them.
+    const { paystackReference } = req.body;
+
+    if (paystackReference) {
+      if (!isValidReference(paystackReference)) {
+        return res.status(400).json({ error: "validation_error", message: "Invalid payment reference format" });
+      }
+
+      const secretKey = process.env.PAYSTACK_SECRET_KEY;
+      if (!secretKey) return res.status(500).json({ error: "config_error", message: "Payment not configured" });
+
+      // ── Load and validate server-side intent ─────────────────────────────
+      const [intent] = await db
+        .select()
+        .from(paymentIntentsTable)
+        .where(
+          and(
+            eq(paymentIntentsTable.reference, paystackReference),
+            eq(paymentIntentsTable.userId, userId),
+            eq(paymentIntentsTable.type, "bundle_purchase"),
+          )
+        )
+        .limit(1);
+
+      if (!intent) {
+        return res.status(404).json({
+          error: "not_found",
+          message: "Payment intent not found or does not belong to your account",
+        });
+      }
+
+      // Idempotency: if already processed, return the existing order
+      if (intent.status === "processed") {
+        const orders = await db
+          .select()
+          .from(ordersTable)
+          .where(eq(ordersTable.userId, userId))
+          .orderBy(desc(ordersTable.createdAt));
+        const existing = orders.find(o =>
+          (o.details as any)?.paystackReference === paystackReference
+        );
+        if (existing) {
+          return res.json({
+            id: String(existing.id),
+            userId: String(existing.userId),
+            type: existing.type,
+            status: existing.status,
+            amount: parseFloat(existing.amount),
+            details: existing.details,
+            createdAt: existing.createdAt.toISOString(),
+          });
+        }
+      }
+
+      if (intent.status !== "pending") {
+        return res.status(400).json({ error: "payment_failed", message: "This payment was not completed" });
+      }
+
+      // Expiry check
+      if (new Date() > intent.expiresAt) {
+        await db.update(paymentIntentsTable)
+          .set({ status: "cancelled" })
+          .where(eq(paymentIntentsTable.reference, paystackReference));
+        return res.status(400).json({ error: "payment_expired", message: "Payment session expired. Please try again." });
+      }
+
+      // ── Verify with Paystack ────────────────────────────────────────────
+      const psRes = await fetch(
+        `https://api.paystack.co/transaction/verify/${encodeURIComponent(paystackReference)}`,
+        { headers: { Authorization: `Bearer ${secretKey}` } }
+      );
+      const psData = await psRes.json() as any;
+
+      if (!psData.status || psData.data?.status !== "success") {
+        const txStatus = psData.data?.status;
+        const isCancelled = txStatus === "abandoned";
+        await db.update(paymentIntentsTable)
+          .set({ status: isCancelled ? "cancelled" : "failed" })
+          .where(eq(paymentIntentsTable.reference, paystackReference));
+        return res.status(400).json({
+          error: isCancelled ? "payment_cancelled" : "payment_failed",
+          message: isCancelled ? "Payment was cancelled" : "Paystack payment was not successful",
+        });
+      }
+
+      // ── Amount integrity check (server-stored price vs what Paystack charged) ─
+      const paidGHS = psData.data.amount / 100;
+      const expectedGHS = parseFloat(intent.amountGHS);
+      if (Math.abs(paidGHS - expectedGHS) > 0.5) {
+        req.log.warn({ paidGHS, expectedGHS, paystackReference, userId }, "Amount mismatch on bundle order");
+        await db.update(paymentIntentsTable)
+          .set({ status: "failed" })
+          .where(eq(paymentIntentsTable.reference, paystackReference));
+        return res.status(400).json({ error: "amount_mismatch", message: "Payment amount does not match bundle price" });
+      }
+
+      // ── Fetch bundle details from DB using the server-stored bundleId ───
+      if (!intent.bundleId) {
+        return res.status(400).json({ error: "validation_error", message: "No bundle associated with this payment" });
+      }
+      const [bundle] = await db.select().from(bundlesTable).where(eq(bundlesTable.id, intent.bundleId)).limit(1);
+      if (!bundle) return res.status(404).json({ error: "not_found", message: "Bundle not found" });
+
+      const orderDetails = {
+        phoneNumber: intent.phoneNumber || phoneNumber,
+        paymentMethod: "momo",
+        paystackReference,
+        bundleId: String(intent.bundleId),
+        bundleName: bundle.name,
+        data: bundle.data,
+        networkName: bundle.networkName,
+      };
+
+      const [order] = await db.insert(ordersTable).values({
+        userId,
+        type: "bundle",
+        status: "processing",
+        amount: expectedGHS.toFixed(2),
+        details: orderDetails,
+      }).returning();
+
+      // Mark intent as processed
+      await db.update(paymentIntentsTable)
+        .set({ status: "processed", processedAt: new Date() })
+        .where(eq(paymentIntentsTable.reference, paystackReference));
+
+      return res.status(201).json({
+        id: String(order.id),
+        userId: String(order.userId),
+        type: order.type,
+        status: order.status,
+        amount: parseFloat(order.amount),
+        details: order.details,
+        createdAt: order.createdAt.toISOString(),
+      });
+    }
+
+    // ── Wallet payment: deduct balance immediately ───────────────────────────
     if (!type || !phoneNumber) {
       return res.status(400).json({ error: "validation_error", message: "type and phoneNumber are required" });
     }
@@ -74,7 +218,6 @@ router.post("/", async (req, res) => {
       amount = 50;
     }
 
-    // ── Wallet payment: deduct balance immediately ───────────────────────────
     if (paymentMethod === "wallet") {
       const [wallet] = await db.select().from(walletsTable).where(eq(walletsTable.userId, userId)).limit(1);
       if (!wallet) return res.status(404).json({ error: "not_found", message: "Wallet not found" });
@@ -119,57 +262,7 @@ router.post("/", async (req, res) => {
       });
     }
 
-    // ── MoMo payment via Paystack ────────────────────────────────────────────
-    const { paystackReference } = req.body;
-    let orderStatus: string = "pending";
-
-    if (paystackReference) {
-      const secretKey = process.env.PAYSTACK_SECRET_KEY;
-      if (!secretKey) {
-        return res.status(500).json({ error: "config_error", message: "Payment not configured" });
-      }
-      const psRes = await fetch(
-        `https://api.paystack.co/transaction/verify/${encodeURIComponent(paystackReference)}`,
-        { headers: { Authorization: `Bearer ${secretKey}` } }
-      );
-      const psData = await psRes.json() as any;
-
-      if (!psData.status || psData.data?.status !== "success") {
-        const txStatus = psData.data?.status;
-        const isCancelled = txStatus === "abandoned";
-        return res.status(400).json({
-          error: isCancelled ? "payment_cancelled" : "payment_failed",
-          message: isCancelled ? "Payment was cancelled" : "Paystack payment was not successful",
-        });
-      }
-
-      // Confirm the paid amount matches the bundle price (within rounding)
-      const paidGHS = psData.data.amount / 100;
-      if (Math.abs(paidGHS - amount) > 0.5) {
-        return res.status(400).json({ error: "amount_mismatch", message: "Payment amount does not match order total" });
-      }
-
-      orderDetails = { ...orderDetails, paystackReference };
-      orderStatus = "processing";
-    }
-
-    const [order] = await db.insert(ordersTable).values({
-      userId,
-      type,
-      status: orderStatus,
-      amount: String(amount),
-      details: orderDetails,
-    }).returning();
-
-    return res.status(201).json({
-      id: String(order.id),
-      userId: String(order.userId),
-      type: order.type,
-      status: order.status,
-      amount: parseFloat(order.amount),
-      details: order.details,
-      createdAt: order.createdAt.toISOString(),
-    });
+    return res.status(400).json({ error: "validation_error", message: "Invalid payment method" });
   } catch (err) {
     req.log.error(err, "create order error");
     return res.status(500).json({ error: "internal_error", message: "Failed to create order" });

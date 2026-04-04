@@ -7,20 +7,6 @@ import confetti from "canvas-confetti";
 
 const INTENT_KEY = "turbogh_payment_intent";
 
-type WalletTopupIntent = {
-  type: "wallet_topup";
-  amount: number;
-};
-
-type BundlePurchaseIntent = {
-  type: "bundle_purchase";
-  bundleId: string;
-  phoneNumber: string;
-  bundlePrice: number;
-};
-
-type PaymentIntent = WalletTopupIntent | BundlePurchaseIntent;
-
 export default function PaymentSuccess() {
   const [, navigate] = useLocation();
   const [status, setStatus] = useState<"loading" | "success" | "cancelled" | "error">("loading");
@@ -36,14 +22,13 @@ export default function PaymentSuccess() {
     }
 
     const reference = params.get("reference") || params.get("trxref");
-
     if (!reference) {
       navigate("/dashboard");
       return;
     }
 
     const rawIntent = localStorage.getItem(INTENT_KEY);
-    const intent: PaymentIntent | null = rawIntent ? JSON.parse(rawIntent) : null;
+    const intentType: string = rawIntent ? (JSON.parse(rawIntent).type ?? "wallet_topup") : "wallet_topup";
     localStorage.removeItem(INTENT_KEY);
 
     const token = localStorage.getItem("gigshub_token");
@@ -51,7 +36,11 @@ export default function PaymentSuccess() {
     if (token) headers["Authorization"] = `Bearer ${token}`;
 
     const handleApiError = (err: any) => {
-      if (err?.error === "payment_cancelled" || err?.message === "Payment was cancelled") {
+      if (
+        err?.error === "payment_cancelled" ||
+        err?.error === "payment_expired" ||
+        err?.message === "Payment was cancelled"
+      ) {
         setStatus("cancelled");
       } else {
         setStatus("error");
@@ -61,7 +50,21 @@ export default function PaymentSuccess() {
 
     const verify = async () => {
       try {
-        if (!intent || intent.type === "wallet_topup") {
+        if (intentType === "bundle_purchase") {
+          // Server resolves all bundle/amount details from the DB-stored intent
+          const res = await fetch(`${API}/api/orders`, {
+            method: "POST",
+            headers,
+            body: JSON.stringify({ paystackReference: reference }),
+          });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) { handleApiError(data); return; }
+          setStatus("success");
+          setMessage("Your data bundle purchase was successful!");
+          confetti({ particleCount: 100, spread: 80, origin: { y: 0.6 } });
+          setTimeout(() => navigate("/orders"), 2500);
+        } else {
+          // Wallet top-up — server resolves the amount from the DB-stored intent
           const res = await fetch(`${API}/api/wallet/topup/verify`, {
             method: "POST",
             headers,
@@ -73,25 +76,6 @@ export default function PaymentSuccess() {
           setMessage("Your wallet has been topped up successfully!");
           confetti({ particleCount: 100, spread: 80, origin: { y: 0.6 } });
           setTimeout(() => navigate("/wallet"), 2500);
-        } else {
-          const res = await fetch(`${API}/api/orders`, {
-            method: "POST",
-            headers,
-            body: JSON.stringify({
-              type: "bundle",
-              bundleId: intent.bundleId,
-              phoneNumber: intent.phoneNumber,
-              paymentMethod: "momo",
-              paystackReference: reference,
-              details: { paymentMethod: "momo", paystackReference: reference },
-            }),
-          });
-          const data = await res.json().catch(() => ({}));
-          if (!res.ok) { handleApiError(data); return; }
-          setStatus("success");
-          setMessage("Your data bundle purchase was successful!");
-          confetti({ particleCount: 100, spread: 80, origin: { y: 0.6 } });
-          setTimeout(() => navigate("/orders"), 2500);
         }
       } catch {
         setStatus("error");
@@ -124,7 +108,7 @@ export default function PaymentSuccess() {
       {status === "cancelled" && (
         <>
           <XOctagon className="w-14 h-14 text-amber-500 mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900">Payment cancelled</h2>
+          <h2 className="text-2xl font-bold text-gray-900">Payment failed</h2>
           <p className="text-gray-500 mt-2">No money was taken from your account.</p>
           <div className="flex gap-3 mt-6">
             <Button variant="outline" onClick={() => navigate("/wallet")}>Go to Wallet</Button>

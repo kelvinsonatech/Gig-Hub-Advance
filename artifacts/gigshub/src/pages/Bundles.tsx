@@ -147,10 +147,10 @@ export default function Bundles() {
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify({
-          amount: selectedBundle.price,
-          email: user?.email || "customer@turbogh.com",
+          type: "bundle_purchase",
+          bundleId: String(selectedBundle.id),
+          phoneNumber,
           callbackUrl,
-          metadata: { type: "bundle_purchase" },
         }),
       });
 
@@ -161,16 +161,8 @@ export default function Bundles() {
 
       const { authorizationUrl } = await res.json();
 
-      // Store purchase intent so the success page knows what to create
-      localStorage.setItem(
-        "turbogh_payment_intent",
-        JSON.stringify({
-          type: "bundle_purchase",
-          bundleId: String(selectedBundle.id),
-          phoneNumber,
-          bundlePrice: selectedBundle.price,
-        })
-      );
+      // Store only the type — bundle details are stored server-side in the intent
+      localStorage.setItem("turbogh_payment_intent", JSON.stringify({ type: "bundle_purchase" }));
 
       // Redirect to Paystack hosted checkout (works in all environments)
       window.location.href = authorizationUrl;

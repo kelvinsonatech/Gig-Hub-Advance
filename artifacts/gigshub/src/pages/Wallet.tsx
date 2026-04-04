@@ -42,9 +42,8 @@ export default function Wallet() {
         },
         body: JSON.stringify({
           amount: amt,
-          email: user?.email || "customer@turbogh.com",
+          type: "wallet_topup",
           callbackUrl,
-          metadata: { type: "wallet_topup", amount: amt },
         }),
       });
 
@@ -55,8 +54,8 @@ export default function Wallet() {
 
       const { authorizationUrl } = await res.json();
 
-      // Store intent so the success page knows what to verify
-      localStorage.setItem(INTENT_KEY, JSON.stringify({ type: "wallet_topup", amount: amt }));
+      // Store only the type — amount and all details are now on the server
+      localStorage.setItem(INTENT_KEY, JSON.stringify({ type: "wallet_topup" }));
 
       // Redirect to Paystack hosted checkout (works everywhere, no popup/iframe issues)
       window.location.href = authorizationUrl;
