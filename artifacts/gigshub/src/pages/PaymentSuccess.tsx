@@ -4,11 +4,13 @@ import { CheckCircle2, XCircle, Loader2, XOctagon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { API } from "@/lib/api";
 import confetti from "canvas-confetti";
+import { useQueryClient } from "@tanstack/react-query";
 
 const INTENT_KEY = "turbogh_payment_intent";
 
 export default function PaymentSuccess() {
   const [, navigate] = useLocation();
+  const queryClient = useQueryClient();
   const [status, setStatus] = useState<"loading" | "success" | "cancelled" | "error">("loading");
   const [message, setMessage] = useState("");
 
@@ -51,7 +53,6 @@ export default function PaymentSuccess() {
     const verify = async () => {
       try {
         if (intentType === "bundle_purchase") {
-          // Server resolves all bundle/amount details from the DB-stored intent
           const res = await fetch(`${API}/api/orders`, {
             method: "POST",
             headers,
@@ -62,9 +63,11 @@ export default function PaymentSuccess() {
           setStatus("success");
           setMessage("Your data bundle purchase was successful!");
           confetti({ particleCount: 100, spread: 80, origin: { y: 0.6 } });
+          // Invalidate cache so orders page loads fresh data immediately
+          await queryClient.invalidateQueries({ queryKey: ["/api/orders"] });
+          await queryClient.invalidateQueries({ queryKey: ["/api/wallet"] });
           setTimeout(() => navigate("/orders"), 2500);
         } else {
-          // Wallet top-up — server resolves the amount from the DB-stored intent
           const res = await fetch(`${API}/api/wallet/topup/verify`, {
             method: "POST",
             headers,
@@ -75,6 +78,8 @@ export default function PaymentSuccess() {
           setStatus("success");
           setMessage("Your wallet has been topped up successfully!");
           confetti({ particleCount: 100, spread: 80, origin: { y: 0.6 } });
+          // Invalidate wallet cache so the new balance and transaction show immediately
+          await queryClient.invalidateQueries({ queryKey: ["/api/wallet"] });
           setTimeout(() => navigate("/wallet"), 2500);
         }
       } catch {
@@ -84,7 +89,7 @@ export default function PaymentSuccess() {
     };
 
     verify();
-  }, [navigate]);
+  }, [navigate, queryClient]);
 
   return (
     <div className="min-h-[60vh] flex flex-col items-center justify-center px-4 py-16 text-center">

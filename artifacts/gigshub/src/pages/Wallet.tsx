@@ -16,7 +16,7 @@ const INTENT_KEY = "turbogh_payment_intent";
 
 export default function Wallet() {
   const { toast } = useToast();
-  const { data: wallet, isLoading } = useGetWallet();
+  const { data: wallet, isLoading } = useGetWallet({ query: { refetchOnMount: "always" } });
   const { user } = useAuth();
   const [amount, setAmount] = useState("");
   const [isPaying, setIsPaying] = useState(false);
