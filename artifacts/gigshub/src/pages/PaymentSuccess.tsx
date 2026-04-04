@@ -28,6 +28,13 @@ export default function PaymentSuccess() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
+
+    // Instant cancel — user pressed browser back from Paystack without paying
+    if (params.get("status") === "cancelled") {
+      setStatus("cancelled");
+      return;
+    }
+
     const reference = params.get("reference") || params.get("trxref");
 
     if (!reference) {

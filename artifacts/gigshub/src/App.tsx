@@ -135,6 +135,28 @@ function FcmInit() {
   return null;
 }
 
+// Detects when the user presses the browser back button from Paystack's page
+// and navigates them to the payment-success page with a cancelled status.
+function PaymentGuard() {
+  const [, navigate] = useLocation();
+
+  useEffect(() => {
+    const handlePageShow = (e: PageTransitionEvent) => {
+      // persisted=true means page was restored from bfcache (back/forward navigation)
+      if (!e.persisted) return;
+      const intent = localStorage.getItem("turbogh_payment_intent");
+      if (intent) {
+        localStorage.removeItem("turbogh_payment_intent");
+        navigate("/payment-success?status=cancelled");
+      }
+    };
+    window.addEventListener("pageshow", handlePageShow);
+    return () => window.removeEventListener("pageshow", handlePageShow);
+  }, [navigate]);
+
+  return null;
+}
+
 function ImagePreloader() {
   useImagePreloader();
   return null;
@@ -150,6 +172,7 @@ function App() {
           <InstallPrompt />
           <FcmInit />
           <ImagePreloader />
+          <PaymentGuard />
         </WouterRouter>
         <Toaster />
       </TooltipProvider>
