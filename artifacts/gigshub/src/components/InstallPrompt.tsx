@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, Download, Share2, Plus, Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
-import logoUrl from "@assets/logo.png";
+import logoUrl from "@/assets/logo.png";
 
 const STORAGE_KEY = "gigshub_install_dismissed_at";
 const SNOOZE_DAYS = 30;

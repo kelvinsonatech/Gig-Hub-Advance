@@ -7,7 +7,7 @@ import { Wallet, Sun, Users, Menu, LogOut, X, LayoutDashboard, ShoppingBag, Bell
 import { useGetWallet } from "@workspace/api-client-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { formatGHS, cn } from "@/lib/utils";
-import logoUrl from "@assets/logo.png";
+import logoUrl from "@/assets/logo.png";
 import { useState } from "react";
 import { UserAvatar } from "@/components/ui/UserAvatar";
 import { format } from "date-fns";

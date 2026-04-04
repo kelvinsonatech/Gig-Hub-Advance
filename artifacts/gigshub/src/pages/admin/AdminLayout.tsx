@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UserAvatar } from "@/components/ui/UserAvatar";
-import logoUrl from "@assets/logo.png";
+import logoUrl from "@/assets/logo.png";
 import { API } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 

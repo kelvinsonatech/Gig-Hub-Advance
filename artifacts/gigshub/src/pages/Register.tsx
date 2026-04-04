@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { User, Mail, Phone, Lock, ArrowRight, Loader2 } from "lucide-react";
-import logoUrl from "@assets/logo.png";
+import logoUrl from "@/assets/logo.png";
 
 export default function Register() {
   const { register, isRegistering, isAuthenticated } = useAuth();
