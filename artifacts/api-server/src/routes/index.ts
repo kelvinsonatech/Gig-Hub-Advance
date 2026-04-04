@@ -9,6 +9,7 @@ import walletRouter from "./wallet";
 import adminRouter from "./admin";
 import notificationsRouter from "./notifications";
 import utilsRouter from "./utils";
+import paymentsRouter from "./payments";
 
 const router: IRouter = Router();
 
@@ -22,5 +23,6 @@ router.use("/wallet", walletRouter);
 router.use("/admin", adminRouter);
 router.use("/notifications", notificationsRouter);
 router.use("/utils", utilsRouter);
+router.use("/payments", paymentsRouter);
 
 export default router;

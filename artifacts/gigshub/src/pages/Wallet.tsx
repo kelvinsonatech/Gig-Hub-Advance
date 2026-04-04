@@ -7,65 +7,60 @@ import { Label } from "@/components/ui/label";
 import { formatGHS } from "@/lib/utils";
 import { Wallet as WalletIcon, Loader2, Zap } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { useAuth } from "@/hooks/use-auth";
 import { API } from "@/lib/api";
 
-declare const PaystackPop: any;
-
 const QUICK_AMOUNTS = [10, 20, 50, 100, 200, 500];
-const PUBLIC_KEY = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY as string;
+const INTENT_KEY = "turbogh_payment_intent";
 
 export default function Wallet() {
   const { toast } = useToast();
-  const queryClient = useQueryClient();
   const { data: wallet, isLoading } = useGetWallet();
   const { user } = useAuth();
   const [amount, setAmount] = useState("");
   const [isPaying, setIsPaying] = useState(false);
 
-  const handleTopup = (e: React.FormEvent) => {
+  const handleTopup = async (e: React.FormEvent) => {
     e.preventDefault();
     const amt = Number(amount);
     if (!amt || isNaN(amt) || amt < 1) return;
 
     setIsPaying(true);
-    const popup = new PaystackPop();
-    popup.newTransaction({
-      key: PUBLIC_KEY,
-      email: user?.email || "customer@turborghcustomer.com",
-      amount: Math.round(amt * 100), // pesewas
-      currency: "GHS",
-      label: "TurboGh Wallet Top-up",
-      onSuccess: async (response: { reference: string }) => {
-        try {
-          const token = localStorage.getItem("gigshub_token");
-          const res = await fetch(`${API}/api/wallet/topup/verify`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              ...(token ? { Authorization: `Bearer ${token}` } : {}),
-            },
-            body: JSON.stringify({ reference: response.reference }),
-          });
-          if (!res.ok) throw new Error("Verification failed");
-          const updatedWallet = await res.json();
-          // Update cache directly so the balance shows immediately
-          queryClient.setQueryData(["/api/wallet"], updatedWallet);
-          toast({ title: "Top-up successful!", description: `GHS ${amt.toFixed(2)} added to your wallet.` });
-          setAmount("");
-        } catch {
-          toast({ variant: "destructive", title: "Verification failed", description: "Payment received but could not credit wallet. Contact support." });
-          queryClient.invalidateQueries({ queryKey: ["/api/wallet"] });
-        } finally {
-          setIsPaying(false);
-        }
-      },
-      onCancel: () => {
-        setIsPaying(false);
-      },
-    });
+    try {
+      const token = localStorage.getItem("gigshub_token");
+      const callbackUrl = `${window.location.origin}/payment-success`;
+
+      const res = await fetch(`${API}/api/payments/initialize`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          amount: amt,
+          email: user?.email || "customer@turbogh.com",
+          callbackUrl,
+          metadata: { type: "wallet_topup", amount: amt },
+        }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || "Failed to initialise payment");
+      }
+
+      const { authorizationUrl } = await res.json();
+
+      // Store intent so the success page knows what to verify
+      localStorage.setItem(INTENT_KEY, JSON.stringify({ type: "wallet_topup", amount: amt }));
+
+      // Redirect to Paystack hosted checkout (works everywhere, no popup/iframe issues)
+      window.location.href = authorizationUrl;
+    } catch (err: any) {
+      setIsPaying(false);
+      toast({ variant: "destructive", title: "Payment unavailable", description: err.message || "Could not start payment. Please try again." });
+    }
   };
 
   return (

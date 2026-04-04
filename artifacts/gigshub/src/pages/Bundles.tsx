@@ -11,6 +11,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { navigate } from "wouter/use-browser-location";
 import { useSearch } from "wouter";
+import { API } from "@/lib/api";
 import {
   Dialog,
   DialogContent,
@@ -19,8 +20,6 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-
-declare const PaystackPop: any;
 
 function fireCelebration() {
   const burst = (x: number, angle: number) =>
@@ -54,8 +53,6 @@ function fireCelebration() {
     });
   }, 150);
 }
-
-const PAYSTACK_PUBLIC_KEY = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY as string;
 
 export default function Bundles() {
   const { toast } = useToast();
@@ -122,7 +119,7 @@ export default function Bundles() {
     setIsModalOpen(true);
   };
 
-  const handlePurchase = () => {
+  const handlePurchase = async () => {
     if (!selectedBundle || phoneNumber.replace(/\D/g, "").length < 10) return;
 
     if (paymentMethod === "wallet") {
@@ -136,38 +133,53 @@ export default function Bundles() {
       return;
     }
 
-    // MoMo → close dialog first (focus trap blocks Paystack popup), then open Paystack
+    // MoMo → initialise Paystack transaction and redirect to hosted checkout
     setIsModalOpen(false);
+    setIsPaying(true);
 
-    // Small delay so the dialog finishes unmounting before Paystack injects its iframe
-    setTimeout(() => {
-      setIsPaying(true);
-      const popup = new PaystackPop();
-      popup.newTransaction({
-        key: PAYSTACK_PUBLIC_KEY,
-        email: user?.email || "customer@turboghcustomer.com",
-        amount: Math.round(selectedBundle.price * 100), // pesewas
-        currency: "GHS",
-        label: `TurboGh – ${selectedBundle.data} bundle`,
-        onSuccess: (response: { reference: string }) => {
-          createOrder.mutate({
-            data: {
-              type: "bundle",
-              bundleId: selectedBundle.id,
-              phoneNumber,
-              paymentMethod: "momo",
-              paystackReference: response.reference,
-              details: { paymentMethod: "momo", paystackReference: response.reference },
-            } as any,
-          });
+    try {
+      const token = localStorage.getItem("gigshub_token");
+      const callbackUrl = `${window.location.origin}/payment-success`;
+
+      const res = await fetch(`${API}/api/payments/initialize`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-        onCancel: () => {
-          setIsPaying(false);
-          // Re-open the modal so the user can try again
-          setIsModalOpen(true);
-        },
+        body: JSON.stringify({
+          amount: selectedBundle.price,
+          email: user?.email || "customer@turbogh.com",
+          callbackUrl,
+          metadata: { type: "bundle_purchase" },
+        }),
       });
-    }, 150);
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || "Failed to initialise payment");
+      }
+
+      const { authorizationUrl } = await res.json();
+
+      // Store purchase intent so the success page knows what to create
+      localStorage.setItem(
+        "turbogh_payment_intent",
+        JSON.stringify({
+          type: "bundle_purchase",
+          bundleId: String(selectedBundle.id),
+          phoneNumber,
+          bundlePrice: selectedBundle.price,
+        })
+      );
+
+      // Redirect to Paystack hosted checkout (works in all environments)
+      window.location.href = authorizationUrl;
+    } catch (err: any) {
+      setIsPaying(false);
+      setIsModalOpen(true);
+      toast({ variant: "destructive", title: "Payment unavailable", description: err.message || "Could not start payment. Please try again." });
+    }
   };
 
   const getNetworkAccent = (code: string) => {

@@ -23,6 +23,7 @@ import Services from "@/pages/Services";
 import Wallet from "@/pages/Wallet";
 import Orders from "@/pages/Orders";
 import AFARegistration from "@/pages/AFARegistration";
+import PaymentSuccess from "@/pages/PaymentSuccess";
 
 // Admin pages
 import AdminDashboard from "@/pages/admin/AdminDashboard";
@@ -120,6 +121,7 @@ function Router() {
             <Route path="/wallet" component={Wallet} />
             <Route path="/orders" component={Orders} />
             <Route path="/afa-registration" component={AFARegistration} />
+            <Route path="/payment-success" component={PaymentSuccess} />
             <Route component={NotFound} />
           </Switch>
         </motion.div>
