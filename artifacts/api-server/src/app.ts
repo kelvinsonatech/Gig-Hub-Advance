@@ -33,6 +33,12 @@ app.use(express.json({ type: "*/*" }));
 app.use(express.urlencoded({ extended: true }));
 
 app.use("/api", (req, res, next) => {
+  // Prevent browsers from caching authenticated API responses so balance/wallet
+  // changes made by admins are always reflected immediately after login.
+  res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+  res.setHeader("Pragma", "no-cache");
+  res.setHeader("Expires", "0");
+
   if (!db) {
     return res.status(503).json({
       error: "service_unavailable",

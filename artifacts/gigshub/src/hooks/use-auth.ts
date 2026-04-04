@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { useEffect } from "react";
+import { useEffect, useCallback } from "react";
 import { useGetMe, useLogin, useRegister, type LoginRequest, type RegisterRequest } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -87,11 +87,21 @@ export function useAuth() {
     }
   }, [isError, error]);
 
+  // Wrapped logout: clear the entire React Query in-memory cache first so
+  // stale wallet/order data from a previous session is never shown to the
+  // next user who logs in on the same browser.
+  const wrappedLogout = useCallback(() => {
+    queryClient.clear();
+    logout();
+  }, [queryClient, logout]);
+
   const loginMutation = useLogin({
     mutation: {
       onSuccess: (data) => {
         setToken(data.token);
         queryClient.setQueryData(["/api/auth/me"], data.user);
+        // Force-refresh wallet so any admin adjustment is reflected immediately.
+        queryClient.invalidateQueries({ queryKey: ["/api/wallet"] });
         try { localStorage.setItem(USER_CACHE_KEY, JSON.stringify(data.user)); } catch {}
         setJustLoggedIn(true);
         toast({ title: "Welcome back!", description: "You have successfully signed in." });
@@ -145,6 +155,6 @@ export function useAuth() {
     isLoggingIn: loginMutation.isPending,
     register: registerMutation.mutate,
     isRegistering: registerMutation.isPending,
-    logout,
+    logout: wrappedLogout,
   };
 }
