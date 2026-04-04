@@ -27,6 +27,9 @@ export default function Wallet() {
     if (!amt || isNaN(amt) || amt < 1) return;
 
     setIsPaying(true);
+    // Flush render so the loading state is visible before the redirect
+    await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+
     try {
       const token = localStorage.getItem("gigshub_token");
       const callbackUrl = `${window.location.origin}/payment-success`;
@@ -198,7 +201,10 @@ export default function Wallet() {
                   className="w-full h-13 rounded-2xl text-base font-bold shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-all"
                 >
                   {isPaying ? (
-                    <Loader2 className="w-5 h-5 animate-spin" />
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                      Preparing checkout…
+                    </>
                   ) : (
                     <>
                       <Zap className="w-4 h-4 mr-2" />
