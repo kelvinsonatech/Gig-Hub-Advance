@@ -618,6 +618,39 @@ router.patch("/orders/:id/status", async (req, res) => {
   }
 });
 
+// ── Admin reset a user's password ───────────────────────────────────────────
+router.post("/users/:userId/reset-password", async (req, res) => {
+  try {
+    const userId = parseInt(req.params.userId, 10);
+    const { newPassword } = req.body;
+
+    if (!newPassword || typeof newPassword !== "string" || newPassword.length < 8) {
+      return res.status(400).json({ error: "validation_error", message: "Password must be at least 8 characters" });
+    }
+
+    const [user] = await db
+      .select({ id: usersTable.id })
+      .from(usersTable)
+      .where(eq(usersTable.id, userId))
+      .limit(1);
+
+    if (!user) {
+      return res.status(404).json({ error: "not_found", message: "User not found" });
+    }
+
+    const newHash = await bcrypt.hash(newPassword, 10);
+    await db
+      .update(usersTable)
+      .set({ passwordHash: newHash })
+      .where(eq(usersTable.id, userId));
+
+    return res.json({ success: true });
+  } catch (err) {
+    req.log.error(err, "admin reset user password error");
+    return res.status(500).json({ error: "internal_error", message: "Failed to reset password" });
+  }
+});
+
 // ── Admin change password ───────────────────────────────────────────────────
 router.post("/change-password", async (req, res) => {
   try {
