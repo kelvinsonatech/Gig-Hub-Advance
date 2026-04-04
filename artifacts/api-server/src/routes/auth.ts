@@ -60,9 +60,7 @@ router.post("/login", async (req, res) => {
     if (!valid) {
       return res.status(401).json({ error: "auth_error", message: "Invalid credentials" });
     }
-    // Shorter expiry for admin accounts — reduces exposure window if a token leaks
-    const expiresIn = user.role === "admin" ? "8h" : "7d";
-    const token = jwt.sign({ userId: user.id, role: user.role }, JWT_SECRET, { expiresIn });
+    const token = jwt.sign({ userId: user.id, role: user.role }, JWT_SECRET, { expiresIn: "7d" });
     return res.json({
       token,
       user: { id: String(user.id), name: user.name, email: user.email, phone: user.phone, role: user.role, createdAt: user.createdAt.toISOString() },

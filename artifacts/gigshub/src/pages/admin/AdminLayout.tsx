@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState } from "react";
 import { useLocation, Link } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import {
@@ -252,35 +252,6 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [pwOpen, setPwOpen] = useState(false);
-  const [sessionWarning, setSessionWarning] = useState(false);
-
-  const IDLE_MS = 30 * 60 * 1000;   // 30 min → auto-logout
-  const WARN_MS = 28 * 60 * 1000;   // 28 min → show warning banner
-  const idleTimer = useRef<ReturnType<typeof setTimeout>>();
-  const warnTimer = useRef<ReturnType<typeof setTimeout>>();
-
-  const resetIdleTimer = useCallback(() => {
-    setSessionWarning(false);
-    clearTimeout(idleTimer.current);
-    clearTimeout(warnTimer.current);
-    warnTimer.current = setTimeout(() => setSessionWarning(true), WARN_MS);
-    idleTimer.current = setTimeout(() => {
-      logout();
-      navigate("/login");
-    }, IDLE_MS);
-  }, [logout, navigate]);
-
-  useEffect(() => {
-    const events = ["mousemove", "keydown", "click", "touchstart", "scroll"] as const;
-    const handler = () => resetIdleTimer();
-    events.forEach(e => window.addEventListener(e, handler, { passive: true }));
-    resetIdleTimer(); // start timer on mount
-    return () => {
-      events.forEach(e => window.removeEventListener(e, handler));
-      clearTimeout(idleTimer.current);
-      clearTimeout(warnTimer.current);
-    };
-  }, [resetIdleTimer]);
 
   if (!user || user.role !== "admin") {
     return (
@@ -408,18 +379,6 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
         </header>
 
         <main className="flex-1 overflow-auto">
-          {/* Session expiry warning banner */}
-          {sessionWarning && (
-            <div className="sticky top-0 z-30 flex items-center justify-between gap-3 bg-amber-500 text-white px-4 py-2.5 text-xs font-medium shadow-sm">
-              <span>⚠ Your admin session will expire in 2 minutes due to inactivity. Move your mouse or press any key to stay logged in.</span>
-              <button
-                onClick={resetIdleTimer}
-                className="shrink-0 px-3 py-1 bg-white/20 hover:bg-white/30 rounded-full text-xs font-semibold transition-colors"
-              >
-                Stay logged in
-              </button>
-            </div>
-          )}
           {children}
         </main>
       </div>
