@@ -482,44 +482,43 @@ export default function AdminOrders() {
   const deliveredCount = orders.filter(o => o.status === "completed").length;
 
   return (
-    <div className="p-6 max-w-5xl mx-auto">
+    <div className="p-3 sm:p-6 max-w-5xl mx-auto">
       {/* Header */}
-      <div className="mb-6 flex items-start justify-between gap-4">
+      <div className="mb-4 sm:mb-6 flex items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Orders</h1>
-          <p className="text-sm text-gray-400 mt-0.5">Manage and track all customer orders</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Orders</h1>
+          <p className="text-xs sm:text-sm text-gray-400 mt-0.5">Manage and track all customer orders</p>
         </div>
 
-        {/* Clear delivered button */}
+        {/* Clear delivered button — text hidden on mobile, icon + badge only */}
         <button
           onClick={() => setClearOpen(true)}
           disabled={deliveredCount === 0}
           title={deliveredCount === 0 ? "No delivered orders to clear" : `Clear ${deliveredCount} delivered order${deliveredCount !== 1 ? "s" : ""}`}
-          className={`group relative flex items-center gap-2 px-4 py-2.5 rounded-2xl text-sm font-bold transition-all shrink-0
+          className={`group relative flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-2xl text-sm font-bold transition-all shrink-0
             ${deliveredCount > 0
               ? "bg-gradient-to-br from-red-500 to-rose-600 text-white shadow-lg shadow-red-200 hover:shadow-xl hover:shadow-red-300 hover:-translate-y-0.5 active:translate-y-0 active:scale-95"
               : "bg-gray-100 text-gray-300 cursor-not-allowed"
             }`}
         >
-          {/* Pulse ring when there are delivered orders */}
           {deliveredCount > 0 && (
             <span className="absolute -top-1 -right-1 flex h-3 w-3">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
               <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500" />
             </span>
           )}
-          <Trash2 className="w-4 h-4" />
-          <span>Clear Storage</span>
+          <Trash2 className="w-4 h-4 shrink-0" />
+          <span className="hidden sm:inline">Clear Storage</span>
           {deliveredCount > 0 && (
-            <span className="ml-0.5 bg-white/20 text-white text-[11px] font-black px-1.5 py-0.5 rounded-full">
+            <span className="bg-white/20 text-white text-[11px] font-black px-1.5 py-0.5 rounded-full">
               {deliveredCount}
             </span>
           )}
         </button>
       </div>
 
-      {/* Filter tabs */}
-      <div className="flex gap-2 mb-6 flex-wrap">
+      {/* Filter tabs — horizontally scrollable on mobile */}
+      <div className="flex gap-2 mb-4 sm:mb-6 overflow-x-auto pb-1 -mx-3 px-3 sm:mx-0 sm:px-0 sm:flex-wrap [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         {FILTER_STATUSES.map(s => {
           const meta = s === "all" ? null : STATUS_META[s as StatusKey];
           const isActive = filter === s;
@@ -527,7 +526,7 @@ export default function AdminOrders() {
             <button
               key={s}
               onClick={() => setFilter(s)}
-              className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-semibold border transition-all ${
+              className={`flex items-center gap-1.5 px-3 sm:px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold border transition-all shrink-0 ${
                 isActive
                   ? s === "all"
                     ? "bg-gray-900 text-white border-gray-900"
@@ -551,14 +550,14 @@ export default function AdminOrders() {
           <Loader2 className="w-7 h-7 animate-spin text-gray-300" />
         </div>
       ) : filtered.length === 0 ? (
-        <div className="bg-white rounded-2xl border-2 border-dashed border-gray-200 py-20 text-center">
+        <div className="bg-white rounded-2xl border-2 border-dashed border-gray-200 py-16 text-center">
           <Package className="w-10 h-10 text-gray-200 mx-auto mb-3" />
           <p className="text-gray-400 text-sm font-medium">
             {filter === "all" ? "No orders yet." : `No ${STATUS_META[filter as StatusKey]?.label.toLowerCase()} orders.`}
           </p>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3">
           {filtered.map(order => {
             const statusMeta = STATUS_META[order.status];
             const typeMeta   = TYPE_META[order.type] ?? TYPE_META.bundle;
@@ -578,52 +577,54 @@ export default function AdminOrders() {
                 {/* Network colour stripe */}
                 <div className="h-1 w-full rounded-t-2xl" style={{ backgroundColor: netColor }} />
 
-                <div className="p-5 flex gap-4">
+                <div className="p-3 sm:p-5 flex gap-3 sm:gap-4">
 
                   {/* ── Left: network logo + user avatar ── */}
                   <div className="shrink-0 flex flex-col items-center gap-2">
                     <div
-                      className="w-14 h-14 rounded-2xl flex items-center justify-center shadow-sm overflow-hidden"
+                      className="w-11 h-11 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center shadow-sm overflow-hidden"
                       style={{ backgroundColor: netColor }}
                     >
                       {netLogo
-                        ? <img src={netLogo} alt={details.networkName ?? "network"} className="w-10 h-10 object-contain" />
-                        : <Wifi className={`w-6 h-6 ${logoText}`} />
+                        ? <img src={netLogo} alt={details.networkName ?? "network"} className="w-8 h-8 sm:w-10 sm:h-10 object-contain" />
+                        : <Wifi className={`w-5 h-5 sm:w-6 sm:h-6 ${logoText}`} />
                       }
                     </div>
-                    <UserAvatar name={order.user.name} seed={order.user.email} size={28} className="ring-1 ring-white shadow" />
+                    <UserAvatar name={order.user.name} seed={order.user.email} size={26} className="ring-1 ring-white shadow" />
                   </div>
 
                   {/* ── Right: all details ── */}
                   <div className="flex-1 min-w-0">
 
                     {/* Row 1: user info + status dropdown */}
-                    <div className="flex items-start justify-between gap-2 flex-wrap">
-                      <div className="min-w-0">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1">
                         <p className="font-bold text-gray-900 text-sm leading-tight truncate">{order.user.name}</p>
                         <p className="text-xs text-gray-400 truncate">{order.user.email}</p>
                       </div>
-                      <StatusDropdown
-                        current={order.status as StatusKey}
-                        isPending={isPending}
-                        onSelect={status => updateStatus.mutate({ id: order.id, status })}
-                      />
+                      <div className="shrink-0">
+                        <StatusDropdown
+                          current={order.status as StatusKey}
+                          isPending={isPending}
+                          onSelect={status => updateStatus.mutate({ id: order.id, status })}
+                        />
+                      </div>
                     </div>
 
                     {/* Row 2: bundle name + data size */}
                     {(details.networkName || details.bundleName) && (
-                      <div className="mt-2 flex flex-wrap items-center gap-x-1.5 gap-y-1">
+                      <div className="mt-1.5 flex flex-wrap items-center gap-x-1.5 gap-y-1">
                         {details.networkName && (
-                          <span className="font-bold text-gray-800 text-sm">{details.networkName}</span>
+                          <span className="font-bold text-gray-800 text-xs sm:text-sm">{details.networkName}</span>
                         )}
                         {details.networkName && details.bundleName && (
-                          <span className="text-gray-300 text-sm">·</span>
+                          <span className="text-gray-300 text-xs sm:text-sm">·</span>
                         )}
                         {details.bundleName && (
-                          <span className="text-sm text-gray-700 font-medium">{details.bundleName}</span>
+                          <span className="text-xs sm:text-sm text-gray-700 font-medium">{details.bundleName}</span>
                         )}
                         {details.data && (
-                          <span className="ml-1 px-2 py-0.5 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-xs font-bold">
+                          <span className="px-2 py-0.5 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-xs font-bold">
                             {details.data}
                           </span>
                         )}
@@ -631,18 +632,18 @@ export default function AdminOrders() {
                     )}
 
                     {/* Row 3: order type tag */}
-                    <div className="mt-2">
-                      <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-semibold border ${typeMeta.color}`}>
+                    <div className="mt-1.5">
+                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold border ${typeMeta.color}`}>
                         <TypeIcon className="w-3 h-3" />
                         {typeMeta.label}
                       </span>
                     </div>
 
-                    {/* Row 4: phone + date */}
-                    <div className="mt-2.5 flex flex-wrap items-center gap-3">
+                    {/* Row 4: phone + date — stack on very narrow, row on wider */}
+                    <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
                       {details.phoneNumber && (
                         <CopyBtn value={details.phoneNumber}>
-                          <span className="flex items-center gap-1 text-xs font-semibold text-gray-600 bg-gray-50 border border-gray-200 rounded-lg px-2.5 py-1">
+                          <span className="flex items-center gap-1 text-xs font-semibold text-gray-600 bg-gray-50 border border-gray-200 rounded-lg px-2 py-0.5">
                             <Phone className="w-3 h-3 text-gray-400" />
                             {details.phoneNumber}
                           </span>
@@ -655,8 +656,8 @@ export default function AdminOrders() {
                     </div>
 
                     {/* Row 5: amount + order ref */}
-                    <div className="mt-3 flex items-center gap-3 flex-wrap">
-                      <span className="text-base font-black text-gray-900">GHS {order.amount.toFixed(2)}</span>
+                    <div className="mt-2 flex items-center gap-2 flex-wrap">
+                      <span className="text-sm font-black text-gray-900">GHS {order.amount.toFixed(2)}</span>
                       <CopyBtn value={toOrderRef(order.id)}>
                         <span className="flex items-center gap-1 text-[10px] font-mono font-semibold text-gray-400 bg-gray-50 border border-gray-200 rounded-md px-2 py-0.5">
                           {toOrderRef(order.id)}
