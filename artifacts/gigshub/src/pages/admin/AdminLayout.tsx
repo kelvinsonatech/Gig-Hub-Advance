@@ -12,10 +12,17 @@ import {
   Radio,
   ShoppingBag,
   Users,
+  KeyRound,
+  Eye,
+  EyeOff,
+  Check,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UserAvatar } from "@/components/ui/UserAvatar";
 import logoUrl from "@assets/logo.png";
+import { API } from "@/lib/api";
+import { useToast } from "@/hooks/use-toast";
 
 const navItems = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
@@ -25,6 +32,203 @@ const navItems = [
   { href: "/admin/users", label: "Users", icon: Users },
   { href: "/admin/notifications", label: "Notifications", icon: Bell },
 ];
+
+// ── Password strength helper ─────────────────────────────────────────────────
+function getStrength(pw: string) {
+  let score = 0;
+  if (pw.length >= 8) score++;
+  if (/[A-Z]/.test(pw)) score++;
+  if (/[0-9]/.test(pw)) score++;
+  if (/[^A-Za-z0-9]/.test(pw)) score++;
+  return score; // 0-4
+}
+const strengthLabel = ["", "Weak", "Fair", "Good", "Strong"];
+const strengthColor = ["", "bg-red-400", "bg-amber-400", "bg-blue-400", "bg-green-500"];
+
+// ── Change Password Modal ────────────────────────────────────────────────────
+function ChangePasswordModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const { toast } = useToast();
+  const [current, setCurrent] = useState("");
+  const [next, setNext] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [showCurrent, setShowCurrent] = useState(false);
+  const [showNext, setShowNext] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [done, setDone] = useState(false);
+  const [serverError, setServerError] = useState("");
+
+  const strength = getStrength(next);
+  const mismatch = confirm.length > 0 && next !== confirm;
+  const canSubmit = current.length > 0 && next.length >= 8 && next === confirm && !loading;
+
+  const reset = () => {
+    setCurrent(""); setNext(""); setConfirm("");
+    setShowCurrent(false); setShowNext(false); setShowConfirm(false);
+    setLoading(false); setDone(false); setServerError("");
+  };
+
+  const handleClose = () => { reset(); onClose(); };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!canSubmit) return;
+    setServerError("");
+    setLoading(true);
+    try {
+      const res = await fetch(`${API}/api/admin/change-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ currentPassword: current, newPassword: next }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setServerError(data.message || "Something went wrong.");
+        setLoading(false);
+        return;
+      }
+      setDone(true);
+      setLoading(false);
+      toast({ title: "Password updated", description: "Your admin password has been changed." });
+      setTimeout(() => { handleClose(); }, 1800);
+    } catch {
+      setServerError("Network error — please try again.");
+      setLoading(false);
+    }
+  };
+
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+      {/* Backdrop */}
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={handleClose} />
+
+      {/* Panel */}
+      <div className="relative w-full max-w-sm bg-white rounded-3xl shadow-2xl overflow-hidden">
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-gray-100">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-pink-50 flex items-center justify-center">
+              <KeyRound className="w-4 h-4 text-[#E91E8C]" />
+            </div>
+            <h2 className="text-base font-semibold text-gray-900">Change Password</h2>
+          </div>
+          <button onClick={handleClose} className="p-1.5 rounded-xl hover:bg-gray-100 text-gray-400 transition-colors">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* Success state */}
+        {done ? (
+          <div className="px-6 py-12 flex flex-col items-center gap-3">
+            <div className="w-16 h-16 rounded-full bg-green-50 flex items-center justify-center">
+              <Check className="w-8 h-8 text-green-500" />
+            </div>
+            <p className="text-sm font-semibold text-gray-900">Password changed!</p>
+            <p className="text-xs text-gray-500 text-center">Your admin password has been updated successfully.</p>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
+            {/* Current password */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-gray-600">Current password</label>
+              <div className="relative">
+                <input
+                  type={showCurrent ? "text" : "password"}
+                  value={current}
+                  onChange={e => { setCurrent(e.target.value); setServerError(""); }}
+                  placeholder="Enter current password"
+                  className="w-full px-3.5 pr-10 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#E91E8C]/30 focus:border-[#E91E8C] transition-colors"
+                  autoComplete="current-password"
+                />
+                <button type="button" onClick={() => setShowCurrent(v => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                  {showCurrent ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+              {serverError && (
+                <p className="text-xs text-red-500">{serverError}</p>
+              )}
+            </div>
+
+            {/* New password */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-gray-600">New password</label>
+              <div className="relative">
+                <input
+                  type={showNext ? "text" : "password"}
+                  value={next}
+                  onChange={e => setNext(e.target.value)}
+                  placeholder="At least 8 characters"
+                  className="w-full px-3.5 pr-10 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#E91E8C]/30 focus:border-[#E91E8C] transition-colors"
+                  autoComplete="new-password"
+                />
+                <button type="button" onClick={() => setShowNext(v => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                  {showNext ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+              {/* Strength meter */}
+              {next.length > 0 && (
+                <div className="space-y-1">
+                  <div className="flex gap-1">
+                    {[1, 2, 3, 4].map(i => (
+                      <div key={i} className={`h-1 flex-1 rounded-full transition-colors ${i <= strength ? strengthColor[strength] : "bg-gray-100"}`} />
+                    ))}
+                  </div>
+                  <p className={`text-[10px] font-medium ${strength <= 1 ? "text-red-400" : strength === 2 ? "text-amber-500" : strength === 3 ? "text-blue-500" : "text-green-600"}`}>
+                    {strengthLabel[strength]}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Confirm password */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-gray-600">Confirm new password</label>
+              <div className="relative">
+                <input
+                  type={showConfirm ? "text" : "password"}
+                  value={confirm}
+                  onChange={e => setConfirm(e.target.value)}
+                  placeholder="Re-enter new password"
+                  className={`w-full px-3.5 pr-10 py-2.5 text-sm border rounded-xl focus:outline-none focus:ring-2 transition-colors ${
+                    mismatch
+                      ? "border-red-300 focus:ring-red-200 focus:border-red-400"
+                      : "border-gray-200 focus:ring-[#E91E8C]/30 focus:border-[#E91E8C]"
+                  }`}
+                  autoComplete="new-password"
+                />
+                <button type="button" onClick={() => setShowConfirm(v => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                  {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+              {mismatch && <p className="text-xs text-red-500">Passwords do not match</p>}
+              {!mismatch && confirm.length > 0 && next === confirm && (
+                <p className="text-xs text-green-600 flex items-center gap-1"><Check className="w-3 h-3" /> Passwords match</p>
+              )}
+            </div>
+
+            {/* Actions */}
+            <div className="flex gap-2.5 pt-1">
+              <button type="button" onClick={handleClose}
+                className="flex-1 py-2.5 text-sm font-medium text-gray-600 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors">
+                Cancel
+              </button>
+              <button type="submit" disabled={!canSubmit}
+                className="flex-1 py-2.5 text-sm font-semibold text-white rounded-xl transition-all flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{ background: canSubmit ? "linear-gradient(135deg,#E91E8C,#9C27B0)" : undefined, backgroundColor: !canSubmit ? "#d1d5db" : undefined }}>
+                {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> Saving…</> : "Update Password"}
+              </button>
+            </div>
+          </form>
+        )}
+      </div>
+    </div>
+  );
+}
 
 const SidebarLink = ({ href, label, icon: Icon, active, onClick }: {
   href: string; label: string; icon: any; active: boolean; onClick: () => void;
@@ -47,6 +251,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
   const [location, navigate] = useLocation();
   const { user, logout } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [pwOpen, setPwOpen] = useState(false);
 
   if (!user || user.role !== "admin") {
     return (
@@ -103,6 +308,14 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
         </div>
 
         <button
+          onClick={() => { setSidebarOpen(false); setPwOpen(true); }}
+          className="flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-500 hover:bg-gray-100 hover:text-gray-800 rounded-full transition-colors"
+        >
+          <KeyRound className="w-4 h-4" />
+          Change password
+        </button>
+
+        <button
           onClick={() => { logout(); navigate("/"); }}
           className="flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-500 hover:bg-gray-100 hover:text-gray-800 rounded-full transition-colors"
         >
@@ -115,6 +328,8 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen flex bg-gray-50">
+
+      <ChangePasswordModal open={pwOpen} onClose={() => setPwOpen(false)} />
 
       {/* Mobile overlay backdrop */}
       {sidebarOpen && (

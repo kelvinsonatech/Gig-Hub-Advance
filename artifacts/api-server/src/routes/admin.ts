@@ -4,6 +4,7 @@ import { bundlesTable, servicesTable, networksTable, ordersTable, usersTable, no
 import { eq, count, inArray, gte, lt, lte, sql, desc, isNull, and } from "drizzle-orm";
 import { requireAuth, requireAdmin } from "../middleware/auth";
 import { sendPushToTokens } from "../lib/fcm";
+import bcrypt from "bcryptjs";
 
 const router: IRouter = Router();
 
@@ -614,6 +615,50 @@ router.patch("/orders/:id/status", async (req, res) => {
   } catch (err) {
     req.log.error(err, "admin update order status error");
     return res.status(500).json({ error: "internal_error", message: "Failed to update order status" });
+  }
+});
+
+// ── Admin change password ───────────────────────────────────────────────────
+router.post("/change-password", async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const auth = (req as any).auth as { userId: number };
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ error: "validation_error", message: "Both current and new password are required" });
+    }
+    if (typeof newPassword !== "string" || newPassword.length < 8) {
+      return res.status(400).json({ error: "validation_error", message: "New password must be at least 8 characters" });
+    }
+    if (newPassword === currentPassword) {
+      return res.status(400).json({ error: "validation_error", message: "New password must differ from the current password" });
+    }
+
+    const [user] = await db
+      .select({ id: usersTable.id, passwordHash: usersTable.passwordHash })
+      .from(usersTable)
+      .where(eq(usersTable.id, auth.userId))
+      .limit(1);
+
+    if (!user) {
+      return res.status(404).json({ error: "not_found", message: "User not found" });
+    }
+
+    const valid = await bcrypt.compare(currentPassword, user.passwordHash);
+    if (!valid) {
+      return res.status(401).json({ error: "invalid_password", message: "Current password is incorrect" });
+    }
+
+    const newHash = await bcrypt.hash(newPassword, 10);
+    await db
+      .update(usersTable)
+      .set({ passwordHash: newHash })
+      .where(eq(usersTable.id, user.id));
+
+    return res.json({ success: true });
+  } catch (err) {
+    req.log.error(err, "admin change password error");
+    return res.status(500).json({ error: "internal_error", message: "Failed to change password" });
   }
 });
 
