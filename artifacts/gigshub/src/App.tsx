@@ -2,6 +2,8 @@ import { useEffect } from "react";
 import { Switch, Route, Router as WouterRouter, useLocation, Redirect } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
+import { useAuth } from "@/hooks/use-auth";
+import { API } from "@/lib/api";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
@@ -34,21 +36,42 @@ import AdminNotifications from "@/pages/admin/AdminNotifications";
 import AdminOrders from "@/pages/admin/AdminOrders";
 import AdminUsers from "@/pages/admin/AdminUsers";
 
-// Intercept fetch to automatically add Authorization Bearer token to all requests
+// ── Secure fetch interceptor ─────────────────────────────────────────────────
+// Only attaches the auth token to requests going to our own API server.
+// Third-party URLs (Paystack, FCM, etc.) never receive the token.
 const originalFetch = window.fetch;
+const API_BASE = (import.meta.env.VITE_API_URL ?? "").replace(/\/$/, "");
+
+function isOwnApiRequest(input: RequestInfo | URL): boolean {
+  const url =
+    typeof input === "string" ? input
+    : input instanceof URL ? input.href
+    : (input as Request).url;
+  if (url.startsWith("/api/") || url.startsWith("/api?")) return true;
+  if (API_BASE && url.startsWith(API_BASE)) return true;
+  try {
+    return new URL(url).hostname === window.location.hostname;
+  } catch {
+    return false;
+  }
+}
+
 window.fetch = async (input, init) => {
   const token = localStorage.getItem("gigshub_token");
-  if (token) {
-    init = init || {};
-    // Normalise existing headers into a Headers instance so spreading a
-    // Headers object (whose keys are not enumerable) doesn't silently wipe
-    // Content-Type and other headers set by the API client.
+  if (token && isOwnApiRequest(input)) {
+    init = init ?? {};
     const headers = new Headers(init.headers as HeadersInit | undefined);
     headers.set("Authorization", `Bearer ${token}`);
     init = { ...init, headers };
   }
-  return originalFetch(input, init);
+  const response = await originalFetch(input, init);
+  // Notify the app when a token is rejected so it can log the user out
+  if (response.status === 401 && isOwnApiRequest(input)) {
+    window.dispatchEvent(new CustomEvent("auth:unauthorized"));
+  }
+  return response;
 };
+// ─────────────────────────────────────────────────────────────────────────────
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -60,6 +83,23 @@ const queryClient = new QueryClient({
     },
   },
 });
+
+// Listens for 401 responses from the API and auto-logs the user out
+function GlobalAuthGuard() {
+  const { logout } = useAuth();
+  const [, navigate] = useLocation();
+
+  useEffect(() => {
+    const handler = () => {
+      logout();
+      navigate("/login");
+    };
+    window.addEventListener("auth:unauthorized", handler);
+    return () => window.removeEventListener("auth:unauthorized", handler);
+  }, [logout, navigate]);
+
+  return null;
+}
 
 function ScrollToTop() {
   const [location] = useLocation();
@@ -169,6 +209,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+          <GlobalAuthGuard />
           <Router />
           <LoginConfetti />
           <InstallPrompt />
