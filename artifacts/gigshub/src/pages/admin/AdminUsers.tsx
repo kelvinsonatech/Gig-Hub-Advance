@@ -147,8 +147,8 @@ export default function AdminUsers() {
 
   const openReset = (user: AdminUser) => {
     setResetUser(user);
-    setResetPassword(generatePassword());
-    setShowResetPw(true);
+    setResetPassword("");
+    setShowResetPw(false);
     setResetDone(false);
     setCopied(false);
     resetMutation.reset();
@@ -470,7 +470,7 @@ export default function AdminUsers() {
                     onClick={() => setResetPassword(generatePassword())}
                     className="flex items-center gap-1 text-[11px] font-medium text-violet-600 hover:text-violet-700 transition-colors"
                   >
-                    <RefreshCw className="w-3 h-3" /> Regenerate
+                    <RefreshCw className="w-3 h-3" /> Generate
                   </button>
                 </div>
                 <div className="relative">
