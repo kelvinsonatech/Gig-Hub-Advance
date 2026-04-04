@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { db } from "@workspace/db";
-import { bundlesTable, servicesTable, networksTable, ordersTable, usersTable, notificationsTable, deviceTokensTable } from "@workspace/db";
+import { bundlesTable, servicesTable, networksTable, ordersTable, usersTable, notificationsTable, deviceTokensTable, walletsTable, transactionsTable } from "@workspace/db";
 import { eq, count, inArray, gte, sql, desc } from "drizzle-orm";
 import { requireAuth, requireAdmin } from "../middleware/auth";
 import { sendPushToTokens } from "../lib/fcm";
@@ -403,6 +403,81 @@ router.delete("/notifications/:id", async (req, res) => {
   } catch (err) {
     req.log.error(err, "admin delete notification error");
     return res.status(500).json({ error: "internal_error", message: "Failed to delete notification" });
+  }
+});
+
+// ── Users ──────────────────────────────────────────────────────────────────────
+router.get("/users", async (req, res) => {
+  try {
+    const users = await db
+      .select({
+        id: usersTable.id,
+        name: usersTable.name,
+        email: usersTable.email,
+        phone: usersTable.phone,
+        role: usersTable.role,
+        createdAt: usersTable.createdAt,
+      })
+      .from(usersTable)
+      .orderBy(desc(usersTable.createdAt));
+
+    const wallets = await db.select().from(walletsTable);
+    const walletMap = Object.fromEntries(wallets.map(w => [w.userId, parseFloat(w.balance)]));
+
+    return res.json(users.map(u => ({
+      id: String(u.id),
+      name: u.name,
+      email: u.email,
+      phone: u.phone,
+      role: u.role,
+      balance: walletMap[u.id] ?? 0,
+      createdAt: u.createdAt.toISOString(),
+    })));
+  } catch (err) {
+    req.log.error(err, "admin get users error");
+    return res.status(500).json({ error: "internal_error", message: "Failed to get users" });
+  }
+});
+
+router.post("/users/:id/wallet/adjust", async (req, res) => {
+  try {
+    const userId = parseInt(req.params.id);
+    const { type, amount, note } = req.body;
+
+    if (!["credit", "debit"].includes(type)) {
+      return res.status(400).json({ error: "validation_error", message: "type must be credit or debit" });
+    }
+    const amt = parseFloat(amount);
+    if (!isFinite(amt) || amt <= 0) {
+      return res.status(400).json({ error: "validation_error", message: "amount must be a positive number" });
+    }
+
+    const [wallet] = await db.select().from(walletsTable).where(eq(walletsTable.userId, userId)).limit(1);
+    if (!wallet) return res.status(404).json({ error: "not_found", message: "Wallet not found" });
+
+    const current = parseFloat(wallet.balance);
+    if (type === "debit" && current < amt) {
+      return res.status(400).json({ error: "insufficient_funds", message: `User only has GHS ${current.toFixed(2)}` });
+    }
+
+    const newBalance = type === "credit" ? current + amt : current - amt;
+    const [updated] = await db
+      .update(walletsTable)
+      .set({ balance: newBalance.toFixed(2) })
+      .where(eq(walletsTable.id, wallet.id))
+      .returning();
+
+    await db.insert(transactionsTable).values({
+      walletId: wallet.id,
+      type,
+      amount: amt.toFixed(2),
+      description: note?.trim() ? `Admin adjustment: ${note.trim()}` : `Admin ${type}`,
+    });
+
+    return res.json({ balance: parseFloat(updated.balance) });
+  } catch (err) {
+    req.log.error(err, "admin wallet adjust error");
+    return res.status(500).json({ error: "internal_error", message: "Failed to adjust wallet" });
   }
 });
 

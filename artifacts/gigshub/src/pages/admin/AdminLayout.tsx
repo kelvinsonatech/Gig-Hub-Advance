@@ -11,6 +11,7 @@ import {
   X,
   Radio,
   ShoppingBag,
+  Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UserAvatar } from "@/components/ui/UserAvatar";
@@ -21,6 +22,7 @@ const navItems = [
   { href: "/admin/networks", label: "Networks", icon: Radio },
   { href: "/admin/bundles", label: "Data Bundles", icon: Package },
   { href: "/admin/orders", label: "Orders", icon: ShoppingBag },
+  { href: "/admin/users", label: "Users", icon: Users },
   { href: "/admin/notifications", label: "Notifications", icon: Bell },
 ];
 
