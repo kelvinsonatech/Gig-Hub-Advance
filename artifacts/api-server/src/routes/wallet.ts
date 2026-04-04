@@ -99,7 +99,12 @@ router.post("/topup/verify", async (req, res) => {
     const paystackData = await paystackRes.json() as any;
 
     if (!paystackData.status || paystackData.data?.status !== "success") {
-      return res.status(400).json({ error: "payment_failed", message: "Payment was not successful" });
+      const txStatus = paystackData.data?.status;
+      const isCancelled = txStatus === "abandoned";
+      return res.status(400).json({
+        error: isCancelled ? "payment_cancelled" : "payment_failed",
+        message: isCancelled ? "Payment was cancelled" : "Payment was not successful",
+      });
     }
 
     // Amount from Paystack is in pesewas (1 GHS = 100 pesewas)

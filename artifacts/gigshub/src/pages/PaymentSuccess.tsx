@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
-import { CheckCircle2, XCircle, Loader2 } from "lucide-react";
+import { CheckCircle2, XCircle, Loader2, XOctagon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { API } from "@/lib/api";
 import confetti from "canvas-confetti";
@@ -23,7 +23,7 @@ type PaymentIntent = WalletTopupIntent | BundlePurchaseIntent;
 
 export default function PaymentSuccess() {
   const [, navigate] = useLocation();
-  const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
+  const [status, setStatus] = useState<"loading" | "success" | "cancelled" | "error">("loading");
   const [message, setMessage] = useState("");
 
   useEffect(() => {
@@ -43,6 +43,15 @@ export default function PaymentSuccess() {
     const headers: Record<string, string> = { "Content-Type": "application/json" };
     if (token) headers["Authorization"] = `Bearer ${token}`;
 
+    const handleApiError = (err: any) => {
+      if (err?.error === "payment_cancelled" || err?.message === "Payment was cancelled") {
+        setStatus("cancelled");
+      } else {
+        setStatus("error");
+        setMessage(err?.message || "Payment verification failed. Please contact support.");
+      }
+    };
+
     const verify = async () => {
       try {
         if (!intent || intent.type === "wallet_topup") {
@@ -51,10 +60,8 @@ export default function PaymentSuccess() {
             headers,
             body: JSON.stringify({ reference }),
           });
-          if (!res.ok) {
-            const err = await res.json().catch(() => ({}));
-            throw new Error(err.message || "Verification failed");
-          }
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) { handleApiError(data); return; }
           setStatus("success");
           setMessage("Your wallet has been topped up successfully!");
           confetti({ particleCount: 100, spread: 80, origin: { y: 0.6 } });
@@ -72,18 +79,16 @@ export default function PaymentSuccess() {
               details: { paymentMethod: "momo", paystackReference: reference },
             }),
           });
-          if (!res.ok) {
-            const err = await res.json().catch(() => ({}));
-            throw new Error(err.message || "Order creation failed");
-          }
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) { handleApiError(data); return; }
           setStatus("success");
           setMessage("Your data bundle purchase was successful!");
           confetti({ particleCount: 100, spread: 80, origin: { y: 0.6 } });
           setTimeout(() => navigate("/orders"), 2500);
         }
-      } catch (err: any) {
+      } catch {
         setStatus("error");
-        setMessage(err.message || "Payment verification failed. Please contact support.");
+        setMessage("Payment verification failed. Please contact support.");
       }
     };
 
@@ -106,6 +111,18 @@ export default function PaymentSuccess() {
           <h2 className="text-2xl font-bold text-gray-900">Payment confirmed!</h2>
           <p className="text-gray-600 mt-2">{message}</p>
           <p className="text-sm text-gray-400 mt-1">Redirecting you now…</p>
+        </>
+      )}
+
+      {status === "cancelled" && (
+        <>
+          <XOctagon className="w-14 h-14 text-amber-500 mb-4" />
+          <h2 className="text-2xl font-bold text-gray-900">Payment cancelled</h2>
+          <p className="text-gray-500 mt-2">No money was taken from your account.</p>
+          <div className="flex gap-3 mt-6">
+            <Button variant="outline" onClick={() => navigate("/wallet")}>Go to Wallet</Button>
+            <Button onClick={() => navigate("/bundles")}>Try Again</Button>
+          </div>
         </>
       )}
 

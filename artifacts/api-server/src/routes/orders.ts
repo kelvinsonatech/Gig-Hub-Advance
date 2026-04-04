@@ -135,7 +135,12 @@ router.post("/", async (req, res) => {
       const psData = await psRes.json() as any;
 
       if (!psData.status || psData.data?.status !== "success") {
-        return res.status(400).json({ error: "payment_failed", message: "Paystack payment was not successful" });
+        const txStatus = psData.data?.status;
+        const isCancelled = txStatus === "abandoned";
+        return res.status(400).json({
+          error: isCancelled ? "payment_cancelled" : "payment_failed",
+          message: isCancelled ? "Payment was cancelled" : "Paystack payment was not successful",
+        });
       }
 
       // Confirm the paid amount matches the bundle price (within rounding)
