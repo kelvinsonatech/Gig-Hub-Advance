@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 import logoUrl from "@/assets/logo.png";
+import { useAuth } from "@/hooks/use-auth";
 
 const STORAGE_KEY = "gigshub_install_dismissed_at";
 const SNOOZE_DAYS = 30;
@@ -29,8 +30,12 @@ function wasRecentlyDismissed() {
 }
 
 export function InstallPrompt() {
+  const { isAuthenticated } = useAuth();
   const [visible, setVisible] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const prevAuthRef = useRef<boolean | null>(null);
+  const showTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const handler = (e: Event) => {
@@ -42,12 +47,26 @@ export function InstallPrompt() {
   }, []);
 
   useEffect(() => {
-    if (!isMobile()) return;
-    if (isStandalone()) return;
-    if (wasRecentlyDismissed()) return;
-    const show = setTimeout(() => setVisible(true), 2000);
-    const hide = setTimeout(() => setVisible(false), 11000); // 2s delay + 9s visible
-    return () => { clearTimeout(show); clearTimeout(hide); };
+    if (prevAuthRef.current === null) {
+      prevAuthRef.current = isAuthenticated;
+      return;
+    }
+
+    const justLoggedIn = isAuthenticated && !prevAuthRef.current;
+    prevAuthRef.current = isAuthenticated;
+
+    if (!justLoggedIn) return;
+    if (!isMobile() || isStandalone() || wasRecentlyDismissed()) return;
+
+    showTimer.current = setTimeout(() => setVisible(true), 2000);
+    hideTimer.current = setTimeout(() => setVisible(false), 11000);
+  }, [isAuthenticated]);
+
+  useEffect(() => {
+    return () => {
+      if (showTimer.current) clearTimeout(showTimer.current);
+      if (hideTimer.current) clearTimeout(hideTimer.current);
+    };
   }, []);
 
   const dismiss = () => {
@@ -79,18 +98,15 @@ export function InstallPrompt() {
           className="fixed bottom-4 left-3 right-3 z-[70] max-w-sm mx-auto"
         >
           <div className="bg-white rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.18)] border border-gray-100 px-4 py-3 flex items-center gap-3">
-            {/* App icon */}
             <div className="w-11 h-11 rounded-xl border border-gray-200 bg-white shadow-sm flex items-center justify-center shrink-0 overflow-hidden">
               <img src={logoUrl} alt="TurboGH" className="w-8 h-auto" />
             </div>
 
-            {/* Text */}
             <div className="flex-1 min-w-0">
               <p className="text-[13px] font-bold text-gray-900 leading-tight">Install TurboGH</p>
               <p className="text-[11px] text-gray-400 leading-snug mt-0.5">{hint}</p>
             </div>
 
-            {/* Install button — only shown when native prompt is ready */}
             {deferredPrompt && (
               <button
                 onClick={handleInstall}
@@ -100,7 +116,6 @@ export function InstallPrompt() {
               </button>
             )}
 
-            {/* Dismiss */}
             <button
               onClick={dismiss}
               className="w-7 h-7 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors shrink-0"
