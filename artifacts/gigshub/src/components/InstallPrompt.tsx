@@ -63,8 +63,8 @@ export function InstallPrompt() {
   };
 
   const hint = isIOS()
-    ? "Tap Share then "Add to Home Screen" to install."
-    : "Tap ⋮ then "Add to Home Screen" to install.";
+    ? "Tap Share \u2192 Add to Home Screen to install."
+    : "Tap \u22EE menu \u2192 Add to Home Screen to install.";
 
   return (
     <AnimatePresence>
