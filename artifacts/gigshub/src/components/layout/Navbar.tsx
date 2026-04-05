@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from "react";
 import { Link, useRoute } from "wouter";
-import { motion, LayoutGroup, AnimatePresence } from "framer-motion";
+import { motion, LayoutGroup } from "framer-motion";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Wallet, Sun, Users, Menu, LogOut, X, LayoutDashboard, ShoppingBag, Bell, CheckCheck, Trash2, Megaphone } from "lucide-react";
@@ -62,9 +62,10 @@ function MobileNavLink({ href, children, onClick }: { href: string; children: Re
   );
 }
 
-function NotificationsPanel({ onClose }: { onClose: () => void }) {
+function NotificationsPanel({ onClose, isOpen }: { onClose: () => void; isOpen: boolean }) {
   const qc = useQueryClient();
   const panelRef = useRef<HTMLDivElement>(null);
+  const wasOpenRef = useRef(false);
 
   const { data: notifications = [], isLoading } = useQuery({
     queryKey: ["notifications"],
@@ -102,26 +103,31 @@ function NotificationsPanel({ onClose }: { onClose: () => void }) {
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
-      if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
+      if (isOpen && panelRef.current && !panelRef.current.contains(e.target as Node)) {
         onClose();
       }
     }
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
-  }, [onClose]);
+  }, [isOpen, onClose]);
 
   useEffect(() => {
-    markAllMutation.mutate();
-  }, []);
+    if (isOpen && !wasOpenRef.current) {
+      markAllMutation.mutate();
+    }
+    wasOpenRef.current = isOpen;
+  }, [isOpen]);
 
   const unread = notifications.filter(n => !n.isRead);
 
   return (
     <motion.div
       ref={panelRef}
-      initial={{ opacity: 0, y: -8, scale: 0.97 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: -8, scale: 0.97 }}
+      initial={false}
+      animate={isOpen
+        ? { opacity: 1, y: 0, scale: 1, pointerEvents: "auto" }
+        : { opacity: 0, y: -8, scale: 0.97, pointerEvents: "none" }
+      }
       transition={{ duration: 0.15 }}
       className="fixed top-[72px] right-4 left-4 sm:left-auto sm:w-[340px] bg-white border border-gray-200 rounded-2xl shadow-xl overflow-hidden z-[60]"
     >
@@ -339,11 +345,10 @@ export function Navbar() {
                     )}
                   </Button>
 
-                  <AnimatePresence>
-                    {showNotifications && (
-                      <NotificationsPanel onClose={() => setShowNotifications(false)} />
-                    )}
-                  </AnimatePresence>
+                  <NotificationsPanel
+                    isOpen={showNotifications}
+                    onClose={() => setShowNotifications(false)}
+                  />
                 </div>
 
                 {/* User dropdown */}
