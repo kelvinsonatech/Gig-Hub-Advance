@@ -46,7 +46,7 @@ export function InstallPrompt() {
     if (isStandalone()) return;
     if (wasRecentlyDismissed()) return;
     const show = setTimeout(() => setVisible(true), 2000);
-    const hide = setTimeout(() => setVisible(false), 9000); // 2s delay + 7s visible
+    const hide = setTimeout(() => setVisible(false), 11000); // 2s delay + 9s visible
     return () => { clearTimeout(show); clearTimeout(hide); };
   }, []);
 
