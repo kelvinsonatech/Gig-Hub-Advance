@@ -71,66 +71,33 @@ function PopperEmoji({ side }: { side: "left" | "right" }) {
 
 export function LoginConfetti() {
   const { justLoggedIn, setJustLoggedIn } = useAuthStore();
-  const [showBadge, setShowBadge] = useState(false);
   const [showPoppers, setShowPoppers] = useState(false);
   const t1 = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const t2 = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (!justLoggedIn) return;
     setJustLoggedIn(false);
 
     setShowPoppers(true);
-    setShowBadge(true);
     startBirthdayPoppers();
 
-    // Store timers in refs so the cleanup from this effect re-running
-    // (caused by setJustLoggedIn(false)) does NOT cancel them
     t1.current = setTimeout(() => setShowPoppers(false), 1400);
-    t2.current = setTimeout(() => setShowBadge(false), 3200);
   }, [justLoggedIn]);
 
-  // Only clear on actual unmount
   useEffect(() => {
     return () => {
       if (t1.current) clearTimeout(t1.current);
-      if (t2.current) clearTimeout(t2.current);
     };
   }, []);
 
   return (
-    <>
-      <AnimatePresence>
-        {showPoppers && (
-          <>
-            <PopperEmoji key="left" side="left" />
-            <PopperEmoji key="right" side="right" />
-          </>
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {showBadge && (
-          <motion.div
-            key="badge"
-            initial={{ opacity: 0, scale: 0.4, y: 60 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.75, y: -24 }}
-            transition={{ type: "spring", stiffness: 440, damping: 22, delay: 0.1 }}
-            className="fixed inset-x-0 top-[20%] flex justify-center z-[9998] pointer-events-none select-none"
-          >
-            <div className="bg-white rounded-3xl px-8 py-5 shadow-2xl border border-gray-100 flex flex-col items-center gap-1 mx-4">
-              <span className="text-4xl mb-0.5">🎉</span>
-              <p className="text-lg font-extrabold text-gray-900 leading-tight text-center">
-                Welcome back!
-              </p>
-              <p className="text-sm text-[#0077C7] font-semibold">
-                Great to see you on TurboGH
-              </p>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </>
+    <AnimatePresence>
+      {showPoppers && (
+        <>
+          <PopperEmoji key="left" side="left" />
+          <PopperEmoji key="right" side="right" />
+        </>
+      )}
+    </AnimatePresence>
   );
 }
