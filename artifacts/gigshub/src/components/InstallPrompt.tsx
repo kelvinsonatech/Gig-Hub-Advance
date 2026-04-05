@@ -45,8 +45,9 @@ export function InstallPrompt() {
     if (!isMobile()) return;
     if (isStandalone()) return;
     if (wasRecentlyDismissed()) return;
-    const t = setTimeout(() => setVisible(true), 2000);
-    return () => clearTimeout(t);
+    const show = setTimeout(() => setVisible(true), 2000);
+    const hide = setTimeout(() => setVisible(false), 9000); // 2s delay + 7s visible
+    return () => { clearTimeout(show); clearTimeout(hide); };
   }, []);
 
   const dismiss = () => {
