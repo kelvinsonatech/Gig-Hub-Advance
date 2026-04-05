@@ -60,6 +60,13 @@ export default function Bundles() {
   const { isAuthenticated, user } = useAuth();
   const { data: networks, isLoading: loadingNetworks } = useGetNetworks();
   const { data: wallet } = useGetWallet({ query: { enabled: isAuthenticated } });
+
+  const [cachedBalance] = useState<number | null>(() => {
+    if (!isAuthenticated) return null;
+    const v = localStorage.getItem("gigshub_wallet_balance");
+    return v !== null ? parseFloat(v) : null;
+  });
+  const displayBalance = wallet?.balance ?? cachedBalance;
   const search = useSearch();
 
   const [selectedNetworkId, setSelectedNetworkId] = useState<string | null>(null);
@@ -205,12 +212,12 @@ export default function Bundles() {
               </div>
               <p className="text-white/70 text-sm sm:text-base">Select your network and choose the perfect data package.</p>
             </div>
-            {isAuthenticated && wallet && (
+            {isAuthenticated && displayBalance !== null && (
               <div className="flex items-center gap-2.5 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl sm:rounded-2xl px-4 py-2.5 sm:px-5 sm:py-3 shrink-0 w-fit">
                 <CreditCard className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
                 <div>
                   <p className="text-white/60 text-[10px] sm:text-xs font-medium">Wallet Balance</p>
-                  <p className="font-extrabold text-base sm:text-lg tracking-tight">{formatGHS(wallet.balance)}</p>
+                  <p className="font-extrabold text-base sm:text-lg tracking-tight">{formatGHS(displayBalance)}</p>
                 </div>
               </div>
             )}
