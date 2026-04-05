@@ -1,10 +1,9 @@
-import { useEffect } from "react";
+import { Suspense, lazy, useEffect } from "react";
 import { Switch, Route, Router as WouterRouter, useLocation, Redirect } from "wouter";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider, keepPreviousData } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import NotFound from "@/pages/not-found";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { BottomNav } from "@/components/layout/BottomNav";
@@ -14,35 +13,33 @@ import { AdminLayout } from "@/pages/admin/AdminLayout";
 import { useFcm } from "@/hooks/use-fcm";
 import { useImagePreloader } from "@/hooks/use-image-preloader";
 
-// Pages
-import Login from "@/pages/Login";
-import Register from "@/pages/Register";
-import Dashboard from "@/pages/Dashboard";
-import Bundles from "@/pages/Bundles";
-import Services from "@/pages/Services";
-import Wallet from "@/pages/Wallet";
-import Orders from "@/pages/Orders";
-import AFARegistration from "@/pages/AFARegistration";
-import PaymentSuccess from "@/pages/PaymentSuccess";
+// Lazy-loaded pages — each page becomes its own JS chunk
+const Login            = lazy(() => import("@/pages/Login"));
+const Register         = lazy(() => import("@/pages/Register"));
+const Dashboard        = lazy(() => import("@/pages/Dashboard"));
+const Bundles          = lazy(() => import("@/pages/Bundles"));
+const Services         = lazy(() => import("@/pages/Services"));
+const Wallet           = lazy(() => import("@/pages/Wallet"));
+const Orders           = lazy(() => import("@/pages/Orders"));
+const AFARegistration  = lazy(() => import("@/pages/AFARegistration"));
+const PaymentSuccess   = lazy(() => import("@/pages/PaymentSuccess"));
+const NotFound         = lazy(() => import("@/pages/not-found"));
 
 // Admin pages
-import AdminDashboard from "@/pages/admin/AdminDashboard";
-import AdminNetworks from "@/pages/admin/AdminNetworks";
-import AdminBundles from "@/pages/admin/AdminBundles";
-import AdminServices from "@/pages/admin/AdminServices";
-import AdminNotifications from "@/pages/admin/AdminNotifications";
-import AdminOrders from "@/pages/admin/AdminOrders";
-import AdminUsers from "@/pages/admin/AdminUsers";
+const AdminDashboard      = lazy(() => import("@/pages/admin/AdminDashboard"));
+const AdminNetworks       = lazy(() => import("@/pages/admin/AdminNetworks"));
+const AdminBundles        = lazy(() => import("@/pages/admin/AdminBundles"));
+const AdminServices       = lazy(() => import("@/pages/admin/AdminServices"));
+const AdminNotifications  = lazy(() => import("@/pages/admin/AdminNotifications"));
+const AdminOrders         = lazy(() => import("@/pages/admin/AdminOrders"));
+const AdminUsers          = lazy(() => import("@/pages/admin/AdminUsers"));
 
-// Intercept fetch to automatically add Authorization Bearer token to all requests
+// Intercept fetch to automatically add Authorization Bearer token
 const originalFetch = window.fetch;
 window.fetch = async (input, init) => {
   const token = localStorage.getItem("gigshub_token");
   if (token) {
     init = init || {};
-    // Normalise existing headers into a Headers instance so spreading a
-    // Headers object (whose keys are not enumerable) doesn't silently wipe
-    // Content-Type and other headers set by the API client.
     const headers = new Headers(init.headers as HeadersInit | undefined);
     headers.set("Authorization", `Bearer ${token}`);
     init = { ...init, headers };
@@ -57,6 +54,8 @@ const queryClient = new QueryClient({
       refetchOnWindowFocus: false,
       staleTime: 30_000,
       gcTime: 5 * 60_000,
+      // Keep previous data while fetching so pages never flash blank
+      placeholderData: keepPreviousData,
     },
   },
 });
@@ -67,6 +66,11 @@ function ScrollToTop() {
     window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
   }, [location]);
   return null;
+}
+
+// Minimal blank placeholder while a lazy page chunk loads
+function PageShell() {
+  return <div className="min-h-[60vh]" />;
 }
 
 function PublicLayout({ children }: { children: React.ReactNode }) {
@@ -88,16 +92,18 @@ function Router() {
     return (
       <AdminLayout>
         <ScrollToTop />
-        <Switch location={location}>
-          <Route path="/admin" component={AdminDashboard} />
-          <Route path="/admin/networks" component={AdminNetworks} />
-          <Route path="/admin/bundles" component={AdminBundles} />
-          <Route path="/admin/services" component={AdminServices} />
-          <Route path="/admin/notifications" component={AdminNotifications} />
-          <Route path="/admin/orders" component={AdminOrders} />
-          <Route path="/admin/users" component={AdminUsers} />
-          <Route component={NotFound} />
-        </Switch>
+        <Suspense fallback={<PageShell />}>
+          <Switch location={location}>
+            <Route path="/admin" component={AdminDashboard} />
+            <Route path="/admin/networks" component={AdminNetworks} />
+            <Route path="/admin/bundles" component={AdminBundles} />
+            <Route path="/admin/services" component={AdminServices} />
+            <Route path="/admin/notifications" component={AdminNotifications} />
+            <Route path="/admin/orders" component={AdminOrders} />
+            <Route path="/admin/users" component={AdminUsers} />
+            <Route component={NotFound} />
+          </Switch>
+        </Suspense>
       </AdminLayout>
     );
   }
@@ -105,27 +111,28 @@ function Router() {
   return (
     <PublicLayout>
       <ScrollToTop />
-      <AnimatePresence mode="wait" initial={false}>
+      <AnimatePresence initial={false}>
         <motion.div
           key={location}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -4 }}
-          transition={{ duration: 0.18, ease: [0.25, 0.46, 0.45, 0.94] }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.12, ease: "easeOut" }}
         >
-          <Switch location={location}>
-            <Route path="/"><Redirect to="/login" /></Route>
-            <Route path="/login" component={Login} />
-            <Route path="/register" component={Register} />
-            <Route path="/dashboard" component={Dashboard} />
-            <Route path="/bundles" component={Bundles} />
-            <Route path="/services" component={Services} />
-            <Route path="/wallet" component={Wallet} />
-            <Route path="/orders" component={Orders} />
-            <Route path="/afa-registration" component={AFARegistration} />
-            <Route path="/payment-success" component={PaymentSuccess} />
-            <Route component={NotFound} />
-          </Switch>
+          <Suspense fallback={<PageShell />}>
+            <Switch location={location}>
+              <Route path="/"><Redirect to="/login" /></Route>
+              <Route path="/login" component={Login} />
+              <Route path="/register" component={Register} />
+              <Route path="/dashboard" component={Dashboard} />
+              <Route path="/bundles" component={Bundles} />
+              <Route path="/services" component={Services} />
+              <Route path="/wallet" component={Wallet} />
+              <Route path="/orders" component={Orders} />
+              <Route path="/afa-registration" component={AFARegistration} />
+              <Route path="/payment-success" component={PaymentSuccess} />
+              <Route component={NotFound} />
+            </Switch>
+          </Suspense>
         </motion.div>
       </AnimatePresence>
     </PublicLayout>
@@ -137,14 +144,11 @@ function FcmInit() {
   return null;
 }
 
-// Detects when the user presses the browser back button from Paystack's page
-// and navigates them to the payment-success page with a cancelled status.
 function PaymentGuard() {
   const [, navigate] = useLocation();
 
   useEffect(() => {
     const handlePageShow = (e: PageTransitionEvent) => {
-      // persisted=true means page was restored from bfcache (back/forward navigation)
       if (!e.persisted) return;
       const intent = localStorage.getItem("turbogh_payment_intent");
       if (intent) {
