@@ -216,7 +216,7 @@ function OrderCard({ order, networkMap }: { order: Order; networkMap: NetworkMap
 }
 
 export default function Orders() {
-  const { data: orders, isLoading } = useGetOrders();
+  const { data: orders, isLoading } = useGetOrders({ query: { refetchInterval: 10_000, refetchOnWindowFocus: true } });
   const { data: networks } = useGetNetworks();
 
   const networkMap = (networks ?? []).reduce<NetworkMap>((acc, n) => {
