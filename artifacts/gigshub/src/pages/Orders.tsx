@@ -20,6 +20,8 @@ type OrderDetails = {
   [key: string]: unknown;
 };
 
+type NetworkMap = Record<string, { logoUrl?: string; color: string }>;
+
 const STATUS_META: Record<string, { label: string; dot: string; badge: string }> = {
   pending:    { label: "Pending",    dot: "bg-amber-400",   badge: "bg-amber-50 text-amber-700 border-amber-200" },
   processing: { label: "Processing", dot: "bg-blue-500",    badge: "bg-blue-50 text-blue-700 border-blue-200" },
@@ -27,13 +29,34 @@ const STATUS_META: Record<string, { label: string; dot: string; badge: string }>
   failed:     { label: "Failed",     dot: "bg-red-500",     badge: "bg-red-50 text-red-700 border-red-200" },
 };
 
-// Convert numeric order ID → short alphanumeric reference (e.g. 2 → "GH-2A3K5")
 function toOrderRef(id: string): string {
   const num = parseInt(id, 10);
   if (isNaN(num)) return id.slice(0, 8).toUpperCase();
-  // Add large offset so even ID=1 gives a 5-char base-36 string, then prefix
   const code = (num + 916132832).toString(36).toUpperCase().slice(-5);
   return `GH-${code}`;
+}
+
+function getOrderTitle(type: string, details: OrderDetails): string {
+  if (type === "bundle") {
+    const parts = [details.networkName, details.bundleName ?? details.data].filter(Boolean);
+    return parts.length > 0 ? parts.join(" – ") : "Data Bundle";
+  }
+  if (type === "afa_registration") return "AFA Registration";
+  if (type === "agent_registration") return "Agent Registration";
+  return "Order";
+}
+
+function getSubtitle(type: string, details: OrderDetails): string | null {
+  if (details.data && details.validity) return `${details.data} • Valid ${details.validity}`;
+  if (details.data) return details.data;
+  return null;
+}
+
+function dateGroupLabel(iso: string): string {
+  const d = parseISO(iso);
+  if (isToday(d)) return "Today";
+  if (isYesterday(d)) return "Yesterday";
+  return format(d, "EEEE, MMM d, yyyy");
 }
 
 function CopyId({ id }: { id: string }) {
@@ -83,77 +106,124 @@ function CopyText({ value, children }: { value: string; children: ReactNode }) {
   );
 }
 
+function NetworkLogo({ networkName, size = 40, networkMap }: { networkName?: string; size?: number; networkMap: NetworkMap }) {
+  const net = networkName ? networkMap[networkName] : undefined;
+  if (net?.logoUrl) {
+    return (
+      <img
+        src={net.logoUrl}
+        alt={networkName}
+        style={{ width: size, height: size }}
+        className="rounded-xl object-contain bg-white border border-gray-100 p-0.5 shadow-sm"
+        onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+      />
+    );
+  }
+  const color = net?.color ?? "#6366f1";
+  return (
+    <div
+      style={{ width: size, height: size, backgroundColor: color + "20", color }}
+      className="rounded-xl flex items-center justify-center border border-gray-100 shadow-sm"
+    >
+      <Wifi className="w-5 h-5" />
+    </div>
+  );
+}
+
+function ServiceIcon({ type }: { type: string }) {
+  const icons: Record<string, { icon: any; color: string; bg: string }> = {
+    afa_registration:   { icon: ShieldCheck, color: "text-purple-600", bg: "bg-purple-50 border-purple-100" },
+    agent_registration: { icon: UserPlus,    color: "text-pink-600",   bg: "bg-pink-50 border-pink-100" },
+  };
+  const meta = icons[type] ?? { icon: Package, color: "text-gray-500", bg: "bg-gray-50 border-gray-100" };
+  const Icon = meta.icon;
+  return (
+    <div className={`w-10 h-10 rounded-xl flex items-center justify-center border shadow-sm ${meta.bg}`}>
+      <Icon className={`w-5 h-5 ${meta.color}`} />
+    </div>
+  );
+}
+
+type Order = {
+  id: string;
+  type: string;
+  status: string;
+  amount: number | string;
+  createdAt: string;
+  details?: Record<string, unknown> | null;
+};
+
+function OrderCard({ order, networkMap }: { order: Order; networkMap: NetworkMap }) {
+  const details = (order.details ?? {}) as OrderDetails;
+  const status = STATUS_META[order.status] ?? STATUS_META.pending;
+  const title = getOrderTitle(order.type, details);
+  const subtitle = getSubtitle(order.type, details);
+  const isBundle = order.type === "bundle";
+
+  return (
+    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm active:shadow-md transition-all overflow-hidden">
+      <div className={`h-0.5 w-full ${status.dot}`} />
+
+      <div className="p-3 sm:p-4 flex items-start gap-3 sm:gap-4">
+        <div className="shrink-0 mt-0.5">
+          {isBundle
+            ? <NetworkLogo networkName={details.networkName} size={36} networkMap={networkMap} />
+            : <ServiceIcon type={order.type} />
+          }
+        </div>
+
+        <div className="flex-1 min-w-0">
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0 flex-1">
+              <p className="font-bold text-gray-900 text-sm leading-snug line-clamp-2">{title}</p>
+              {subtitle && (
+                <p className="text-xs text-gray-400 mt-0.5">{subtitle}</p>
+              )}
+            </div>
+            <span className="font-black text-gray-900 text-sm sm:text-base shrink-0 ml-2 tabular-nums">
+              {formatGHS(order.amount)}
+            </span>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-1.5">
+            {details.phoneNumber && (
+              <CopyText value={details.phoneNumber}>
+                <Phone className="w-3 h-3" />
+                {details.phoneNumber}
+              </CopyText>
+            )}
+            <span className="flex items-center gap-1 text-xs text-gray-400">
+              <Clock className="w-3 h-3" />
+              {format(parseISO(order.createdAt), "h:mm a")}
+            </span>
+          </div>
+
+          <div className="flex items-center justify-between mt-2 gap-2 flex-wrap">
+            <span className={`inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-bold border ${status.badge}`}>
+              <span className={`w-1.5 h-1.5 rounded-full ${status.dot}`} />
+              {status.label}
+            </span>
+            <div className="flex items-center gap-1 sm:gap-1.5 bg-gray-50 border border-gray-200 rounded-lg px-2 sm:px-2.5 py-0.5 sm:py-1">
+              <span className="text-[9px] sm:text-[10px] font-semibold text-gray-400 uppercase tracking-wider">ID</span>
+              <span className="w-px h-3 bg-gray-200" />
+              <CopyId id={order.id} />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Orders() {
   const { data: orders, isLoading } = useGetOrders();
   const { data: networks } = useGetNetworks();
 
-  const networkMap = (networks ?? []).reduce<Record<string, { logoUrl?: string; color: string }>>((acc, n) => {
+  const networkMap = (networks ?? []).reduce<NetworkMap>((acc, n) => {
     acc[n.name] = { logoUrl: n.logoUrl ?? undefined, color: n.color };
     return acc;
   }, {});
 
-  function getOrderTitle(type: string, details: OrderDetails): string {
-    if (type === "bundle") {
-      const parts = [details.networkName, details.bundleName ?? details.data].filter(Boolean);
-      return parts.length > 0 ? parts.join(" – ") : "Data Bundle";
-    }
-    if (type === "afa_registration") return "AFA Registration";
-    if (type === "agent_registration") return "Agent Registration";
-    return "Order";
-  }
-
-  function getSubtitle(type: string, details: OrderDetails): string | null {
-    if (details.data && details.validity) return `${details.data} • Valid ${details.validity}`;
-    if (details.data) return details.data;
-    return null;
-  }
-
-  function NetworkLogo({ networkName, size = 40 }: { networkName?: string; size?: number }) {
-    const net = networkName ? networkMap[networkName] : undefined;
-    if (net?.logoUrl) {
-      return (
-        <img
-          src={net.logoUrl}
-          alt={networkName}
-          style={{ width: size, height: size }}
-          className="rounded-xl object-contain bg-white border border-gray-100 p-0.5 shadow-sm"
-          onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-        />
-      );
-    }
-    const color = net?.color ?? "#6366f1";
-    return (
-      <div
-        style={{ width: size, height: size, backgroundColor: color + "20", color }}
-        className="rounded-xl flex items-center justify-center border border-gray-100 shadow-sm"
-      >
-        <Wifi className="w-5 h-5" />
-      </div>
-    );
-  }
-
-  function ServiceIcon({ type }: { type: string }) {
-    const icons: Record<string, { icon: any; color: string; bg: string }> = {
-      afa_registration:   { icon: ShieldCheck, color: "text-purple-600", bg: "bg-purple-50 border-purple-100" },
-      agent_registration: { icon: UserPlus,    color: "text-pink-600",   bg: "bg-pink-50 border-pink-100" },
-    };
-    const meta = icons[type] ?? { icon: Package, color: "text-gray-500", bg: "bg-gray-50 border-gray-100" };
-    const Icon = meta.icon;
-    return (
-      <div className={`w-10 h-10 rounded-xl flex items-center justify-center border shadow-sm ${meta.bg}`}>
-        <Icon className={`w-5 h-5 ${meta.color}`} />
-      </div>
-    );
-  }
-
-  function dateGroupLabel(iso: string): string {
-    const d = parseISO(iso);
-    if (isToday(d)) return "Today";
-    if (isYesterday(d)) return "Yesterday";
-    return format(d, "EEEE, MMM d, yyyy");
-  }
-
-  // Group orders by calendar date (newest first)
   const grouped: { label: string; orders: NonNullable<typeof orders> }[] = [];
   if (orders && orders.length > 0) {
     let currentLabel = "";
@@ -165,74 +235,6 @@ export default function Orders() {
       }
       grouped[grouped.length - 1].orders.push(order);
     }
-  }
-
-  function OrderCard({ order }: { order: NonNullable<typeof orders>[number] }) {
-    const details = (order.details ?? {}) as OrderDetails;
-    const status = STATUS_META[order.status] ?? STATUS_META.pending;
-    const title = getOrderTitle(order.type, details);
-    const subtitle = getSubtitle(order.type, details);
-    const isBundle = order.type === "bundle";
-
-    return (
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm active:shadow-md transition-all overflow-hidden">
-        {/* Colored status stripe */}
-        <div className={`h-0.5 w-full ${status.dot}`} />
-
-        <div className="p-3 sm:p-4 flex items-start gap-3 sm:gap-4">
-          {/* Logo / Icon — slightly smaller on mobile */}
-          <div className="shrink-0 mt-0.5">
-            {isBundle
-              ? <NetworkLogo networkName={details.networkName} size={36} />
-              : <ServiceIcon type={order.type} />
-            }
-          </div>
-
-          {/* Main content */}
-          <div className="flex-1 min-w-0">
-            {/* Top row: title + amount */}
-            <div className="flex items-start justify-between gap-2">
-              <div className="min-w-0 flex-1">
-                <p className="font-bold text-gray-900 text-sm leading-snug line-clamp-2">{title}</p>
-                {subtitle && (
-                  <p className="text-xs text-gray-400 mt-0.5">{subtitle}</p>
-                )}
-              </div>
-              <span className="font-black text-gray-900 text-sm sm:text-base shrink-0 ml-2 tabular-nums">
-                {formatGHS(order.amount)}
-              </span>
-            </div>
-
-            {/* Middle row: phone + time */}
-            <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-1.5">
-              {details.phoneNumber && (
-                <CopyText value={details.phoneNumber}>
-                  <Phone className="w-3 h-3" />
-                  {details.phoneNumber}
-                </CopyText>
-              )}
-              <span className="flex items-center gap-1 text-xs text-gray-400">
-                <Clock className="w-3 h-3" />
-                {format(parseISO(order.createdAt), "h:mm a")}
-              </span>
-            </div>
-
-            {/* Bottom row: status + order ID */}
-            <div className="flex items-center justify-between mt-2 gap-2 flex-wrap">
-              <span className={`inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-bold border ${status.badge}`}>
-                <span className={`w-1.5 h-1.5 rounded-full ${status.dot}`} />
-                {status.label}
-              </span>
-              <div className="flex items-center gap-1 sm:gap-1.5 bg-gray-50 border border-gray-200 rounded-lg px-2 sm:px-2.5 py-0.5 sm:py-1">
-                <span className="text-[9px] sm:text-[10px] font-semibold text-gray-400 uppercase tracking-wider">ID</span>
-                <span className="w-px h-3 bg-gray-200" />
-                <CopyId id={order.id} />
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
   }
 
   return (
@@ -261,7 +263,6 @@ export default function Orders() {
           <div className="space-y-6">
             {grouped.map(group => (
               <div key={group.label}>
-                {/* Date group header */}
                 <div className="flex items-center gap-2 mb-3">
                   <span className="text-[10px] sm:text-xs font-bold text-gray-500 uppercase tracking-wide sm:tracking-widest whitespace-nowrap">
                     {group.label}
@@ -272,10 +273,9 @@ export default function Orders() {
                   </span>
                 </div>
 
-                {/* Orders in this group */}
                 <div className="space-y-3">
                   {group.orders.map(order => (
-                    <OrderCard key={order.id} order={order} />
+                    <OrderCard key={order.id} order={order} networkMap={networkMap} />
                   ))}
                 </div>
               </div>
