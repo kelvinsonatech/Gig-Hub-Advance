@@ -87,6 +87,7 @@ router.post("/initialize", async (req, res) => {
         email: user.email,
         currency: "GHS",
         callback_url: callbackUrl,
+        channels: ["mobile_money", "card"],
         metadata: {
           userId: userId,
           type,
