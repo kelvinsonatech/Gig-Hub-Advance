@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useGetServices } from "@workspace/api-client-react";
 import { Link } from "wouter";
 import { formatGHS } from "@/lib/utils";
-import { ShieldCheck, ArrowRight, ChevronRight, Wifi, Radio } from "lucide-react";
+import { ChevronRight, Wifi, Radio } from "lucide-react";
 import { motion } from "framer-motion";
 
 import { API as BASE } from "@/lib/api";
@@ -23,17 +23,6 @@ function isLightColor(hex: string): boolean {
   return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.55;
 }
 
-const OTHER_SERVICES = [
-  {
-    href: "/afa-registration",
-    icon: ShieldCheck,
-    color: "bg-indigo-100 text-indigo-600",
-    glow: "group-hover:shadow-indigo-100",
-    title: "AFA / Ghana Card Registration",
-    desc: "Register your SIM card with your Ghana Card quickly and securely.",
-  },
-
-];
 
 type Network = {
   id: string;
@@ -195,34 +184,6 @@ export default function Services() {
           )}
         </section>
 
-        {/* ── Other Services ── */}
-        <section>
-          <h2 className="text-base font-bold text-gray-500 uppercase tracking-widest mb-5">Other Services</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {OTHER_SERVICES.map((s, i) => (
-              <motion.div
-                key={s.href}
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 + i * 0.08, type: "spring", stiffness: 220, damping: 22 }}
-                whileHover={{ y: -4 }}
-              >
-                <Link href={s.href}>
-                  <div className={`bg-white border border-gray-100 rounded-2xl p-5 hover:shadow-lg ${s.glow} transition-all cursor-pointer h-full group`}>
-                    <div className={`w-11 h-11 rounded-xl ${s.color} flex items-center justify-center mb-3 group-hover:scale-110 transition-transform`}>
-                      <s.icon className="w-5 h-5" />
-                    </div>
-                    <h3 className="font-bold text-gray-900 text-sm mb-1 group-hover:text-primary transition-colors">{s.title}</h3>
-                    <p className="text-gray-500 text-xs mb-4 leading-relaxed">{s.desc}</p>
-                    <span className="text-primary font-semibold text-xs flex items-center gap-1 group-hover:gap-2 transition-all">
-                      Get Started <ArrowRight className="w-3.5 h-3.5" />
-                    </span>
-                  </div>
-                </Link>
-              </motion.div>
-            ))}
-          </div>
-        </section>
 
       </div>
     </div>

@@ -30,14 +30,6 @@ const quickActions = [
     shadow: "shadow-blue-200",
   },
   {
-    href: "/afa-registration",
-    label: "AFA Reg",
-    sublabel: "Ghana Card",
-    icon: ShieldCheck,
-    gradient: "from-amber-400 to-orange-400",
-    shadow: "shadow-orange-200",
-  },
-  {
     href: "/orders",
     label: "Orders",
     sublabel: "View history",
