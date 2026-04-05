@@ -315,8 +315,8 @@ export function Navbar() {
             {isAuthenticated ? (
               <>
                 {/* Wallet balance */}
-                <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-full border border-emerald-100 text-sm font-semibold">
-                  <Wallet className="w-3.5 h-3.5" />
+                <div className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 bg-emerald-50 text-emerald-700 rounded-full border border-emerald-100 text-xs sm:text-sm font-semibold">
+                  <Wallet className="hidden sm:block w-3.5 h-3.5" />
                   <span>{formatGHS(wallet?.balance)}</span>
                 </div>
 
