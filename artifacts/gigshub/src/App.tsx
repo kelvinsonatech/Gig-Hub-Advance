@@ -12,6 +12,7 @@ import { LoginConfetti } from "@/components/LoginConfetti";
 import { AdminLayout } from "@/pages/admin/AdminLayout";
 import { useFcm } from "@/hooks/use-fcm";
 import { useImagePreloader } from "@/hooks/use-image-preloader";
+import { useOrdersStream } from "@/hooks/use-orders-stream";
 
 // Lazy-loaded pages — each page becomes its own JS chunk
 const Login            = lazy(() => import("@/pages/Login"));
@@ -144,6 +145,11 @@ function FcmInit() {
   return null;
 }
 
+function OrdersStreamInit() {
+  useOrdersStream();
+  return null;
+}
+
 function PaymentGuard() {
   const [, navigate] = useLocation();
 
@@ -177,6 +183,7 @@ function App() {
           <LoginConfetti />
           <InstallPrompt />
           <FcmInit />
+          <OrdersStreamInit />
           <ImagePreloader />
           <PaymentGuard />
         </WouterRouter>

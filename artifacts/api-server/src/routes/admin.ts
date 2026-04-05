@@ -4,6 +4,7 @@ import { bundlesTable, servicesTable, networksTable, ordersTable, usersTable, no
 import { eq, count, inArray, gte, lt, lte, sql, desc, isNull, and } from "drizzle-orm";
 import { requireAuth, requireAdmin } from "../middleware/auth";
 import { sendPushToTokens } from "../lib/fcm";
+import { pushEventToUser } from "../lib/sse";
 import bcrypt from "bcryptjs";
 
 const router: IRouter = Router();
@@ -611,6 +612,13 @@ router.patch("/orders/:id/status", async (req, res) => {
       .where(eq(ordersTable.id, id))
       .returning();
     if (!order) return res.status(404).json({ error: "not_found", message: "Order not found" });
+
+    // Push real-time update to the user's SSE stream (if connected)
+    pushEventToUser(order.userId, "order_status_updated", {
+      id: String(order.id),
+      status: order.status,
+    });
+
     return res.json({ id: String(order.id), status: order.status });
   } catch (err) {
     req.log.error(err, "admin update order status error");

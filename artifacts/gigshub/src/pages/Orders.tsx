@@ -216,7 +216,8 @@ function OrderCard({ order, networkMap }: { order: Order; networkMap: NetworkMap
 }
 
 export default function Orders() {
-  const { data: orders, isLoading } = useGetOrders({ query: { refetchInterval: 10_000, refetchOnWindowFocus: true } });
+  // SSE (in App.tsx) handles instant push updates; polling is a background fallback only
+  const { data: orders, isLoading } = useGetOrders({ query: { refetchInterval: 60_000, refetchOnWindowFocus: true } });
   const { data: networks } = useGetNetworks();
 
   const networkMap = (networks ?? []).reduce<NetworkMap>((acc, n) => {

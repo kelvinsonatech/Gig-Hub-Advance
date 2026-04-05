@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 import { db } from "@workspace/db";
 import { ordersTable, walletsTable, transactionsTable, bundlesTable, paymentIntentsTable } from "@workspace/db";
 import { eq, desc, and } from "drizzle-orm";
+import { addSseClient, removeSseClient } from "../lib/sse";
 
 const router: IRouter = Router();
 const JWT_SECRET = process.env.JWT_SECRET || "gigshub-secret-key-change-in-production";
@@ -21,6 +22,45 @@ function getUserId(req: any): number | null {
 function isValidReference(ref: string): boolean {
   return /^[a-zA-Z0-9_\-]{5,100}$/.test(ref);
 }
+
+// ── Real-time SSE stream ──────────────────────────────────────────────────────
+// EventSource can't send custom headers, so the JWT is passed as ?token=...
+router.get("/stream", (req, res) => {
+  const token = req.query.token as string | undefined;
+  if (!token) return res.status(401).json({ error: "auth_error", message: "Missing token" });
+
+  let userId: number;
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET) as { userId: number };
+    userId = decoded.userId;
+  } catch {
+    return res.status(401).json({ error: "auth_error", message: "Invalid token" });
+  }
+
+  // Establish SSE connection
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("Connection", "keep-alive");
+  res.setHeader("X-Accel-Buffering", "no"); // Disable Nginx buffering if present
+  res.flushHeaders();
+
+  // Send an initial ping so the client knows the connection is live
+  res.write(": connected\n\n");
+
+  addSseClient(userId, res);
+
+  // Heartbeat every 25s to prevent proxy/browser from closing idle connections
+  const heartbeat = setInterval(() => {
+    try { res.write(": ping\n\n"); } catch { /* client gone */ }
+  }, 25_000);
+
+  req.on("close", () => {
+    clearInterval(heartbeat);
+    removeSseClient(userId, res);
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 router.get("/", async (req, res) => {
   try {
