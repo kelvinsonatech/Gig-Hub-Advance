@@ -6,6 +6,10 @@ import logoUrl from "@/assets/logo.png";
 const STORAGE_KEY = "gigshub_install_dismissed_at";
 const SNOOZE_DAYS = 30;
 
+function isMobile() {
+  return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+}
+
 function isIOS() {
   return /iPhone|iPad|iPod/i.test(navigator.userAgent);
 }
@@ -27,8 +31,8 @@ function wasRecentlyDismissed() {
 export function InstallPrompt() {
   const [visible, setVisible] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
-  const ios = isIOS();
 
+  // Capture the native install prompt when browser fires it
   useEffect(() => {
     const handler = (e: Event) => {
       e.preventDefault();
@@ -38,14 +42,15 @@ export function InstallPrompt() {
     return () => window.removeEventListener("beforeinstallprompt", handler);
   }, []);
 
+  // Show banner on any mobile browser that hasn't installed or dismissed
   useEffect(() => {
+    if (!isMobile()) return;
     if (isStandalone()) return;
     if (wasRecentlyDismissed()) return;
-    if (!ios && !deferredPrompt) return;
 
-    const t = setTimeout(() => setVisible(true), 1800);
+    const t = setTimeout(() => setVisible(true), 2000);
     return () => clearTimeout(t);
-  }, [deferredPrompt, ios]);
+  }, []);
 
   const dismiss = () => {
     setVisible(false);
@@ -53,14 +58,15 @@ export function InstallPrompt() {
   };
 
   const install = async () => {
-    if (ios) {
+    if (deferredPrompt) {
+      // Android/Chrome: trigger native install dialog
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === "accepted") dismiss();
+    } else {
+      // iOS or unsupported: just dismiss (user sees the iOS hint in the label)
       dismiss();
-      return;
     }
-    if (!deferredPrompt) return;
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    if (outcome === "accepted") dismiss();
   };
 
   return (
@@ -85,7 +91,7 @@ export function InstallPrompt() {
               <p className="text-[13px] font-bold text-gray-900 leading-tight truncate">
                 Install TurboGH
               </p>
-              {ios && (
+              {isIOS() && (
                 <p className="text-[11px] text-gray-400 leading-tight mt-0.5">
                   Tap Share → Add to Home Screen
                 </p>
