@@ -254,11 +254,34 @@ function NotificationsPanel({ onClose, isOpen }: { onClose: () => void; isOpen: 
   );
 }
 
+const WALLET_BALANCE_KEY = "gigshub_wallet_balance";
+
 export function Navbar() {
   const { user, isAuthenticated, logout } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+
+  const [cachedBalance] = useState<number | null>(() => {
+    if (!isAuthenticated) return null;
+    const v = localStorage.getItem(WALLET_BALANCE_KEY);
+    return v !== null ? parseFloat(v) : null;
+  });
+
   const { data: wallet } = useGetWallet({ query: { enabled: isAuthenticated } });
+
+  useEffect(() => {
+    if (wallet?.balance !== undefined) {
+      localStorage.setItem(WALLET_BALANCE_KEY, String(wallet.balance));
+    }
+  }, [wallet?.balance]);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      localStorage.removeItem(WALLET_BALANCE_KEY);
+    }
+  }, [isAuthenticated]);
+
+  const displayBalance = wallet?.balance ?? cachedBalance ?? null;
 
   const { data: notifications = [] } = useQuery({
     queryKey: ["notifications"],
@@ -323,7 +346,7 @@ export function Navbar() {
                 {/* Wallet balance */}
                 <div className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 bg-emerald-50 text-emerald-700 rounded-full border border-emerald-100 text-xs sm:text-sm font-semibold">
                   <Wallet className="hidden sm:block w-3.5 h-3.5" />
-                  <span>{formatGHS(wallet?.balance)}</span>
+                  <span>{formatGHS(displayBalance)}</span>
                 </div>
 
                 {/* Bell — notification toggle */}
@@ -452,7 +475,7 @@ export function Navbar() {
               <div className="flex flex-col gap-2 pt-3 border-t border-border">
                 <div className="flex items-center gap-2 px-3 py-2 bg-emerald-50 text-emerald-700 rounded-xl border border-emerald-100 text-sm font-semibold">
                   <Wallet className="w-4 h-4" />
-                  <span>{formatGHS(wallet?.balance)}</span>
+                  <span>{formatGHS(displayBalance)}</span>
                 </div>
                 <Button variant="outline" asChild className="w-full rounded-xl justify-center">
                   <Link href="/wallet" onClick={close}>Wallet & Top Up</Link>
