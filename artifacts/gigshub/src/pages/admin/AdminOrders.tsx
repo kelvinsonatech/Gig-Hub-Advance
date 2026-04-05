@@ -10,6 +10,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { UserAvatar } from "@/components/ui/UserAvatar";
 import { API } from "@/lib/api";
+import { useAdminOrdersStream } from "@/hooks/use-admin-orders-stream";
 
 async function apiFetch(path: string, opts?: RequestInit) {
   const token = localStorage.getItem("gigshub_token");
@@ -455,10 +456,13 @@ export default function AdminOrders() {
   const [filter, setFilter] = useState<string>("all");
   const [clearOpen, setClearOpen] = useState(false);
 
+  // SSE hook gives instant push updates; polling is just a fallback
+  useAdminOrdersStream();
+
   const { data: orders = [], isLoading } = useQuery<Order[]>({
     queryKey: ["admin-orders"],
     queryFn: () => apiFetch("/orders"),
-    refetchInterval: 30_000,
+    refetchInterval: 60_000,
   });
 
   const updateStatus = useMutation({

@@ -1,9 +1,9 @@
 import { Router, type IRouter } from "express";
 import jwt from "jsonwebtoken";
 import { db } from "@workspace/db";
-import { ordersTable, walletsTable, transactionsTable, bundlesTable, paymentIntentsTable } from "@workspace/db";
+import { ordersTable, walletsTable, transactionsTable, bundlesTable, paymentIntentsTable, usersTable } from "@workspace/db";
 import { eq, desc, and } from "drizzle-orm";
-import { addSseClient, removeSseClient } from "../lib/sse";
+import { addSseClient, removeSseClient, pushEventToAdmins } from "../lib/sse";
 
 const router: IRouter = Router();
 const JWT_SECRET = process.env.JWT_SECRET || "gigshub-secret-key-change-in-production";
@@ -21,6 +21,30 @@ function getUserId(req: any): number | null {
 
 function isValidReference(ref: string): boolean {
   return /^[a-zA-Z0-9_\-]{5,100}$/.test(ref);
+}
+
+// Fetch user info and push a new_order event to all connected admin clients
+async function notifyAdminsNewOrder(order: typeof ordersTable.$inferSelect) {
+  try {
+    const [user] = await db
+      .select({ name: usersTable.name, email: usersTable.email, phone: usersTable.phone })
+      .from(usersTable)
+      .where(eq(usersTable.id, order.userId))
+      .limit(1);
+    pushEventToAdmins("new_order", {
+      id: String(order.id),
+      type: order.type,
+      status: order.status,
+      amount: parseFloat(order.amount),
+      details: order.details ?? {},
+      createdAt: order.createdAt.toISOString(),
+      user: user
+        ? { name: user.name, email: user.email, phone: user.phone ?? "" }
+        : { name: "Unknown", email: "", phone: "" },
+    });
+  } catch {
+    // Non-critical — order was already saved successfully
+  }
 }
 
 // ── Real-time SSE stream ──────────────────────────────────────────────────────
@@ -222,6 +246,9 @@ router.post("/", async (req, res) => {
         .set({ status: "processed", processedAt: new Date() })
         .where(eq(paymentIntentsTable.reference, paystackReference));
 
+      // Notify admin panel in real-time (fire-and-forget)
+      notifyAdminsNewOrder(order);
+
       return res.status(201).json({
         id: String(order.id),
         userId: String(order.userId),
@@ -290,6 +317,9 @@ router.post("/", async (req, res) => {
         amount: String(amount),
         details: orderDetails,
       }).returning();
+
+      // Notify admin panel in real-time (fire-and-forget)
+      notifyAdminsNewOrder(order);
 
       return res.status(201).json({
         id: String(order.id),

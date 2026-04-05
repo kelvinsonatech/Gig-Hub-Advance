@@ -1,13 +1,58 @@
 import { Router, type IRouter } from "express";
+import jwt from "jsonwebtoken";
 import { db } from "@workspace/db";
 import { bundlesTable, servicesTable, networksTable, ordersTable, usersTable, notificationsTable, deviceTokensTable, walletsTable, transactionsTable } from "@workspace/db";
 import { eq, count, inArray, gte, lt, lte, sql, desc, isNull, and } from "drizzle-orm";
 import { requireAuth, requireAdmin } from "../middleware/auth";
 import { sendPushToTokens } from "../lib/fcm";
-import { pushEventToUser } from "../lib/sse";
+import { pushEventToUser, pushEventToAdmins, addAdminSseClient, removeAdminSseClient } from "../lib/sse";
 import bcrypt from "bcryptjs";
 
+const JWT_SECRET = process.env.JWT_SECRET || "gigshub-secret-key-change-in-production";
+
 const router: IRouter = Router();
+
+// ── Admin real-time SSE stream ────────────────────────────────────────────────
+// Must be registered BEFORE requireAdmin middleware so it can authenticate via
+// query-param token (EventSource cannot set custom headers).
+router.get("/stream", async (req, res) => {
+  const token = req.query.token as string | undefined;
+  if (!token) return res.status(401).json({ error: "auth_error", message: "Missing token" });
+
+  let userId: number;
+  let role: string;
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET) as { userId: number; role: string };
+    userId = decoded.userId;
+    role = decoded.role;
+  } catch {
+    return res.status(401).json({ error: "auth_error", message: "Invalid token" });
+  }
+
+  if (role !== "admin") {
+    return res.status(403).json({ error: "forbidden", message: "Admin access required" });
+  }
+
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("Connection", "keep-alive");
+  res.setHeader("X-Accel-Buffering", "no");
+  res.flushHeaders();
+
+  res.write(": connected\n\n");
+  addAdminSseClient(res);
+
+  const heartbeat = setInterval(() => {
+    try { res.write(": ping\n\n"); } catch { /* client gone */ }
+  }, 25_000);
+
+  req.on("close", () => {
+    clearInterval(heartbeat);
+    removeAdminSseClient(res);
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 router.use(requireAuth, requireAdmin);
 
@@ -613,8 +658,12 @@ router.patch("/orders/:id/status", async (req, res) => {
       .returning();
     if (!order) return res.status(404).json({ error: "not_found", message: "Order not found" });
 
-    // Push real-time update to the user's SSE stream (if connected)
+    // Push real-time updates to the customer and to all connected admin sessions
     pushEventToUser(order.userId, "order_status_updated", {
+      id: String(order.id),
+      status: order.status,
+    });
+    pushEventToAdmins("order_status_updated", {
       id: String(order.id),
       status: order.status,
     });
