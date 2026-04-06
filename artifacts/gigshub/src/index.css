@@ -114,6 +114,18 @@
   to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
+@keyframes topbar {
+  0%   { width: 0%;    opacity: 1; }
+  60%  { width: 82%;   opacity: 1; }
+  90%  { width: 100%;  opacity: 1; }
+  100% { width: 100%;  opacity: 0; }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -600px 0; }
+  100% { background-position:  600px 0; }
+}
+
 @layer base {
   * {
     @apply border-border;
