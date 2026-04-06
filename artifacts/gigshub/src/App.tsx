@@ -9,7 +9,6 @@ import { Footer } from "@/components/layout/Footer";
 import { BottomNav } from "@/components/layout/BottomNav";
 import { InstallPrompt } from "@/components/InstallPrompt";
 import { LoginConfetti } from "@/components/LoginConfetti";
-import { TopLoadingBar } from "@/components/TopLoadingBar";
 import { AdminLayout } from "@/pages/admin/AdminLayout";
 import { useFcm } from "@/hooks/use-fcm";
 import { useImagePreloader } from "@/hooks/use-image-preloader";
@@ -70,37 +69,9 @@ function ScrollToTop() {
   return null;
 }
 
-// Skeleton shimmer block
-function SkeletonBar({ w = "100%", h = "1rem" }: { w?: string; h?: string }) {
-  return (
-    <div
-      className="rounded-lg"
-      style={{
-        width: w, height: h,
-        background: "linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%)",
-        backgroundSize: "600px 100%",
-        animation: "shimmer 1.4s infinite linear",
-      }}
-    />
-  );
-}
-
-// Placeholder shown while a lazy page chunk is loading
+// Minimal blank placeholder while a lazy page chunk loads
 function PageShell() {
-  return (
-    <div className="p-4 sm:p-6 max-w-2xl mx-auto space-y-4 mt-4">
-      <SkeletonBar w="45%" h="1.5rem" />
-      <SkeletonBar w="70%" h="0.875rem" />
-      <div className="mt-6 space-y-3">
-        {[...Array(4)].map((_, i) => (
-          <div key={i} className="rounded-2xl border border-gray-100 p-4 space-y-2">
-            <SkeletonBar w="55%" h="0.875rem" />
-            <SkeletonBar w="80%" h="0.75rem" />
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+  return <div className="min-h-[60vh]" />;
 }
 
 function PublicLayout({ children }: { children: React.ReactNode }) {
@@ -140,14 +111,13 @@ function Router() {
 
   return (
     <PublicLayout>
-      <TopLoadingBar />
       <ScrollToTop />
       <AnimatePresence initial={false}>
         <motion.div
           key={location}
-          initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.18, ease: "easeOut" }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.12, ease: "easeOut" }}
         >
           <Suspense fallback={<PageShell />}>
             <Switch location={location}>
