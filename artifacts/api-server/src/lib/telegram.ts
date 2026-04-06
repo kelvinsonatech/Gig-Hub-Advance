@@ -6,61 +6,77 @@ function toRef(id: string | number): string {
   return `GH-${num.slice(-4).toUpperCase()}`;
 }
 
-function escapeMarkdown(text: string): string {
-  return text.replace(/[_*[\]()~`>#+\-=|{}.!\\]/g, "\\$&");
+function escapeHtml(text: string): string {
+  return String(text)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
 }
 
 export async function sendOrderNotification(order: {
   id: string;
   amount: number;
   status: string;
+  type?: string;
   details?: Record<string, any>;
   user: { name: string; email: string; phone?: string };
 }): Promise<void> {
-  if (!BOT_TOKEN || !CHAT_ID) return;
+  if (!BOT_TOKEN || !CHAT_ID) {
+    console.warn("[Telegram] Missing BOT_TOKEN or CHAT_ID — skipping notification");
+    return;
+  }
 
   const d       = order.details ?? {};
-  const network = d.networkName  ? escapeMarkdown(d.networkName)  : "—";
-  const bundle  = d.bundleName   ? escapeMarkdown(d.bundleName)   : "—";
-  const data    = d.data         ? escapeMarkdown(d.data)         : "";
-  const phone   = d.phoneNumber  ? escapeMarkdown(d.phoneNumber)  : "—";
-  const userName = escapeMarkdown(order.user.name || "Unknown");
-  const userEmail = escapeMarkdown(order.user.email || "");
-  const ref     = escapeMarkdown(toRef(order.id));
-  const amount  = order.amount.toFixed(2);
-  const now     = new Date().toLocaleString("en-GH", {
+  const pm      = d.paymentMethod ?? "momo";
+  const network = d.networkName  ? escapeHtml(d.networkName)  : "—";
+  const bundle  = d.bundleName   ? escapeHtml(d.bundleName)   : "—";
+  const data    = d.data         ? escapeHtml(d.data)         : "";
+  const phone   = d.phoneNumber  ? escapeHtml(d.phoneNumber)  : "—";
+  const pmLabel = pm === "wallet" ? "💚 Wallet" : "📲 Mobile Money";
+  const userName  = escapeHtml(order.user.name  || "Unknown");
+  const userEmail = escapeHtml(order.user.email || "");
+  const ref       = escapeHtml(toRef(order.id));
+  const amount    = order.amount.toFixed(2);
+  const now       = new Date().toLocaleString("en-GH", {
     timeZone: "Africa/Accra",
     day: "2-digit", month: "short", year: "numeric",
     hour: "2-digit", minute: "2-digit",
   });
 
-  const text = [
-    `🛒 *New Order Received\\!*`,
+  const lines = [
+    `🛒 <b>New Order Received!</b>`,
     ``,
-    `📦 *Bundle:* ${network} · ${bundle}${data ? ` \\(${data}\\)` : ""}`,
-    `📱 *Phone:* \`${phone}\``,
-    `💵 *Amount:* GHS ${escapeMarkdown(amount)}`,
+    `📦 <b>Bundle:</b> ${network} · ${bundle}${data ? ` (${data})` : ""}`,
+    `📱 <b>Phone:</b> <code>${phone}</code>`,
+    `💵 <b>Amount:</b> GHS ${amount}`,
+    `💳 <b>Payment:</b> ${pmLabel}`,
     ``,
-    `👤 *Customer:* ${userName}`,
+    `👤 <b>Customer:</b> ${userName}`,
     userEmail ? `📧 ${userEmail}` : null,
     ``,
-    `🔖 *Ref:* \`${ref}\``,
-    `🕐 ${escapeMarkdown(now)}`,
+    `🔖 <b>Ref:</b> <code>${ref}</code>`,
+    `🕐 ${now}`,
     ``,
-    `⚡ Status: *Processing*`,
-  ].filter(Boolean).join("\n");
+    `⚡ Status: <b>Processing</b>`,
+  ].filter((l): l is string => l !== null).join("\n");
 
   try {
-    await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+    const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         chat_id: CHAT_ID,
-        text,
-        parse_mode: "MarkdownV2",
+        text: lines,
+        parse_mode: "HTML",
       }),
     });
-  } catch {
-    // Non-critical — don't let Telegram failure affect order flow
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      console.error("[Telegram] API error:", JSON.stringify(body));
+    } else {
+      console.log(`[Telegram] Notification sent for order ${order.id}`);
+    }
+  } catch (err) {
+    console.error("[Telegram] Failed to send notification:", err);
   }
 }

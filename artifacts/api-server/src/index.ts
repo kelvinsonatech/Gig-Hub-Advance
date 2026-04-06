@@ -16,6 +16,10 @@ if (Number.isNaN(port) || port <= 0) {
   throw new Error(`Invalid PORT value: "${rawPort}"`);
 }
 
+// Verify Telegram configuration at startup
+const hasTelegram = !!(process.env.TELEGRAM_BOT_TOKEN && process.env.TELEGRAM_CHAT_ID);
+console.log(`[Telegram] Config: ${hasTelegram ? "✓ BOT_TOKEN + CHAT_ID present" : "✗ MISSING env vars — notifications disabled"}`);
+
 // Seed database first, then start listening
 seedDatabase().finally(() => {
   app.listen(port, (err) => {

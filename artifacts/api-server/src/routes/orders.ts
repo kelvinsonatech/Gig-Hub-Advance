@@ -50,10 +50,10 @@ async function notifyAdminsNewOrder(order: typeof ordersTable.$inferSelect) {
     // Real-time admin panel update via SSE
     pushEventToAdmins("new_order", orderPayload);
 
-    // Telegram bot notification (fire-and-forget)
-    sendOrderNotification(orderPayload);
-  } catch {
-    // Non-critical — order was already saved successfully
+    // Telegram bot notification
+    await sendOrderNotification(orderPayload);
+  } catch (err) {
+    console.error("[notifyAdminsNewOrder] error:", err);
   }
 }
 
