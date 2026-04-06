@@ -2,11 +2,17 @@ import { useEffect, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { API } from "@/lib/api";
 
-export function useAdminOrdersStream() {
+interface Options {
+  onNewOrder?: (orderId: string) => void;
+}
+
+export function useAdminOrdersStream({ onNewOrder }: Options = {}) {
   const queryClient = useQueryClient();
   const retryDelayRef = useRef(1_000);
   const esRef = useRef<EventSource | null>(null);
   const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const onNewOrderRef = useRef(onNewOrder);
+  onNewOrderRef.current = onNewOrder;
 
   useEffect(() => {
     const token = localStorage.getItem("gigshub_token");
@@ -26,14 +32,14 @@ export function useAdminOrdersStream() {
         const order = JSON.parse(e.data);
         queryClient.setQueryData<unknown[]>(["admin-orders"], (old) => {
           if (!Array.isArray(old)) return old;
-          // Avoid duplicates (e.g. if polling also picked it up)
           const exists = old.some((o: any) => o.id === order.id);
           return exists ? old : [order, ...old];
         });
+        onNewOrderRef.current?.(order.id);
         retryDelayRef.current = 1_000;
       });
 
-      // Admin updated a status from another tab/browser — keep list in sync
+      // Status changed in another admin session — keep list in sync
       es.addEventListener("order_status_updated", (e: MessageEvent) => {
         const { id, status } = JSON.parse(e.data) as { id: string; status: string };
         queryClient.setQueryData<unknown[]>(["admin-orders"], (old) => {

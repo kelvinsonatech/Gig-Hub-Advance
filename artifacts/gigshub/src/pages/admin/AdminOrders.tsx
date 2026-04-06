@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import type { ReactNode } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -455,9 +455,22 @@ export default function AdminOrders() {
   const { toast } = useToast();
   const [filter, setFilter] = useState<string>("all");
   const [clearOpen, setClearOpen] = useState(false);
+  const [newOrderIds, setNewOrderIds] = useState<Set<string>>(new Set());
+
+  const handleNewOrder = useCallback((orderId: string) => {
+    setNewOrderIds(prev => new Set([...prev, orderId]));
+    // Auto-clear the "NEW" highlight after 12 seconds
+    setTimeout(() => {
+      setNewOrderIds(prev => {
+        const next = new Set(prev);
+        next.delete(orderId);
+        return next;
+      });
+    }, 12_000);
+  }, []);
 
   // SSE hook gives instant push updates; polling is just a fallback
-  useAdminOrdersStream();
+  useAdminOrdersStream({ onNewOrder: handleNewOrder });
 
   const { data: orders = [], isLoading } = useQuery<Order[]>({
     queryKey: ["admin-orders"],
@@ -568,6 +581,7 @@ export default function AdminOrders() {
             const TypeIcon   = typeMeta.icon;
             const details    = order.details ?? {};
             const isPending  = updateStatus.isPending && (updateStatus.variables as any)?.id === order.id;
+            const isNew      = newOrderIds.has(order.id);
 
             const netColor = details.networkColor ?? "#6366f1";
             const netLogo  = details.networkLogoUrl;
@@ -576,8 +590,21 @@ export default function AdminOrders() {
             return (
               <div
                 key={order.id}
-                className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all"
+                className={`relative rounded-2xl border shadow-sm transition-all duration-700 ${
+                  isNew
+                    ? "bg-emerald-50/60 border-emerald-300 shadow-emerald-200 shadow-md"
+                    : "bg-white border-gray-100 hover:shadow-md"
+                }`}
+                style={isNew ? { animation: "slideInNew 0.35s ease-out" } : undefined}
               >
+                {/* NEW badge — visible only for freshly pushed orders */}
+                {isNew && (
+                  <span className="absolute -top-2 -right-2 z-10 flex items-center gap-1 bg-emerald-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-md shadow-emerald-300">
+                    <span className="w-1.5 h-1.5 rounded-full bg-white/80 animate-ping" />
+                    NEW
+                  </span>
+                )}
+
                 {/* Network colour stripe */}
                 <div className="h-1 w-full rounded-t-2xl" style={{ backgroundColor: netColor }} />
 
