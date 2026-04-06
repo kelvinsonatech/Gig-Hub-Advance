@@ -66,9 +66,12 @@ export function BottomNav() {
               className="relative z-10 w-[46px] h-[46px] flex items-center justify-center rounded-full"
               style={{ marginLeft: i === 0 ? 0 : 12 }}
             >
-              <motion.div
-                animate={{ scale: isActive ? 1.12 : 1 }}
-                transition={{ type: "spring", stiffness: 600, damping: 28 }}
+              <div
+                style={{
+                  transform: isActive ? "scale(1.12)" : "scale(1)",
+                  transition: "transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)",
+                  willChange: "transform",
+                }}
               >
                 <Icon
                   className={cn(
@@ -77,7 +80,7 @@ export function BottomNav() {
                   )}
                   strokeWidth={isActive ? 2.2 : 1.8}
                 />
-              </motion.div>
+              </div>
             </Link>
           );
         })}

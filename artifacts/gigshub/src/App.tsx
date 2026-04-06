@@ -99,6 +99,7 @@ function Router() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.15, ease: "easeOut" }}
+            style={{ willChange: "opacity" }}
           >
             <Suspense fallback={<PageShell />}>
               <Switch location={location}>
@@ -127,6 +128,7 @@ function Router() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.15, ease: "easeOut" }}
+          style={{ willChange: "opacity" }}
         >
           <Suspense fallback={<PageShell />}>
             <Switch location={location}>

@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from "react";
 import { Link, useRoute } from "wouter";
-import { motion, LayoutGroup } from "framer-motion";
+import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Wallet, Sun, Users, Menu, LogOut, X, LayoutDashboard, ShoppingBag, Bell, CheckCheck, Trash2, Megaphone } from "lucide-react";
@@ -27,18 +27,14 @@ function NavLink({ href, children }: { href: string; children: React.ReactNode }
     <Link
       href={href}
       className={cn(
-        "relative text-sm font-semibold px-4 py-1.5 rounded-full transition-colors",
+        "relative text-sm font-semibold px-4 py-1.5 rounded-full transition-colors duration-150",
         isActive ? "text-white" : "text-muted-foreground hover:text-foreground"
       )}
     >
-      {isActive && (
-        <motion.span
-          layoutId="nav-capsule"
-          className="absolute inset-0 bg-primary rounded-full shadow-md shadow-primary/40"
-          style={{ borderRadius: 9999 }}
-          transition={{ type: "spring", stiffness: 500, damping: 38, mass: 0.4 }}
-        />
-      )}
+      <span
+        className="absolute inset-0 rounded-full bg-primary shadow-md shadow-primary/40 transition-opacity duration-200"
+        style={{ opacity: isActive ? 1 : 0, borderRadius: 9999 }}
+      />
       <span className="relative z-10">{children}</span>
     </Link>
   );
@@ -322,22 +318,20 @@ export function Navbar() {
           </Link>
 
           {/* Center Nav */}
-          <LayoutGroup id="navbar">
-            <nav className="hidden md:flex items-center gap-1">
-              {isAuthenticated ? (
-                <>
-                  <NavLink href="/bundles">Data Bundles</NavLink>
-                  <NavLink href="/services">Services</NavLink>
-                  <NavLink href="/dashboard">Dashboard</NavLink>
-                </>
-              ) : (
-                <>
-                  <NavLink href="/bundles">Data Bundles</NavLink>
-                  <NavLink href="/services">Services</NavLink>
-                </>
-              )}
-            </nav>
-          </LayoutGroup>
+          <nav className="hidden md:flex items-center gap-1">
+            {isAuthenticated ? (
+              <>
+                <NavLink href="/bundles">Data Bundles</NavLink>
+                <NavLink href="/services">Services</NavLink>
+                <NavLink href="/dashboard">Dashboard</NavLink>
+              </>
+            ) : (
+              <>
+                <NavLink href="/bundles">Data Bundles</NavLink>
+                <NavLink href="/services">Services</NavLink>
+              </>
+            )}
+          </nav>
 
           {/* Right side */}
           <div className="flex items-center gap-2">
