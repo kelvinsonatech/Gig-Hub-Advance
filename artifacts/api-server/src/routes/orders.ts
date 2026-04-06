@@ -4,6 +4,7 @@ import { db } from "@workspace/db";
 import { ordersTable, walletsTable, transactionsTable, bundlesTable, paymentIntentsTable, usersTable } from "@workspace/db";
 import { eq, desc, and } from "drizzle-orm";
 import { addSseClient, removeSseClient, pushEventToAdmins } from "../lib/sse";
+import { sendOrderNotification } from "../lib/telegram";
 
 const router: IRouter = Router();
 const JWT_SECRET = process.env.JWT_SECRET || "gigshub-secret-key-change-in-production";
@@ -23,7 +24,7 @@ function isValidReference(ref: string): boolean {
   return /^[a-zA-Z0-9_\-]{5,100}$/.test(ref);
 }
 
-// Fetch user info and push a new_order event to all connected admin clients
+// Fetch user info, push a new_order event to admin SSE clients, and notify Telegram
 async function notifyAdminsNewOrder(order: typeof ordersTable.$inferSelect) {
   try {
     const [user] = await db
@@ -31,17 +32,26 @@ async function notifyAdminsNewOrder(order: typeof ordersTable.$inferSelect) {
       .from(usersTable)
       .where(eq(usersTable.id, order.userId))
       .limit(1);
-    pushEventToAdmins("new_order", {
+
+    const userPayload = user
+      ? { name: user.name, email: user.email, phone: user.phone ?? "" }
+      : { name: "Unknown", email: "", phone: "" };
+
+    const orderPayload = {
       id: String(order.id),
       type: order.type,
       status: order.status,
       amount: parseFloat(order.amount),
-      details: order.details ?? {},
+      details: (order.details ?? {}) as Record<string, any>,
       createdAt: order.createdAt.toISOString(),
-      user: user
-        ? { name: user.name, email: user.email, phone: user.phone ?? "" }
-        : { name: "Unknown", email: "", phone: "" },
-    });
+      user: userPayload,
+    };
+
+    // Real-time admin panel update via SSE
+    pushEventToAdmins("new_order", orderPayload);
+
+    // Telegram bot notification (fire-and-forget)
+    sendOrderNotification(orderPayload);
   } catch {
     // Non-critical — order was already saved successfully
   }
