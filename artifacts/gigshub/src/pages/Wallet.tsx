@@ -154,7 +154,7 @@ export default function Wallet() {
                         key={q}
                         type="button"
                         disabled={isPaying}
-                        onClick={() => { setAmount(String(q)); triggerTopup(q); }}
+                        onClick={() => setAmount(String(q))}
                         className={`px-4 py-1.5 rounded-full text-sm font-bold border-2 transition-all ${
                           amount === String(q)
                             ? "border-primary bg-primary text-white shadow-md shadow-primary/30"
