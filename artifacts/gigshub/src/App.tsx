@@ -93,18 +93,27 @@ function Router() {
     return (
       <AdminLayout>
         <ScrollToTop />
-        <Suspense fallback={<PageShell />}>
-          <Switch location={location}>
-            <Route path="/admin" component={AdminDashboard} />
-            <Route path="/admin/networks" component={AdminNetworks} />
-            <Route path="/admin/bundles" component={AdminBundles} />
-            <Route path="/admin/services" component={AdminServices} />
-            <Route path="/admin/notifications" component={AdminNotifications} />
-            <Route path="/admin/orders" component={AdminOrders} />
-            <Route path="/admin/users" component={AdminUsers} />
-            <Route component={NotFound} />
-          </Switch>
-        </Suspense>
+        <AnimatePresence initial={false}>
+          <motion.div
+            key={location}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.15, ease: "easeOut" }}
+          >
+            <Suspense fallback={<PageShell />}>
+              <Switch location={location}>
+                <Route path="/admin" component={AdminDashboard} />
+                <Route path="/admin/networks" component={AdminNetworks} />
+                <Route path="/admin/bundles" component={AdminBundles} />
+                <Route path="/admin/services" component={AdminServices} />
+                <Route path="/admin/notifications" component={AdminNotifications} />
+                <Route path="/admin/orders" component={AdminOrders} />
+                <Route path="/admin/users" component={AdminUsers} />
+                <Route component={NotFound} />
+              </Switch>
+            </Suspense>
+          </motion.div>
+        </AnimatePresence>
       </AdminLayout>
     );
   }
@@ -117,7 +126,7 @@ function Router() {
           key={location}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 0.12, ease: "easeOut" }}
+          transition={{ duration: 0.15, ease: "easeOut" }}
         >
           <Suspense fallback={<PageShell />}>
             <Switch location={location}>
