@@ -21,13 +21,10 @@ export default function Wallet() {
   const [amount, setAmount] = useState("");
   const [isPaying, setIsPaying] = useState(false);
 
-  const handleTopup = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const amt = Number(amount);
+  const triggerTopup = async (amt: number) => {
     if (!amt || isNaN(amt) || amt < 1) return;
 
     setIsPaying(true);
-    // Flush render so the loading state is visible before the redirect
     await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
 
     try {
@@ -54,15 +51,17 @@ export default function Wallet() {
 
       const { authorizationUrl } = await res.json();
 
-      // Store only the type — amount and all details are now on the server
       localStorage.setItem(INTENT_KEY, JSON.stringify({ type: "wallet_topup" }));
-
-      // Redirect to Paystack hosted checkout (works everywhere, no popup/iframe issues)
       window.location.href = authorizationUrl;
     } catch (err: any) {
       setIsPaying(false);
       toast({ variant: "destructive", title: "Payment unavailable", description: err.message || "Could not start payment. Please try again." });
     }
+  };
+
+  const handleTopup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await triggerTopup(Number(amount));
   };
 
   return (
@@ -140,6 +139,7 @@ export default function Wallet() {
                       className="pl-9 h-12 sm:h-14 rounded-2xl text-xl sm:text-2xl font-extrabold border-2 focus-visible:ring-primary/30 tracking-tight"
                       value={amount}
                       onChange={(e) => setAmount(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === "Enter") e.preventDefault(); }}
                       required
                     />
                   </div>
@@ -153,7 +153,8 @@ export default function Wallet() {
                       <button
                         key={q}
                         type="button"
-                        onClick={() => setAmount(String(q))}
+                        disabled={isPaying}
+                        onClick={() => { setAmount(String(q)); triggerTopup(q); }}
                         className={`px-4 py-1.5 rounded-full text-sm font-bold border-2 transition-all ${
                           amount === String(q)
                             ? "border-primary bg-primary text-white shadow-md shadow-primary/30"
