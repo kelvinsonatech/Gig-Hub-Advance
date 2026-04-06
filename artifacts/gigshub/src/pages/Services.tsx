@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useGetServices } from "@workspace/api-client-react";
 import { Link } from "wouter";
 import { formatGHS } from "@/lib/utils";
-import { ChevronRight, Wifi, Radio, IdCard, UserCheck, Smartphone, ArrowRightLeft } from "lucide-react";
+import { ChevronRight, Wifi, Radio } from "lucide-react";
 import { motion } from "framer-motion";
 
 import { API as BASE } from "@/lib/api";
@@ -177,64 +177,6 @@ export default function Services() {
                         </Link>
                       </div>
                     </div>
-                  </motion.div>
-                );
-              })}
-            </div>
-          )}
-        </section>
-
-        {/* ── Other Services ── */}
-        <section>
-          <h2 className="text-base font-bold text-gray-500 uppercase tracking-widest mb-5">Other Services</h2>
-
-          {servicesLoading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {[1, 2, 3].map(i => (
-                <div key={i} className="h-28 rounded-2xl bg-gray-200 animate-pulse" />
-              ))}
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {(services as any[]).map((svc: any, i: number) => {
-                const icon = svc.category === "agent"
-                  ? UserCheck
-                  : svc.category === "transfer"
-                  ? ArrowRightLeft
-                  : svc.name.toLowerCase().includes("sim")
-                  ? Smartphone
-                  : IdCard;
-                const Icon = icon;
-                const color = svc.brandColor || "#6366f1";
-                const href = svc.category === "registration" ? "/afa-registration" : "#";
-                const comingSoon = svc.category !== "registration";
-
-                return (
-                  <motion.div
-                    key={svc.id}
-                    initial={{ opacity: 0, y: 16 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.06, type: "spring", stiffness: 220, damping: 22 }}
-                  >
-                    <Link href={href}>
-                      <div className={`group relative bg-white border border-border/60 rounded-2xl p-5 flex items-center gap-4 shadow-sm hover:shadow-md transition-all ${comingSoon ? "opacity-70 cursor-not-allowed" : "cursor-pointer hover:-translate-y-0.5"}`}>
-                        <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0" style={{ background: `${color}18` }}>
-                          <Icon className="w-5 h-5" style={{ color }} />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-bold text-gray-900 text-sm truncate">{svc.name}</h3>
-                          <p className="text-gray-500 text-xs mt-0.5 line-clamp-2">{svc.description}</p>
-                        </div>
-                        <div className="flex flex-col items-end gap-1 shrink-0">
-                          <span className="text-sm font-black text-gray-900">{formatGHS(svc.price)}</span>
-                          {comingSoon ? (
-                            <span className="text-[10px] font-semibold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">Soon</span>
-                          ) : (
-                            <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-primary transition-colors" />
-                          )}
-                        </div>
-                      </div>
-                    </Link>
                   </motion.div>
                 );
               })}
