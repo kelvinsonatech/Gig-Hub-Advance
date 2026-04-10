@@ -26,7 +26,27 @@ app.use(
     },
   }),
 );
-app.use(cors());
+const ALLOWED_ORIGINS = [
+  "https://turboghana.com",
+  "https://www.turboghana.com",
+  // Vercel preview / older deployment URLs
+  /\.vercel\.app$/,
+  // Replit dev previews
+  /\.replit\.dev$/,
+  /\.picard\.replit\.dev$/,
+];
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow server-to-server requests (no Origin header) and JessCo webhooks
+    if (!origin) return callback(null, true);
+    const allowed = ALLOWED_ORIGINS.some((o) =>
+      typeof o === "string" ? o === origin : o.test(origin)
+    );
+    callback(null, allowed);
+  },
+  credentials: true,
+}));
 // Accept JSON body regardless of Content-Type (handles cases where proxies
 // or fetch interceptors strip the header before reaching Express)
 app.use(express.json({ type: "*/*" }));
