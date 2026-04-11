@@ -5,7 +5,7 @@ import { ordersTable, paymentIntentsTable, bundlesTable, usersTable } from "@wor
 import { eq, and } from "drizzle-orm";
 import { handleJesscoWebhook, getJesscoWebhookSecret, fulfillBundle } from "../lib/jessco";
 import { pushEventToAdmins, pushEventToUser } from "../lib/sse";
-import { sendOrderNotification } from "../lib/telegram";
+import { sendOrderNotification, sendFulfillmentAlert } from "../lib/telegram";
 import { getFulfillmentMode } from "../lib/settings";
 
 const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY || "";
@@ -188,10 +188,13 @@ async function tryAutoFulfill(order: typeof ordersTable.$inferSelect) {
     if (result.success) {
       console.log(`[AutoFulfill] Order ${order.id} sent successfully, ref: ${result.providerRef}`);
     } else {
-      console.warn(`[AutoFulfill] Order ${order.id} failed: ${result.message}`);
+      console.warn(`[AutoFulfill] Order ${order.id} could not auto-fulfill: ${result.message}`);
+      console.log(`[AutoFulfill] Order ${order.id} stays in "processing" — needs manual delivery`);
+      sendFulfillmentAlert(order, result.message || "Unknown error").catch(() => {});
     }
   } catch (err) {
     console.error(`[AutoFulfill] Error for order ${order.id}:`, err);
+    sendFulfillmentAlert(order, "Unexpected error during auto-fulfillment").catch(() => {});
   }
 }
 

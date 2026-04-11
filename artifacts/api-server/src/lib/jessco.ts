@@ -2,6 +2,21 @@ import { db } from "@workspace/db";
 import { ordersTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { pushEventToUser, pushEventToAdmins } from "./sse";
+import { sendFulfillmentAlert } from "./telegram";
+
+async function markPendingManual(orderId: number, details: any, reason: string) {
+  await db.update(ordersTable)
+    .set({
+      details: {
+        ...details,
+        fulfillmentProvider: "jessco",
+        fulfillmentStatus: "pending_manual",
+        fulfillmentError: reason,
+        fulfillmentFailedAt: new Date().toISOString(),
+      },
+    })
+    .where(eq(ordersTable.id, orderId));
+}
 
 const JESSCO_API_KEY = process.env.XPRESPORTAL_API_KEY || "";
 const JESSCO_WEBHOOK_SECRET = process.env.XPRESPORTAL_WEBHOOK_SECRET || "";
@@ -167,11 +182,15 @@ export async function fulfillBundle(order: {
   }
 
   if (!details?.phoneNumber || !details?.networkName) {
-    return { success: false, message: "Missing phoneNumber or networkName in order details" };
+    const msg = "Missing phoneNumber or networkName in order details";
+    await markPendingManual(order.id, details, msg);
+    return { success: false, message: msg };
   }
 
   if (!JESSCO_API_KEY) {
-    return { success: false, message: "JessCo API key not configured" };
+    const msg = "JessCo API key not configured";
+    await markPendingManual(order.id, details, msg);
+    return { success: false, message: msg };
   }
 
   inFlightOrders.add(order.id);
@@ -192,16 +211,7 @@ export async function fulfillBundle(order: {
     if (!matched) {
       const msg = `No matching JessCo package found for "${details.bundleName}" (${details.data}) on ${details.networkName}`;
       console.error(`[JessCo] ${msg}`);
-      await db.update(ordersTable)
-        .set({
-          details: {
-            ...details,
-            fulfillmentProvider: "jessco",
-            fulfillmentStatus: "no_match",
-            fulfillmentError: msg,
-          },
-        })
-        .where(eq(ordersTable.id, order.id));
+      await markPendingManual(order.id, details, msg);
       return { success: false, message: msg };
     }
 
@@ -262,27 +272,21 @@ export async function fulfillBundle(order: {
       };
     }
 
+    const errorMsg = data.message || data.error || `API returned status ${res.status}`;
     console.error(`[JessCo] Failed for order ${order.id}:`, JSON.stringify(data).slice(0, 500));
 
-    await db.update(ordersTable)
-      .set({
-        details: {
-          ...details,
-          fulfillmentProvider: "jessco",
-          fulfillmentStatus: "api_error",
-          fulfillmentError: data.message || data.error || "Unknown error",
-        },
-      })
-      .where(eq(ordersTable.id, order.id));
+    await markPendingManual(order.id, details, errorMsg);
 
     return {
       success: false,
-      message: data.message || data.error || `API returned status ${res.status}`,
+      message: errorMsg,
       rawResponse: data,
     };
   } catch (err: any) {
+    const msg = `Network error: ${err.message}`;
     console.error(`[JessCo] Network error for order ${order.id}:`, err.message);
-    return { success: false, message: `Network error: ${err.message}` };
+    await markPendingManual(order.id, details, msg).catch(() => {});
+    return { success: false, message: msg };
   } finally {
     inFlightOrders.delete(order.id);
   }
@@ -300,14 +304,14 @@ export async function handleJesscoWebhook(payload: any): Promise<void> {
     return;
   }
 
-  let newStatus: "completed" | "failed" | null = null;
+  let webhookOutcome: "completed" | "provider_failed" | null = null;
   if (["success", "successful", "delivered", "completed", "approved"].includes(rawStatus)) {
-    newStatus = "completed";
+    webhookOutcome = "completed";
   } else if (["failed", "failure", "error", "rejected", "declined", "cancelled"].includes(rawStatus)) {
-    newStatus = "failed";
+    webhookOutcome = "provider_failed";
   }
 
-  if (!newStatus) {
+  if (!webhookOutcome) {
     console.log(`[JessCo Webhook] Status "${rawStatus}" — no update needed (may be intermediate)`);
     return;
   }
@@ -327,28 +331,53 @@ export async function handleJesscoWebhook(payload: any): Promise<void> {
       return;
     }
 
-    await db.update(ordersTable)
-      .set({
-        status: newStatus,
-        details: {
-          ...(order.details as any),
-          fulfillmentStatus: newStatus === "completed" ? "delivered" : "failed",
-          webhookPayload: payload,
-        },
-      })
-      .where(eq(ordersTable.id, order.id));
+    if (webhookOutcome === "completed") {
+      await db.update(ordersTable)
+        .set({
+          status: "completed",
+          details: {
+            ...(order.details as any),
+            fulfillmentStatus: "delivered",
+            webhookPayload: payload,
+          },
+        })
+        .where(eq(ordersTable.id, order.id));
 
-    console.log(`[JessCo Webhook] Order ${order.id} → ${newStatus}`);
+      console.log(`[JessCo Webhook] Order ${order.id} → completed`);
 
-    pushEventToUser(order.userId, "order_update", {
-      id: String(order.id),
-      status: newStatus,
-    });
+      pushEventToUser(order.userId, "order_update", {
+        id: String(order.id),
+        status: "completed",
+      });
 
-    pushEventToAdmins("order_status_updated", {
-      id: String(order.id),
-      status: newStatus,
-    });
+      pushEventToAdmins("order_status_updated", {
+        id: String(order.id),
+        status: "completed",
+      });
+    } else {
+      const reason = payload.message || payload.reason || `JessCo reported: ${rawStatus}`;
+      await db.update(ordersTable)
+        .set({
+          details: {
+            ...(order.details as any),
+            fulfillmentStatus: "pending_manual",
+            fulfillmentError: reason,
+            fulfillmentFailedAt: new Date().toISOString(),
+            webhookPayload: payload,
+          },
+        })
+        .where(eq(ordersTable.id, order.id));
+
+      console.log(`[JessCo Webhook] Order ${order.id} → pending_manual (provider reported ${rawStatus})`);
+
+      sendFulfillmentAlert(order, reason).catch(() => {});
+
+      pushEventToAdmins("order_status_updated", {
+        id: String(order.id),
+        status: "processing",
+        note: "Auto-fulfillment failed — needs manual delivery",
+      });
+    }
   } catch (err) {
     console.error("[JessCo Webhook] Error processing:", err);
   }
@@ -394,39 +423,67 @@ async function pollPendingOrders(): Promise<void> {
         if (!body.success || !body.data) continue;
 
         const jesscoStatus = (body.data.status || "").toLowerCase();
-        let newStatus: "completed" | "failed" | null = null;
+        let pollerOutcome: "completed" | "provider_failed" | null = null;
 
         if (["completed", "success", "successful", "delivered"].includes(jesscoStatus)) {
-          newStatus = "completed";
+          pollerOutcome = "completed";
         } else if (["failed", "failure", "error", "rejected", "cancelled"].includes(jesscoStatus)) {
-          newStatus = "failed";
+          pollerOutcome = "provider_failed";
         }
 
-        if (!newStatus) continue;
-        if (order.status === newStatus) continue;
+        if (!pollerOutcome) continue;
 
-        await db.update(ordersTable)
-          .set({
-            status: newStatus,
-            details: {
-              ...details,
-              fulfillmentStatus: newStatus === "completed" ? "delivered" : "failed",
-              polledAt: new Date().toISOString(),
-            },
-          })
-          .where(eq(ordersTable.id, order.id));
+        if (pollerOutcome === "completed") {
+          if (order.status === "completed") continue;
 
-        console.log(`[JessCo Poller] Order ${order.id} updated: ${order.status} → ${newStatus}`);
+          await db.update(ordersTable)
+            .set({
+              status: "completed",
+              details: {
+                ...details,
+                fulfillmentStatus: "delivered",
+                polledAt: new Date().toISOString(),
+              },
+            })
+            .where(eq(ordersTable.id, order.id));
 
-        pushEventToUser(order.userId, "order_update", {
-          id: String(order.id),
-          status: newStatus,
-        });
+          console.log(`[JessCo Poller] Order ${order.id} → completed`);
 
-        pushEventToAdmins("order_status_updated", {
-          id: String(order.id),
-          status: newStatus,
-        });
+          pushEventToUser(order.userId, "order_update", {
+            id: String(order.id),
+            status: "completed",
+          });
+
+          pushEventToAdmins("order_status_updated", {
+            id: String(order.id),
+            status: "completed",
+          });
+        } else {
+          if (details.fulfillmentStatus === "pending_manual") continue;
+
+          const reason = `JessCo reported: ${jesscoStatus}`;
+          await db.update(ordersTable)
+            .set({
+              details: {
+                ...details,
+                fulfillmentStatus: "pending_manual",
+                fulfillmentError: reason,
+                fulfillmentFailedAt: new Date().toISOString(),
+                polledAt: new Date().toISOString(),
+              },
+            })
+            .where(eq(ordersTable.id, order.id));
+
+          console.log(`[JessCo Poller] Order ${order.id} → pending_manual (${jesscoStatus})`);
+
+          sendFulfillmentAlert(order, reason).catch(() => {});
+
+          pushEventToAdmins("order_status_updated", {
+            id: String(order.id),
+            status: "processing",
+            note: "Auto-fulfillment failed — needs manual delivery",
+          });
+        }
       } catch (err: any) {
         console.error(`[JessCo Poller] Error checking purchase ${purchaseId}:`, err.message);
       }

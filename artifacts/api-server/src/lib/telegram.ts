@@ -13,6 +13,45 @@ function escapeHtml(text: string): string {
     .replace(/>/g, "&gt;");
 }
 
+export async function sendFulfillmentAlert(order: {
+  id: number;
+  amount: string;
+  details: any;
+}, reason: string): Promise<void> {
+  if (!BOT_TOKEN || !CHAT_ID) return;
+
+  const d = order.details ?? {};
+  const ref = escapeHtml(toRef(order.id));
+  const network = d.networkName ? escapeHtml(d.networkName) : "—";
+  const bundle = d.bundleName ? escapeHtml(d.bundleName) : "—";
+  const data = d.data ? escapeHtml(d.data) : "";
+  const phone = d.phoneNumber ? escapeHtml(d.phoneNumber) : "—";
+
+  const lines = [
+    `⚠️ <b>Auto-Fulfillment Failed</b>`,
+    ``,
+    `📦 ${network} · ${bundle}${data ? ` (${data})` : ""}`,
+    `📱 <code>${phone}</code>`,
+    `💵 GHS ${parseFloat(order.amount).toFixed(2)}`,
+    `🔖 <code>${ref}</code>`,
+    ``,
+    `❌ <b>Reason:</b> ${escapeHtml(reason)}`,
+    ``,
+    `👉 Order is waiting for <b>manual delivery</b>.`,
+    `Top up JessCo or deliver manually from the admin panel.`,
+  ].join("\n");
+
+  try {
+    await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ chat_id: CHAT_ID, text: lines, parse_mode: "HTML" }),
+    });
+  } catch (err) {
+    console.error("[Telegram] Failed to send fulfillment alert:", err);
+  }
+}
+
 export async function sendOrderNotification(order: {
   id: string;
   amount: number;

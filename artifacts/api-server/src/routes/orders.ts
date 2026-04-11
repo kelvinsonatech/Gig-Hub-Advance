@@ -4,7 +4,7 @@ import { db } from "@workspace/db";
 import { ordersTable, walletsTable, transactionsTable, bundlesTable, paymentIntentsTable, usersTable } from "@workspace/db";
 import { eq, desc, and } from "drizzle-orm";
 import { addSseClient, removeSseClient, pushEventToAdmins } from "../lib/sse";
-import { sendOrderNotification } from "../lib/telegram";
+import { sendOrderNotification, sendFulfillmentAlert } from "../lib/telegram";
 import { getFulfillmentMode } from "../lib/settings";
 import { fulfillBundle } from "../lib/jessco";
 
@@ -28,10 +28,13 @@ async function tryAutoFulfill(order: typeof ordersTable.$inferSelect) {
     if (result.success) {
       console.log(`[AutoFulfill] Order ${order.id} sent successfully, ref: ${result.providerRef}`);
     } else {
-      console.warn(`[AutoFulfill] Order ${order.id} failed: ${result.message}`);
+      console.warn(`[AutoFulfill] Order ${order.id} could not auto-fulfill: ${result.message}`);
+      console.log(`[AutoFulfill] Order ${order.id} stays in "processing" — needs manual delivery`);
+      sendFulfillmentAlert(order, result.message || "Unknown error").catch(() => {});
     }
   } catch (err) {
     console.error(`[AutoFulfill] Error for order ${order.id}:`, err);
+    sendFulfillmentAlert(order, "Unexpected error during auto-fulfillment").catch(() => {});
   }
 }
 
