@@ -132,7 +132,7 @@ export default function LivePurchasePopup() {
 
   return (
     <div
-      className={`fixed bottom-20 left-4 z-50 transition-all duration-500 ease-out ${
+      className={`fixed bottom-20 left-2 right-2 sm:left-4 sm:right-auto z-50 transition-all duration-500 ease-out ${
         visible
           ? "translate-y-0 opacity-100"
           : "translate-y-8 opacity-0 pointer-events-none"
@@ -142,14 +142,14 @@ export default function LivePurchasePopup() {
       <div className="relative bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden">
         <div className="absolute left-0 top-0 bottom-0 w-1 bg-emerald-500" />
 
-        <div className="pl-4 pr-3 pt-3 pb-3">
-          <div className="flex items-center justify-between mb-2">
+        <div className="pl-3 pr-2 pt-2.5 pb-2.5 sm:pl-4 sm:pr-3 sm:pt-3 sm:pb-3">
+          <div className="flex items-center justify-between mb-1.5 sm:mb-2">
             <div className="flex items-center gap-1.5">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500" />
               </span>
-              <span className="text-[10px] font-extrabold uppercase tracking-widest text-red-500">
+              <span className="text-[9px] sm:text-[10px] font-extrabold uppercase tracking-widest text-red-500">
                 Live Purchase
               </span>
             </div>
@@ -161,28 +161,28 @@ export default function LivePurchasePopup() {
             </button>
           </div>
 
-          <div className="flex items-center gap-3">
-            <UserAvatar name={purchase.firstName} size={44} />
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            <UserAvatar name={purchase.firstName} size={38} className="sm:!w-11 sm:!h-11 sm:!min-w-[44px]" />
 
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold text-gray-900 leading-tight">
+              <p className="text-[13px] sm:text-sm font-bold text-gray-900 leading-tight">
                 {purchase.firstName} just bought
               </p>
-              <div className="flex items-center gap-2 mt-1">
+              <div className="flex items-center gap-1.5 sm:gap-2 mt-0.5 sm:mt-1">
                 <span
-                  className="inline-flex items-center justify-center w-7 h-7 rounded-lg text-[9px] font-black shrink-0"
+                  className="inline-flex items-center justify-center w-6 h-6 sm:w-7 sm:h-7 rounded-lg text-[8px] sm:text-[9px] font-black shrink-0"
                   style={{ backgroundColor: colors.bg, color: colors.text }}
                 >
                   {getNetworkInitials(purchase.networkName)}
                 </span>
-                <span className="text-sm font-bold" style={{ color: colors.bg === "#FFCC00" ? "#b8860b" : colors.bg }}>
+                <span className="text-[13px] sm:text-sm font-bold truncate" style={{ color: colors.bg === "#FFCC00" ? "#b8860b" : colors.bg }}>
                   {purchase.data}{" "}
                   <span className="text-gray-600 font-semibold">
                     {purchase.networkName} bundle
                   </span>
                 </span>
               </div>
-              <p className="text-[11px] text-gray-400 mt-0.5">
+              <p className="text-[10px] sm:text-[11px] text-gray-400 mt-0.5">
                 {timeAgo(purchase.createdAt)}
               </p>
             </div>
