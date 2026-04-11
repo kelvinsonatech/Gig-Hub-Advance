@@ -11,6 +11,7 @@ import notificationsRouter from "./notifications";
 import utilsRouter from "./utils";
 import paymentsRouter from "./payments";
 import webhooksRouter from "./webhooks";
+import purchasesRouter from "./purchases";
 
 const router: IRouter = Router();
 
@@ -26,5 +27,6 @@ router.use("/notifications", notificationsRouter);
 router.use("/utils", utilsRouter);
 router.use("/payments", paymentsRouter);
 router.use("/webhooks", webhooksRouter);
+router.use("/purchases", purchasesRouter);
 
 export default router;

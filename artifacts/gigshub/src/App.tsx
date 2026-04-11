@@ -13,6 +13,7 @@ import { AdminLayout } from "@/pages/admin/AdminLayout";
 import { useFcm } from "@/hooks/use-fcm";
 import { useImagePreloader } from "@/hooks/use-image-preloader";
 import { useOrdersStream } from "@/hooks/use-orders-stream";
+import LivePurchasePopup from "@/components/LivePurchasePopup";
 
 // Lazy-loaded pages — each page becomes its own JS chunk
 const Login            = lazy(() => import("@/pages/Login"));
@@ -81,6 +82,7 @@ function PublicLayout({ children }: { children: React.ReactNode }) {
       <main className="flex-1">{children}</main>
       <Footer />
       <BottomNav />
+      <LivePurchasePopup />
     </div>
   );
 }

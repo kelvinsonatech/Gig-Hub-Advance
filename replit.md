@@ -80,6 +80,8 @@ A Ghanaian digital services marketplace with:
 - `POST /api/wallet/topup` - Top up wallet (requires auth)
 - `GET /api/orders` - Get user orders (requires auth)
 - `POST /api/orders` - Create order/purchase (requires auth)
+- `GET /api/purchases/live` - Public feed of today's purchases (first name + bundle info only, no auth)
+- `POST /api/webhooks/jessco` - JessCo fulfillment webhook
 
 ## TypeScript & Composite Projects
 
