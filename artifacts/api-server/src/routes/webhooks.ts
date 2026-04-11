@@ -106,6 +106,9 @@ router.post("/paystack", async (req, res) => {
         return;
       }
 
+      const mode = await getFulfillmentMode();
+      const initialStatus = mode === "api" ? "processing" : "pending";
+
       const orderDetails = {
         phoneNumber: intent.phoneNumber,
         paymentMethod: "momo",
@@ -120,7 +123,7 @@ router.post("/paystack", async (req, res) => {
       const [order] = await db.insert(ordersTable).values({
         userId: intent.userId,
         type: "bundle",
-        status: "processing",
+        status: initialStatus,
         amount: expectedGHS.toFixed(2),
         details: orderDetails,
       }).returning();

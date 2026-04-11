@@ -11,11 +11,20 @@ import { fulfillBundle } from "../lib/jessco";
 const router: IRouter = Router();
 const JWT_SECRET = process.env.JWT_SECRET || "gigshub-secret-key-change-in-production";
 
+async function getInitialOrderStatus(): Promise<"pending" | "processing"> {
+  const mode = await getFulfillmentMode();
+  return mode === "api" ? "processing" : "pending";
+}
+
 async function tryAutoFulfill(order: typeof ordersTable.$inferSelect) {
   try {
     if (order.type !== "bundle") return;
     const mode = await getFulfillmentMode();
     if (mode !== "api") return;
+
+    await db.update(ordersTable)
+      .set({ status: "processing" })
+      .where(eq(ordersTable.id, order.id));
 
     console.log(`[AutoFulfill] API mode active — sending order ${order.id} to JessCo`);
     const result = await fulfillBundle({
@@ -262,6 +271,8 @@ router.post("/", async (req, res) => {
       const [bundle] = await db.select().from(bundlesTable).where(eq(bundlesTable.id, intent.bundleId)).limit(1);
       if (!bundle) return res.status(404).json({ error: "not_found", message: "Bundle not found" });
 
+      const initialStatus = await getInitialOrderStatus();
+
       const orderDetails = {
         phoneNumber: intent.phoneNumber || phoneNumber,
         paymentMethod: "momo",
@@ -275,7 +286,7 @@ router.post("/", async (req, res) => {
       const [order] = await db.insert(ordersTable).values({
         userId,
         type: "bundle",
-        status: "processing",
+        status: initialStatus,
         amount: expectedGHS.toFixed(2),
         details: orderDetails,
       }).returning();
@@ -352,10 +363,12 @@ router.post("/", async (req, res) => {
         description,
       });
 
+      const initialStatus = await getInitialOrderStatus();
+
       const [order] = await db.insert(ordersTable).values({
         userId,
         type,
-        status: "processing",
+        status: initialStatus,
         amount: String(amount),
         details: orderDetails,
       }).returning();
