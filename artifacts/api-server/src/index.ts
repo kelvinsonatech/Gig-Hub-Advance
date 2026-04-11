@@ -1,6 +1,7 @@
 import app from "./app";
 import { logger } from "./lib/logger";
 import { seedDatabase } from "./lib/seed";
+import { startJesscoPoller } from "./lib/jessco";
 
 const rawPort = process.env["PORT"];
 
@@ -28,5 +29,6 @@ seedDatabase().finally(() => {
       process.exit(1);
     }
     logger.info({ port }, "Server listening");
+    startJesscoPoller(30_000);
   });
 });

@@ -357,3 +357,98 @@ export async function handleJesscoWebhook(payload: any): Promise<void> {
 export function getJesscoWebhookSecret(): string {
   return JESSCO_WEBHOOK_SECRET;
 }
+
+async function pollPendingOrders(): Promise<void> {
+  if (!JESSCO_API_KEY) return;
+
+  try {
+    const allOrders = await db.select().from(ordersTable);
+    const pendingOrders = allOrders.filter((o) => {
+      const d = o.details as any;
+      return (
+        d?.fulfillmentProvider === "jessco" &&
+        d?.jesscoPurchaseId &&
+        (d?.fulfillmentStatus === "sent" || o.status === "processing")
+      );
+    });
+
+    if (pendingOrders.length === 0) return;
+
+    console.log(`[JessCo Poller] Checking ${pendingOrders.length} pending order(s)...`);
+
+    for (const order of pendingOrders) {
+      const details = order.details as any;
+      const purchaseId = details.jesscoPurchaseId;
+
+      try {
+        const res = await fetch(`${BASE_URL}/purchases/${purchaseId}`, {
+          headers: { Authorization: `Bearer ${JESSCO_API_KEY}` },
+        });
+
+        if (!res.ok) {
+          console.warn(`[JessCo Poller] HTTP ${res.status} for purchase ${purchaseId}`);
+          continue;
+        }
+
+        const body = await res.json();
+        if (!body.success || !body.data) continue;
+
+        const jesscoStatus = (body.data.status || "").toLowerCase();
+        let newStatus: "completed" | "failed" | null = null;
+
+        if (["completed", "success", "successful", "delivered"].includes(jesscoStatus)) {
+          newStatus = "completed";
+        } else if (["failed", "failure", "error", "rejected", "cancelled"].includes(jesscoStatus)) {
+          newStatus = "failed";
+        }
+
+        if (!newStatus) continue;
+        if (order.status === newStatus) continue;
+
+        await db.update(ordersTable)
+          .set({
+            status: newStatus,
+            details: {
+              ...details,
+              fulfillmentStatus: newStatus === "completed" ? "delivered" : "failed",
+              polledAt: new Date().toISOString(),
+            },
+          })
+          .where(eq(ordersTable.id, order.id));
+
+        console.log(`[JessCo Poller] Order ${order.id} updated: ${order.status} → ${newStatus}`);
+
+        pushEventToUser(order.userId, "order_update", {
+          id: String(order.id),
+          status: newStatus,
+        });
+
+        pushEventToAdmins("order_status_updated", {
+          id: String(order.id),
+          status: newStatus,
+        });
+      } catch (err: any) {
+        console.error(`[JessCo Poller] Error checking purchase ${purchaseId}:`, err.message);
+      }
+    }
+  } catch (err) {
+    console.error("[JessCo Poller] Error:", err);
+  }
+}
+
+let pollerInterval: ReturnType<typeof setInterval> | null = null;
+
+export function startJesscoPoller(intervalMs = 30_000): void {
+  if (pollerInterval) return;
+  console.log(`[JessCo Poller] Started — checking every ${intervalMs / 1000}s`);
+  pollerInterval = setInterval(pollPendingOrders, intervalMs);
+  setTimeout(pollPendingOrders, 5000);
+}
+
+export function stopJesscoPoller(): void {
+  if (pollerInterval) {
+    clearInterval(pollerInterval);
+    pollerInterval = null;
+    console.log("[JessCo Poller] Stopped");
+  }
+}
