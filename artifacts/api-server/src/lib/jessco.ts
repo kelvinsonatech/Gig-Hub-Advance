@@ -56,10 +56,15 @@ function findJesscoPackage(
   const netCode = networkName.toLowerCase().replace(/\s+/g, "");
   const netMap: Record<string, string[]> = {
     mtn: ["mtn"],
+    mtnghana: ["mtn"],
     at: ["at", "atl", "airteltigo", "airtel", "tigo"],
     airteltigo: ["at", "atl", "airteltigo"],
+    airtel: ["at", "atl", "airteltigo"],
+    tigo: ["at", "atl", "airteltigo"],
     telecel: ["telecel", "vod", "vodafone"],
+    telecelghana: ["telecel", "vod", "vodafone"],
     vodafone: ["telecel", "vod", "vodafone"],
+    vodafoneghana: ["telecel", "vod", "vodafone"],
   };
   const validCodes = netMap[netCode] || [netCode];
 
@@ -72,14 +77,16 @@ function findJesscoPackage(
     }
   }
 
+  console.log(`[JessCo] Matching: network="${networkName}" (codes: ${validCodes.join(",")}), bundle="${bundleName}", data="${dataAmount}", price=${price}`);
+  console.log(`[JessCo] Found ${allPackages.length} packages for network. Options:`, allPackages.map(p => `${p.id}|${p.name}|${p.value}|GHS${p.price}`).join(" | "));
+
   if (allPackages.length === 0) return null;
 
   const normalizedData = dataAmount.toLowerCase().replace(/\s+/g, "");
-  const normalizedName = bundleName.toLowerCase().replace(/\s+/g, "");
+  const normalizedName = bundleName.toLowerCase().replace(/\s+/g, "").replace(/^(mtn|at|telecel|airteltigo|vodafone)\s*/i, "");
 
   for (const pkg of allPackages) {
     const pkgValue = (pkg.value || "").toLowerCase().replace(/\s+/g, "");
-    const pkgName = (pkg.name || "").toLowerCase().replace(/\s+/g, "");
     if (pkgValue === normalizedData && Math.abs(pkg.price - price) < 0.5) {
       return { id: pkg.id, name: pkg.name };
     }
@@ -92,6 +99,18 @@ function findJesscoPackage(
     }
   }
 
+  const dataMatch = normalizedData.match(/^(\d+(?:\.\d+)?)(gb|mb|tb)$/);
+  if (dataMatch) {
+    const num = dataMatch[1];
+    const unit = dataMatch[2];
+    for (const pkg of allPackages) {
+      const pkgValue = (pkg.value || "").toLowerCase().replace(/\s+/g, "");
+      if (pkgValue.includes(num) && pkgValue.includes(unit)) {
+        return { id: pkg.id, name: pkg.name };
+      }
+    }
+  }
+
   for (const pkg of allPackages) {
     const pkgName = (pkg.name || "").toLowerCase().replace(/\s+/g, "");
     if (pkgName === normalizedName || pkgName.includes(normalizedName) || normalizedName.includes(pkgName)) {
@@ -99,8 +118,13 @@ function findJesscoPackage(
     }
   }
 
+  for (const pkg of allPackages) {
+    if (Math.abs(pkg.price - price) < 0.01) {
+      return { id: pkg.id, name: pkg.name };
+    }
+  }
+
   console.warn(`[JessCo] No matching package found for: network=${networkName}, bundle="${bundleName}", data="${dataAmount}", price=${price}`);
-  console.warn(`[JessCo] Available packages for this network:`, allPackages.map(p => `${p.id} (${p.name} ${p.value} GHS${p.price})`).join(", "));
   return null;
 }
 
