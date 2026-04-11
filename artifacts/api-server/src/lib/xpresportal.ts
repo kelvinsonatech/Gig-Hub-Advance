@@ -87,8 +87,15 @@ export async function fulfillBundle(order: {
       body: JSON.stringify(payload),
     });
 
-    const data = await res.json().catch(() => ({ error: "Invalid JSON response" }));
-    console.log(`[JessCo] Response for order ${order.id}:`, JSON.stringify(data));
+    const rawText = await res.text();
+    console.log(`[JessCo] Raw response for order ${order.id} (HTTP ${res.status}):`, rawText);
+    let data: any;
+    try {
+      data = JSON.parse(rawText);
+    } catch {
+      data = { error: "Invalid JSON response", rawBody: rawText.slice(0, 500) };
+    }
+    console.log(`[JessCo] Parsed response for order ${order.id}:`, JSON.stringify(data));
 
     if (res.ok && (data.status === "success" || data.status === true || data.success === true)) {
       await db.update(ordersTable)
