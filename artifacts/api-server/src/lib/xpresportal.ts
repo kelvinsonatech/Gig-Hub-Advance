@@ -65,7 +65,7 @@ export async function fulfillBundle(order: {
   const reference = details.xpresportalReference || `TGGH-${order.id}-${Date.now()}`;
 
   try {
-    console.log(`[XpresPortal] Sending bundle fulfillment for order ${order.id}: ${network} ${phone} ${details.bundleName}`);
+    console.log(`[JessCo] Sending bundle fulfillment for order ${order.id}: ${network} ${phone} ${details.bundleName}`);
 
     const payload = {
       network,
@@ -88,7 +88,7 @@ export async function fulfillBundle(order: {
     });
 
     const data = await res.json().catch(() => ({ error: "Invalid JSON response" }));
-    console.log(`[XpresPortal] Response for order ${order.id}:`, JSON.stringify(data));
+    console.log(`[JessCo] Response for order ${order.id}:`, JSON.stringify(data));
 
     if (res.ok && (data.status === "success" || data.status === true || data.success === true)) {
       await db.update(ordersTable)
@@ -109,7 +109,7 @@ export async function fulfillBundle(order: {
       };
     }
 
-    console.error(`[XpresPortal] Failed for order ${order.id}:`, data);
+    console.error(`[JessCo] Failed for order ${order.id}:`, data);
 
     await db.update(ordersTable)
       .set({
@@ -128,7 +128,7 @@ export async function fulfillBundle(order: {
       rawResponse: data,
     };
   } catch (err: any) {
-    console.error(`[XpresPortal] Network error for order ${order.id}:`, err.message);
+    console.error(`[JessCo] Network error for order ${order.id}:`, err.message);
     return { success: false, message: `Network error: ${err.message}` };
   } finally {
     inFlightOrders.delete(order.id);
@@ -136,7 +136,7 @@ export async function fulfillBundle(order: {
 }
 
 export async function handleXpresportalWebhook(payload: any): Promise<void> {
-  console.log("[XpresPortal Webhook] Received:", JSON.stringify(payload, null, 2));
+  console.log("[JessCo Webhook] Received:", JSON.stringify(payload, null, 2));
 
   const reference =
     payload.reference ??
@@ -150,7 +150,7 @@ export async function handleXpresportalWebhook(payload: any): Promise<void> {
   ).toString().toLowerCase();
 
   if (!reference) {
-    console.warn("[XpresPortal Webhook] No reference found in payload");
+    console.warn("[JessCo Webhook] No reference found in payload");
     return;
   }
 
@@ -162,7 +162,7 @@ export async function handleXpresportalWebhook(payload: any): Promise<void> {
   }
 
   if (!newStatus) {
-    console.log(`[XpresPortal Webhook] Unrecognised status "${rawStatus}" — no update`);
+    console.log(`[JessCo Webhook] Unrecognised status "${rawStatus}" — no update`);
     return;
   }
 
@@ -175,7 +175,7 @@ export async function handleXpresportalWebhook(payload: any): Promise<void> {
     );
 
     if (!order) {
-      console.warn(`[XpresPortal Webhook] No order found for reference "${reference}"`);
+      console.warn(`[JessCo Webhook] No order found for reference "${reference}"`);
       return;
     }
 
@@ -190,7 +190,7 @@ export async function handleXpresportalWebhook(payload: any): Promise<void> {
       })
       .where(eq(ordersTable.id, order.id));
 
-    console.log(`[XpresPortal Webhook] Order ${order.id} → ${newStatus}`);
+    console.log(`[JessCo Webhook] Order ${order.id} → ${newStatus}`);
 
     pushEventToUser(order.userId, "order_update", {
       id: String(order.id),
@@ -202,6 +202,6 @@ export async function handleXpresportalWebhook(payload: any): Promise<void> {
       status: newStatus,
     });
   } catch (err) {
-    console.error("[XpresPortal Webhook] Error processing:", err);
+    console.error("[JessCo Webhook] Error processing:", err);
   }
 }

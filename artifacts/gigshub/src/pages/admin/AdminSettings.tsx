@@ -41,7 +41,7 @@ export default function AdminSettings() {
       toast({
         title: mode === "api" ? "API Mode Activated" : "Manual Mode Activated",
         description: mode === "api"
-          ? "New bundle orders will be sent to XpresPortal automatically."
+          ? "New bundle orders will be sent to JessCo automatically."
           : "You will process all bundle orders manually.",
       });
     },
@@ -63,9 +63,9 @@ export default function AdminSettings() {
     onSuccess: (data) => {
       setRetryingId(null);
       if (data.success) {
-        toast({ title: "Sent!", description: `Order sent to XpresPortal (ref: ${data.providerRef})` });
+        toast({ title: "Sent!", description: `Order sent to JessCo (ref: ${data.providerRef})` });
       } else {
-        toast({ title: "Failed", description: data.message || "Could not send to XpresPortal", variant: "destructive" });
+        toast({ title: "Failed", description: data.message || "Could not send to JessCo", variant: "destructive" });
       }
     },
     onError: () => {
@@ -143,7 +143,7 @@ export default function AdminSettings() {
               </div>
               <div className="flex-1">
                 <div className="flex items-center gap-2">
-                  <h3 className="text-lg font-bold text-gray-900">API Mode (XpresPortal)</h3>
+                  <h3 className="text-lg font-bold text-gray-900">API Mode (JessCo)</h3>
                   {currentMode === "api" && (
                     <span className="flex items-center gap-1 text-xs font-semibold text-[#E91E8C] bg-pink-100 px-2 py-0.5 rounded-full">
                       <CheckCircle2 className="w-3 h-3" /> Active
@@ -151,12 +151,12 @@ export default function AdminSettings() {
                   )}
                 </div>
                 <p className="text-sm text-gray-500 mt-1">
-                  Bundle orders are automatically sent to XpresPortal for instant fulfillment after payment is confirmed.
-                  XpresPortal delivers the data bundle directly to the customer's phone. Status updates come back via webhook.
+                  Bundle orders are automatically sent to JessCo for instant fulfillment after payment is confirmed.
+                  JessCo delivers the data bundle directly to the customer's phone. Status updates come back via webhook.
                 </p>
                 <div className="mt-3 flex items-center gap-2 text-xs text-gray-400">
                   <Settings className="w-3.5 h-3.5" />
-                  <span>Webhook: <code className="text-gray-500">/api/webhooks/xpresportal</code></span>
+                  <span>Webhook: <code className="text-gray-500">/api/webhooks/jessco</code></span>
                 </div>
               </div>
             </div>
@@ -179,8 +179,8 @@ export default function AdminSettings() {
           ) : (
             <>
               <Step num={1} text="Customer pays for a data bundle (MoMo or Wallet)" />
-              <Step num={2} text="Order is automatically sent to XpresPortal for fulfillment" />
-              <Step num={3} text="XpresPortal delivers data to the customer's phone" />
+              <Step num={2} text="Order is automatically sent to JessCo for fulfillment" />
+              <Step num={3} text="JessCo delivers data to the customer's phone" />
               <Step num={4} text="Webhook callback updates the order status automatically" />
             </>
           )}
@@ -191,7 +191,7 @@ export default function AdminSettings() {
         <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 flex items-start gap-2">
           <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
           <div className="text-sm text-amber-800">
-            <p className="font-medium">Make sure your XpresPortal account has sufficient balance.</p>
+            <p className="font-medium">Make sure your JessCo account has sufficient balance.</p>
             <p className="text-amber-600 mt-0.5">
               If a fulfillment fails, the order stays in "Processing" — you can retry it manually from the Orders page
               or switch back to Manual mode.

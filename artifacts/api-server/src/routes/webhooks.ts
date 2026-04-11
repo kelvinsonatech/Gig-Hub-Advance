@@ -78,7 +78,7 @@ router.post("/xpresportal", async (req, res) => {
     const provided =
       (req.headers["x-webhook-secret"] ?? req.headers["x-signature"] ?? "") as string;
     if (!provided || provided !== XPRESPORTAL_WEBHOOK_SECRET) {
-      console.warn("[XpresPortal Webhook] Missing or invalid webhook secret");
+      console.warn("[JessCo Webhook] Missing or invalid webhook secret");
       return res.status(401).json({ error: "Unauthorized" });
     }
   }
@@ -88,7 +88,7 @@ router.post("/xpresportal", async (req, res) => {
   try {
     await handleXpresportalWebhook(payload);
   } catch (err) {
-    console.error("[XpresPortal Webhook] Error:", err);
+    console.error("[JessCo Webhook] Error:", err);
   }
 });
 

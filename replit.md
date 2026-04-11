@@ -83,20 +83,20 @@ A Ghanaian digital services marketplace with:
 - `POST /api/orders` - Create order/purchase (requires auth)
 - `GET /api/purchases/live` - Public feed of today's purchases (first name + bundle info only, no auth)
 - `POST /api/webhooks/jessco` - JessCo fulfillment webhook
-- `POST /api/webhooks/xpresportal` - XpresPortal fulfillment webhook (authenticated via x-webhook-secret header)
+- `POST /api/webhooks/xpresportal` - JessCo fulfillment webhook (authenticated via x-webhook-secret header)
 - `GET /api/admin/sales-stats` - Sales analytics: today/yesterday/week/month/all-time revenue + counts, pending/failed counts, recent 10 orders (admin only)
 - `GET /api/admin/settings/fulfillment` - Get current fulfillment mode (manual/api)
 - `PUT /api/admin/settings/fulfillment` - Set fulfillment mode (manual/api)
-- `POST /api/admin/orders/:id/retry-fulfillment` - Manually retry XpresPortal fulfillment for a specific order
+- `POST /api/admin/orders/:id/retry-fulfillment` - Manually retry JessCo fulfillment for a specific order
 
 ## Fulfillment System
 
 Two modes controlled from Admin > Settings:
 - **Manual**: Admin processes orders manually, updates status from Orders page
-- **API (XpresPortal)**: Orders auto-sent to XpresPortal after payment; webhook callbacks update status
+- **API (JessCo)**: Orders auto-sent to JessCo (via XpresPortal API) after payment; webhook callbacks update status
 
 Key files:
-- `artifacts/api-server/src/lib/xpresportal.ts` - XpresPortal API client (fulfillBundle + webhook handler)
+- `artifacts/api-server/src/lib/xpresportal.ts` - JessCo API client (fulfillBundle + webhook handler), connects to xpresportal.app
 - `artifacts/api-server/src/lib/settings.ts` - App settings (fulfillment mode) via app_settings DB table
 - `artifacts/gigshub/src/pages/admin/AdminSettings.tsx` - Admin settings page with mode toggle
 

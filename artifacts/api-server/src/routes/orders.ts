@@ -17,7 +17,7 @@ async function tryAutoFulfill(order: typeof ordersTable.$inferSelect) {
     const mode = await getFulfillmentMode();
     if (mode !== "api") return;
 
-    console.log(`[AutoFulfill] API mode active — sending order ${order.id} to XpresPortal`);
+    console.log(`[AutoFulfill] API mode active — sending order ${order.id} to JessCo`);
     const result = await fulfillBundle({
       id: order.id,
       userId: order.userId,
@@ -285,7 +285,7 @@ router.post("/", async (req, res) => {
       // Notify admin panel in real-time (fire-and-forget)
       notifyAdminsNewOrder(order);
 
-      // Auto-fulfill via XpresPortal if API mode is active (fire-and-forget)
+      // Auto-fulfill via JessCo if API mode is active (fire-and-forget)
       tryAutoFulfill(order);
 
       return res.status(201).json({
@@ -360,7 +360,7 @@ router.post("/", async (req, res) => {
       // Notify admin panel in real-time (fire-and-forget)
       notifyAdminsNewOrder(order);
 
-      // Auto-fulfill via XpresPortal if API mode is active (fire-and-forget)
+      // Auto-fulfill via JessCo if API mode is active (fire-and-forget)
       tryAutoFulfill(order);
 
       return res.status(201).json({
