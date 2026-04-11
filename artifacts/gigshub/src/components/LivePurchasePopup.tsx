@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { X } from "lucide-react";
 import { API } from "../lib/api";
+import { UserAvatar } from "./ui/UserAvatar";
 
 interface LivePurchase {
   firstName: string;
@@ -16,19 +17,6 @@ function getNetworkColor(name: string): { bg: string; text: string } {
   if (n.includes("AT") || n.includes("AIRTEL") || n.includes("TIGO")) return { bg: "#004b87", text: "#fff" };
   if (n.includes("TELECEL") || n.includes("VODAFONE")) return { bg: "#CC0000", text: "#fff" };
   return { bg: "#6366f1", text: "#fff" };
-}
-
-const AVATAR_STYLES = [
-  "adventurer", "adventurer-neutral", "avataaars", "big-ears",
-  "big-smile", "bottts", "fun-emoji", "lorelei", "miniavs",
-  "notionists", "open-peeps", "personas", "pixel-art",
-];
-
-function getAvatarUrl(name: string): string {
-  const seed = encodeURIComponent(name.toLowerCase().trim());
-  const styleIndex = name.charCodeAt(0) % AVATAR_STYLES.length;
-  const style = AVATAR_STYLES[styleIndex];
-  return `https://api.dicebear.com/9.x/${style}/svg?seed=${seed}&radius=50`;
 }
 
 function getNetworkInitials(name: string): string {
@@ -174,11 +162,7 @@ export default function LivePurchasePopup() {
           </div>
 
           <div className="flex items-center gap-3">
-            <img
-              src={getAvatarUrl(purchase.firstName)}
-              alt=""
-              className="w-11 h-11 rounded-full bg-gray-100 shrink-0"
-            />
+            <UserAvatar name={purchase.firstName} size={44} />
 
             <div className="flex-1 min-w-0">
               <p className="text-sm font-bold text-gray-900 leading-tight">
