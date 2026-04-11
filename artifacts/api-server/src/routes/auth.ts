@@ -29,7 +29,7 @@ router.post("/register", async (req, res) => {
       const token = jwt.sign({ userId: user.id, role: user.role }, JWT_SECRET, { expiresIn: "7d" });
       return res.status(201).json({
         token,
-        user: { id: String(user.id), name: user.name, email: user.email, phone: user.phone, role: user.role, createdAt: user.createdAt.toISOString() },
+        user: { id: String(user.id), name: user.name, email: user.email, phone: user.phone, role: user.role, avatarStyle: user.avatarStyle, createdAt: user.createdAt.toISOString() },
       });
     } catch (insertErr: any) {
       if (insertErr?.message?.includes("users_phone_unique") || insertErr?.cause?.message?.includes("users_phone_unique")) {
@@ -63,7 +63,7 @@ router.post("/login", async (req, res) => {
     const token = jwt.sign({ userId: user.id, role: user.role }, JWT_SECRET, { expiresIn: "7d" });
     return res.json({
       token,
-      user: { id: String(user.id), name: user.name, email: user.email, phone: user.phone, role: user.role, createdAt: user.createdAt.toISOString() },
+      user: { id: String(user.id), name: user.name, email: user.email, phone: user.phone, role: user.role, avatarStyle: user.avatarStyle, createdAt: user.createdAt.toISOString() },
     });
   } catch (err) {
     req.log.error(err, "login error");
@@ -83,7 +83,33 @@ router.get("/me", async (req, res) => {
     if (!user) {
       return res.status(401).json({ error: "auth_error", message: "User not found" });
     }
-    return res.json({ id: String(user.id), name: user.name, email: user.email, phone: user.phone, role: user.role, createdAt: user.createdAt.toISOString() });
+    return res.json({ id: String(user.id), name: user.name, email: user.email, phone: user.phone, role: user.role, avatarStyle: user.avatarStyle, createdAt: user.createdAt.toISOString() });
+  } catch (err) {
+    return res.status(401).json({ error: "auth_error", message: "Invalid token" });
+  }
+});
+
+router.put("/avatar-style", async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader?.startsWith("Bearer ")) {
+      return res.status(401).json({ error: "auth_error", message: "Not authenticated" });
+    }
+    const token = authHeader.slice(7);
+    const decoded = jwt.verify(token, JWT_SECRET) as { userId: number };
+    const { avatarStyle } = req.body;
+    if (!avatarStyle || typeof avatarStyle !== "string") {
+      return res.status(400).json({ error: "validation_error", message: "avatarStyle is required" });
+    }
+    const [updated] = await db
+      .update(usersTable)
+      .set({ avatarStyle })
+      .where(eq(usersTable.id, decoded.userId))
+      .returning();
+    if (!updated) {
+      return res.status(404).json({ error: "not_found", message: "User not found" });
+    }
+    return res.json({ id: String(updated.id), name: updated.name, email: updated.email, phone: updated.phone, role: updated.role, avatarStyle: updated.avatarStyle, createdAt: updated.createdAt.toISOString() });
   } catch (err) {
     return res.status(401).json({ error: "auth_error", message: "Invalid token" });
   }

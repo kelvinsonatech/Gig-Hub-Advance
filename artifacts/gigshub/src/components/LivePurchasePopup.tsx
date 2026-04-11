@@ -5,6 +5,7 @@ import { UserAvatar } from "./ui/UserAvatar";
 
 interface LivePurchase {
   firstName: string;
+  avatarStyle: string;
   bundleName: string;
   data: string;
   networkName: string;
@@ -162,7 +163,7 @@ export default function LivePurchasePopup() {
           </div>
 
           <div className="flex items-center gap-2.5 sm:gap-3">
-            <UserAvatar name={purchase.firstName} size={38} className="sm:!w-11 sm:!h-11 sm:!min-w-[44px]" />
+            <UserAvatar name={purchase.firstName} avatarStyle={purchase.avatarStyle} size={38} className="sm:!w-11 sm:!h-11 sm:!min-w-[44px]" />
 
             <div className="flex-1 min-w-0">
               <p className="text-[13px] sm:text-sm font-bold text-gray-900 leading-tight">

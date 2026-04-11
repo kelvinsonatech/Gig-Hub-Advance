@@ -16,6 +16,7 @@ router.get("/live", async (_req, res) => {
         details: ordersTable.details,
         createdAt: ordersTable.createdAt,
         userName: usersTable.name,
+        avatarStyle: usersTable.avatarStyle,
       })
       .from(ordersTable)
       .innerJoin(usersTable, eq(ordersTable.userId, usersTable.id))
@@ -35,6 +36,7 @@ router.get("/live", async (_req, res) => {
       const firstName = fullName.split(" ")[0];
       return {
         firstName,
+        avatarStyle: o.avatarStyle || "adventurer",
         bundleName: d.bundleName || "",
         data: d.data || "",
         networkName: d.networkName || "",
