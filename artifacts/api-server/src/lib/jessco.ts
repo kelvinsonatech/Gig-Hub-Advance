@@ -78,48 +78,68 @@ function findJesscoPackage(
   }
 
   console.log(`[JessCo] Matching: network="${networkName}" (codes: ${validCodes.join(",")}), bundle="${bundleName}", data="${dataAmount}", price=${price}`);
-  console.log(`[JessCo] Found ${allPackages.length} packages for network. Options:`, allPackages.map(p => `${p.id}|${p.name}|${p.value}|GHS${p.price}`).join(" | "));
+  console.log(`[JessCo] Found ${allPackages.length} packages for network. Options:`, allPackages.map(p => `${p.id}|${p.name}|val=${p.value}|GHS${p.price}`).join(" | "));
 
   if (allPackages.length === 0) return null;
 
   const normalizedData = dataAmount.toLowerCase().replace(/\s+/g, "");
   const normalizedName = bundleName.toLowerCase().replace(/\s+/g, "").replace(/^(mtn|at|telecel|airteltigo|vodafone)\s*/i, "");
 
-  for (const pkg of allPackages) {
-    const pkgValue = (pkg.value || "").toLowerCase().replace(/\s+/g, "");
-    if (pkgValue === normalizedData && Math.abs(pkg.price - price) < 0.5) {
-      return { id: pkg.id, name: pkg.name };
-    }
+  function pkgValueStr(pkg: any): string {
+    if (typeof pkg.value === "number") return String(pkg.value);
+    return String(pkg.value || "").toLowerCase().replace(/\s+/g, "");
   }
 
-  for (const pkg of allPackages) {
-    const pkgValue = (pkg.value || "").toLowerCase().replace(/\s+/g, "");
-    if (pkgValue === normalizedData) {
-      return { id: pkg.id, name: pkg.name };
-    }
+  function dataToMB(input: string): number | null {
+    const m = input.match(/^(\d+(?:\.\d+)?)\s*(gb|mb|tb)$/i);
+    if (!m) return null;
+    const num = parseFloat(m[1]);
+    const unit = m[2].toLowerCase();
+    if (unit === "gb") return num * 1024;
+    if (unit === "tb") return num * 1024 * 1024;
+    return num;
   }
 
-  const dataMatch = normalizedData.match(/^(\d+(?:\.\d+)?)(gb|mb|tb)$/);
-  if (dataMatch) {
-    const num = dataMatch[1];
-    const unit = dataMatch[2];
+  const requestedMB = dataToMB(normalizedData);
+
+  if (requestedMB !== null) {
     for (const pkg of allPackages) {
-      const pkgValue = (pkg.value || "").toLowerCase().replace(/\s+/g, "");
-      if (pkgValue.includes(num) && pkgValue.includes(unit)) {
+      const val = typeof pkg.value === "number" ? pkg.value : parseFloat(pkg.value);
+      if (!isNaN(val) && Math.abs(val - requestedMB) < 1) {
+        console.log(`[JessCo] Matched by MB value: ${pkg.id} (${val}MB = ${normalizedData})`);
         return { id: pkg.id, name: pkg.name };
       }
+    }
+  }
+
+  const pkgIdData = normalizedData.replace(/\s+/g, "").toUpperCase();
+  for (const pkg of allPackages) {
+    const pkgId = (pkg.id || "").toUpperCase();
+    if (pkgId.includes(pkgIdData)) {
+      console.log(`[JessCo] Matched by package ID containing "${pkgIdData}": ${pkg.id}`);
+      return { id: pkg.id, name: pkg.name };
+    }
+  }
+
+  for (const pkg of allPackages) {
+    const pkgName = (pkg.name || "").toLowerCase().replace(/\s+/g, "");
+    if (pkgName === normalizedData || pkgName.includes(normalizedData) || normalizedData.includes(pkgName)) {
+      console.log(`[JessCo] Matched by name: ${pkg.id} (${pkg.name})`);
+      return { id: pkg.id, name: pkg.name };
     }
   }
 
   for (const pkg of allPackages) {
     const pkgName = (pkg.name || "").toLowerCase().replace(/\s+/g, "");
     if (pkgName === normalizedName || pkgName.includes(normalizedName) || normalizedName.includes(pkgName)) {
+      console.log(`[JessCo] Matched by bundle name: ${pkg.id} (${pkg.name})`);
       return { id: pkg.id, name: pkg.name };
     }
   }
 
   for (const pkg of allPackages) {
     if (Math.abs(pkg.price - price) < 0.01) {
+      console.log(`[JessCo] Matched by exact price: ${pkg.id} (GHS${pkg.price})`);
       return { id: pkg.id, name: pkg.name };
     }
   }
