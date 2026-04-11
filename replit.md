@@ -73,6 +73,7 @@ A Ghanaian digital services marketplace with:
 - `POST /api/auth/register` - Register user + auto-creates wallet
 - `POST /api/auth/login` - Login user
 - `GET /api/auth/me` - Get current user (requires Bearer token)
+- `PUT /api/auth/avatar-style` - Update user avatar style (requires auth)
 - `GET /api/networks` - List network providers
 - `GET /api/bundles?networkId=&type=` - List data bundles
 - `GET /api/services` - List services
@@ -82,6 +83,7 @@ A Ghanaian digital services marketplace with:
 - `POST /api/orders` - Create order/purchase (requires auth)
 - `GET /api/purchases/live` - Public feed of today's purchases (first name + bundle info only, no auth)
 - `POST /api/webhooks/jessco` - JessCo fulfillment webhook
+- `GET /api/admin/sales-stats` - Sales analytics: today/yesterday/week/month/all-time revenue + counts, pending/failed counts, recent 10 orders (admin only)
 
 ## TypeScript & Composite Projects
 

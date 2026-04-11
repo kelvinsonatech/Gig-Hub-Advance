@@ -108,6 +108,102 @@ router.get("/stats", async (req, res) => {
   }
 });
 
+// ── Sales Stats ──────────────────────────────────────────────────────────────
+router.get("/sales-stats", async (req, res) => {
+  try {
+    const now = new Date();
+    const todayStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+    const yesterdayStart = new Date(todayStart);
+    yesterdayStart.setUTCDate(yesterdayStart.getUTCDate() - 1);
+    const weekStart = new Date(todayStart);
+    weekStart.setUTCDate(weekStart.getUTCDate() - weekStart.getUTCDay());
+    const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+
+    const notArchived = isNull(ordersTable.archivedAt);
+    const completedOrProcessing = sql`${ordersTable.status} IN ('completed', 'processing')`;
+    const baseWhere = and(notArchived, completedOrProcessing);
+
+    const [
+      [todayRows],
+      [yesterdayRows],
+      [weekRows],
+      [monthRows],
+      [allTimeRows],
+      [pendingRows],
+      [failedTodayRows],
+      recentOrders,
+    ] = await Promise.all([
+      db.select({
+        count: count(),
+        revenue: sql<string>`COALESCE(SUM(${ordersTable.amount}), 0)`,
+      }).from(ordersTable).where(and(baseWhere, gte(ordersTable.createdAt, todayStart))),
+
+      db.select({
+        count: count(),
+        revenue: sql<string>`COALESCE(SUM(${ordersTable.amount}), 0)`,
+      }).from(ordersTable).where(and(baseWhere, gte(ordersTable.createdAt, yesterdayStart), lt(ordersTable.createdAt, todayStart))),
+
+      db.select({
+        count: count(),
+        revenue: sql<string>`COALESCE(SUM(${ordersTable.amount}), 0)`,
+      }).from(ordersTable).where(and(baseWhere, gte(ordersTable.createdAt, weekStart))),
+
+      db.select({
+        count: count(),
+        revenue: sql<string>`COALESCE(SUM(${ordersTable.amount}), 0)`,
+      }).from(ordersTable).where(and(baseWhere, gte(ordersTable.createdAt, monthStart))),
+
+      db.select({
+        count: count(),
+        revenue: sql<string>`COALESCE(SUM(${ordersTable.amount}), 0)`,
+      }).from(ordersTable).where(baseWhere),
+
+      db.select({ count: count() }).from(ordersTable)
+        .where(and(notArchived, sql`${ordersTable.status} = 'pending'`)),
+
+      db.select({ count: count() }).from(ordersTable)
+        .where(and(notArchived, gte(ordersTable.createdAt, todayStart), sql`${ordersTable.status} = 'failed'`)),
+
+      db.select({
+        id: ordersTable.id,
+        type: ordersTable.type,
+        status: ordersTable.status,
+        amount: ordersTable.amount,
+        details: ordersTable.details,
+        createdAt: ordersTable.createdAt,
+        userName: usersTable.name,
+      })
+        .from(ordersTable)
+        .leftJoin(usersTable, eq(ordersTable.userId, usersTable.id))
+        .where(notArchived)
+        .orderBy(desc(ordersTable.createdAt))
+        .limit(10),
+    ]);
+
+    return res.json({
+      today: { count: Number(todayRows.count), revenue: Number(todayRows.revenue) },
+      yesterday: { count: Number(yesterdayRows.count), revenue: Number(yesterdayRows.revenue) },
+      thisWeek: { count: Number(weekRows.count), revenue: Number(weekRows.revenue) },
+      thisMonth: { count: Number(monthRows.count), revenue: Number(monthRows.revenue) },
+      allTime: { count: Number(allTimeRows.count), revenue: Number(allTimeRows.revenue) },
+      pendingCount: Number(pendingRows.count),
+      failedTodayCount: Number(failedTodayRows.count),
+      recentOrders: recentOrders.map(o => ({
+        id: o.id,
+        type: o.type,
+        status: o.status,
+        amount: Number(o.amount),
+        details: o.details,
+        createdAt: o.createdAt,
+        userName: o.userName,
+      })),
+    });
+  } catch (err) {
+    req.log.error(err, "admin sales-stats error");
+    return res.status(500).json({ error: "internal_error", message: "Failed to get sales stats" });
+  }
+});
+
 // ── Bundles ────────────────────────────────────────────────────────────────────
 router.get("/bundles", async (req, res) => {
   try {
