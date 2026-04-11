@@ -5,9 +5,35 @@ import { ordersTable, walletsTable, transactionsTable, bundlesTable, paymentInte
 import { eq, desc, and } from "drizzle-orm";
 import { addSseClient, removeSseClient, pushEventToAdmins } from "../lib/sse";
 import { sendOrderNotification } from "../lib/telegram";
+import { getFulfillmentMode } from "../lib/settings";
+import { fulfillBundle } from "../lib/xpresportal";
 
 const router: IRouter = Router();
 const JWT_SECRET = process.env.JWT_SECRET || "gigshub-secret-key-change-in-production";
+
+async function tryAutoFulfill(order: typeof ordersTable.$inferSelect) {
+  try {
+    if (order.type !== "bundle") return;
+    const mode = await getFulfillmentMode();
+    if (mode !== "api") return;
+
+    console.log(`[AutoFulfill] API mode active — sending order ${order.id} to XpresPortal`);
+    const result = await fulfillBundle({
+      id: order.id,
+      userId: order.userId,
+      details: order.details,
+      amount: order.amount,
+    });
+
+    if (result.success) {
+      console.log(`[AutoFulfill] Order ${order.id} sent successfully, ref: ${result.providerRef}`);
+    } else {
+      console.warn(`[AutoFulfill] Order ${order.id} failed: ${result.message}`);
+    }
+  } catch (err) {
+    console.error(`[AutoFulfill] Error for order ${order.id}:`, err);
+  }
+}
 
 function getUserId(req: any): number | null {
   const authHeader = req.headers.authorization;
@@ -259,6 +285,9 @@ router.post("/", async (req, res) => {
       // Notify admin panel in real-time (fire-and-forget)
       notifyAdminsNewOrder(order);
 
+      // Auto-fulfill via XpresPortal if API mode is active (fire-and-forget)
+      tryAutoFulfill(order);
+
       return res.status(201).json({
         id: String(order.id),
         userId: String(order.userId),
@@ -330,6 +359,9 @@ router.post("/", async (req, res) => {
 
       // Notify admin panel in real-time (fire-and-forget)
       notifyAdminsNewOrder(order);
+
+      // Auto-fulfill via XpresPortal if API mode is active (fire-and-forget)
+      tryAutoFulfill(order);
 
       return res.status(201).json({
         id: String(order.id),

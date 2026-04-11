@@ -6,6 +6,8 @@ import { eq, count, inArray, gte, lt, lte, sql, desc, isNull, and } from "drizzl
 import { requireAuth, requireAdmin } from "../middleware/auth";
 import { sendPushToTokens } from "../lib/fcm";
 import { pushEventToUser, pushEventToAdmins, addAdminSseClient, removeAdminSseClient } from "../lib/sse";
+import { getFulfillmentMode, setFulfillmentMode, type FulfillmentMode } from "../lib/settings";
+import { fulfillBundle } from "../lib/xpresportal";
 import bcrypt from "bcryptjs";
 
 const JWT_SECRET = process.env.JWT_SECRET || "gigshub-secret-key-change-in-production";
@@ -845,6 +847,63 @@ router.post("/change-password", async (req, res) => {
   } catch (err) {
     req.log.error(err, "admin change password error");
     return res.status(500).json({ error: "internal_error", message: "Failed to change password" });
+  }
+});
+
+// ── Fulfillment Settings ─────────────────────────────────────────────────────
+router.get("/settings/fulfillment", async (req, res) => {
+  try {
+    const mode = await getFulfillmentMode();
+    return res.json({ mode });
+  } catch (err) {
+    req.log.error(err, "get fulfillment mode error");
+    return res.status(500).json({ error: "internal_error", message: "Failed to get settings" });
+  }
+});
+
+router.put("/settings/fulfillment", async (req, res) => {
+  try {
+    const { mode } = req.body;
+    if (mode !== "manual" && mode !== "api") {
+      return res.status(400).json({ error: "validation_error", message: "Mode must be 'manual' or 'api'" });
+    }
+    await setFulfillmentMode(mode as FulfillmentMode);
+    console.log(`[Settings] Fulfillment mode changed to: ${mode}`);
+    return res.json({ mode, success: true });
+  } catch (err) {
+    req.log.error(err, "set fulfillment mode error");
+    return res.status(500).json({ error: "internal_error", message: "Failed to update settings" });
+  }
+});
+
+router.post("/orders/:id/retry-fulfillment", async (req, res) => {
+  try {
+    const orderId = parseInt(req.params.id);
+    const [order] = await db
+      .select()
+      .from(ordersTable)
+      .where(eq(ordersTable.id, orderId))
+      .limit(1);
+
+    if (!order) {
+      return res.status(404).json({ error: "not_found", message: "Order not found" });
+    }
+
+    if (order.type !== "bundle") {
+      return res.status(400).json({ error: "validation_error", message: "Only bundle orders can be auto-fulfilled" });
+    }
+
+    const result = await fulfillBundle({
+      id: order.id,
+      userId: order.userId,
+      details: order.details,
+      amount: order.amount,
+    });
+
+    return res.json({ success: result.success, message: result.message, providerRef: result.providerRef });
+  } catch (err) {
+    req.log.error(err, "retry fulfillment error");
+    return res.status(500).json({ error: "internal_error", message: "Failed to retry fulfillment" });
   }
 });
 

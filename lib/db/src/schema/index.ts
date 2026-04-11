@@ -7,3 +7,4 @@ export * from "./services";
 export * from "./notifications";
 export * from "./device_tokens";
 export * from "./payment_intents";
+export * from "./settings";

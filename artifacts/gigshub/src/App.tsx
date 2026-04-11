@@ -35,6 +35,7 @@ const AdminServices       = lazy(() => import("@/pages/admin/AdminServices"));
 const AdminNotifications  = lazy(() => import("@/pages/admin/AdminNotifications"));
 const AdminOrders         = lazy(() => import("@/pages/admin/AdminOrders"));
 const AdminUsers          = lazy(() => import("@/pages/admin/AdminUsers"));
+const AdminSettings       = lazy(() => import("@/pages/admin/AdminSettings"));
 
 // Intercept fetch to automatically add Authorization Bearer token
 const originalFetch = window.fetch;
@@ -112,6 +113,7 @@ function Router() {
                 <Route path="/admin/notifications" component={AdminNotifications} />
                 <Route path="/admin/orders" component={AdminOrders} />
                 <Route path="/admin/users" component={AdminUsers} />
+                <Route path="/admin/settings" component={AdminSettings} />
                 <Route component={NotFound} />
               </Switch>
             </Suspense>
