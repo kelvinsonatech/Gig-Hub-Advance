@@ -82,8 +82,7 @@ A Ghanaian digital services marketplace with:
 - `GET /api/orders` - Get user orders (requires auth)
 - `POST /api/orders` - Create order/purchase (requires auth)
 - `GET /api/purchases/live` - Public feed of today's purchases (first name + bundle info only, no auth)
-- `POST /api/webhooks/jessco` - JessCo fulfillment webhook
-- `POST /api/webhooks/xpresportal` - JessCo fulfillment webhook (authenticated via x-webhook-secret header)
+- `POST /api/webhooks/jessco` - JessCo fulfillment webhook (authenticated via x-webhook-secret header)
 - `GET /api/admin/sales-stats` - Sales analytics: today/yesterday/week/month/all-time revenue + counts, pending/failed counts, recent 10 orders (admin only)
 - `GET /api/admin/settings/fulfillment` - Get current fulfillment mode (manual/api)
 - `PUT /api/admin/settings/fulfillment` - Set fulfillment mode (manual/api)
@@ -93,14 +92,15 @@ A Ghanaian digital services marketplace with:
 
 Two modes controlled from Admin > Settings:
 - **Manual**: Admin processes orders manually, updates status from Orders page
-- **API (JessCo)**: Orders auto-sent to JessCo (via XpresPortal API) after payment; webhook callbacks update status
+- **API (JessCo)**: Orders auto-sent to JessCo (jesscostore.com/api/v1) after payment; webhook callbacks update status
 
 Key files:
-- `artifacts/api-server/src/lib/xpresportal.ts` - JessCo API client (fulfillBundle + webhook handler), connects to xpresportal.app
+- `artifacts/api-server/src/lib/jessco.ts` - JessCo API client (fulfillBundle + webhook handler), connects to jesscostore.com
 - `artifacts/api-server/src/lib/settings.ts` - App settings (fulfillment mode) via app_settings DB table
 - `artifacts/gigshub/src/pages/admin/AdminSettings.tsx` - Admin settings page with mode toggle
 
-Secrets: `XPRESPORTAL_API_KEY`, `XPRESPORTAL_WEBHOOK_SECRET`
+JessCo API flow: fetches available packages → matches by network/data/price → sends POST /purchase with package ID
+Secrets: `XPRESPORTAL_API_KEY` (JessCo API key, starts with jsk_), `XPRESPORTAL_WEBHOOK_SECRET` (JessCo webhook secret)
 
 ## TypeScript & Composite Projects
 

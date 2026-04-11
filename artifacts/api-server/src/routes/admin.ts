@@ -7,7 +7,7 @@ import { requireAuth, requireAdmin } from "../middleware/auth";
 import { sendPushToTokens } from "../lib/fcm";
 import { pushEventToUser, pushEventToAdmins, addAdminSseClient, removeAdminSseClient } from "../lib/sse";
 import { getFulfillmentMode, setFulfillmentMode, type FulfillmentMode } from "../lib/settings";
-import { fulfillBundle } from "../lib/xpresportal";
+import { fulfillBundle } from "../lib/jessco";
 import bcrypt from "bcryptjs";
 
 const JWT_SECRET = process.env.JWT_SECRET || "gigshub-secret-key-change-in-production";

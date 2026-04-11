@@ -6,7 +6,7 @@ import { eq, desc, and } from "drizzle-orm";
 import { addSseClient, removeSseClient, pushEventToAdmins } from "../lib/sse";
 import { sendOrderNotification } from "../lib/telegram";
 import { getFulfillmentMode } from "../lib/settings";
-import { fulfillBundle } from "../lib/xpresportal";
+import { fulfillBundle } from "../lib/jessco";
 
 const router: IRouter = Router();
 const JWT_SECRET = process.env.JWT_SECRET || "gigshub-secret-key-change-in-production";
