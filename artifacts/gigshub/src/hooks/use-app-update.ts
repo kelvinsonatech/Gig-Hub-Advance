@@ -2,17 +2,16 @@ import { useState, useEffect, useCallback, useRef } from "react";
 
 declare const __APP_VERSION__: string;
 
-const POLL_INTERVAL = 5 * 60_000;
-const INITIAL_DELAY = 30_000;
 const currentVersion = typeof __APP_VERSION__ !== "undefined" ? __APP_VERSION__ : null;
 const isDev = import.meta.env.DEV;
 
 export function useAppUpdate() {
   const [updateAvailable, setUpdateAvailable] = useState(false);
   const dismissed = useRef(false);
+  const hasCheckedOnLoad = useRef(false);
 
   const checkForUpdate = useCallback(async () => {
-    if (!currentVersion || isDev || dismissed.current) return;
+    if (!currentVersion || isDev || dismissed.current || updateAvailable) return;
     try {
       const res = await fetch(`/version.json?_=${Date.now()}`, { cache: "no-store" });
       if (!res.ok) return;
@@ -21,17 +20,13 @@ export function useAppUpdate() {
         setUpdateAvailable(true);
       }
     } catch {}
-  }, []);
+  }, [updateAvailable]);
 
   useEffect(() => {
-    if (!currentVersion || isDev) return;
-
-    const initialTimeout = setTimeout(checkForUpdate, INITIAL_DELAY);
-    const id = setInterval(checkForUpdate, POLL_INTERVAL);
-    return () => {
-      clearTimeout(initialTimeout);
-      clearInterval(id);
-    };
+    if (!currentVersion || isDev || hasCheckedOnLoad.current) return;
+    hasCheckedOnLoad.current = true;
+    const timeout = setTimeout(checkForUpdate, 5_000);
+    return () => clearTimeout(timeout);
   }, [checkForUpdate]);
 
   useEffect(() => {
