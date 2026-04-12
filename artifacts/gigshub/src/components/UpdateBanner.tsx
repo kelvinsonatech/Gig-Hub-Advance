@@ -1,21 +1,30 @@
 import { useAppUpdate } from "@/hooks/use-app-update";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, X } from "lucide-react";
 
 export function UpdateBanner() {
-  const { updateAvailable, applyUpdate } = useAppUpdate();
+  const { updateAvailable, applyUpdate, dismiss } = useAppUpdate();
 
   if (!updateAvailable) return null;
 
   return (
-    <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[9999] animate-in slide-in-from-bottom-4 fade-in duration-500">
-      <button
-        onClick={applyUpdate}
-        className="flex items-center gap-2.5 px-5 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-2xl shadow-2xl shadow-blue-500/30 hover:shadow-blue-500/50 hover:-translate-y-0.5 active:translate-y-0 transition-all"
-      >
-        <RefreshCw className="w-4 h-4 animate-spin" style={{ animationDuration: "3s" }} />
-        <span className="text-sm font-bold">New update available</span>
-        <span className="text-xs bg-white/20 rounded-lg px-2 py-0.5 font-semibold">Tap to refresh</span>
-      </button>
+    <div className="fixed bottom-20 sm:bottom-6 left-3 right-3 sm:left-auto sm:right-4 sm:w-auto z-[9999] animate-in slide-in-from-bottom-4 fade-in duration-500">
+      <div className="flex items-center gap-3 bg-gray-900 text-white rounded-xl sm:rounded-2xl shadow-2xl px-4 py-3 sm:px-5 sm:py-3.5">
+        <RefreshCw className="w-4 h-4 shrink-0 text-orange-400 animate-spin" style={{ animationDuration: "3s" }} />
+        <p className="text-sm font-medium flex-1">A new version is available</p>
+        <button
+          onClick={applyUpdate}
+          className="shrink-0 text-xs font-bold bg-orange-500 hover:bg-orange-400 text-white rounded-lg px-3 py-1.5 transition-colors active:scale-95"
+        >
+          Refresh
+        </button>
+        <button
+          onClick={dismiss}
+          className="shrink-0 p-1 rounded-full hover:bg-white/10 transition-colors"
+          aria-label="Dismiss"
+        >
+          <X className="w-3.5 h-3.5 text-white/60" />
+        </button>
+      </div>
     </div>
   );
 }

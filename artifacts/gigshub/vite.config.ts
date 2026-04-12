@@ -8,18 +8,16 @@ import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 const port = Number(process.env.PORT ?? 3000);
 const basePath = process.env.BASE_PATH ?? "/";
 
+const APP_VERSION = Date.now().toString(36);
+
 function versionJsonPlugin(): Plugin {
-  const version = Date.now().toString(36);
   return {
     name: "version-json",
-    buildStart() {
-      process.env.VITE_APP_VERSION = version;
-    },
     generateBundle() {
       this.emitFile({
         type: "asset",
         fileName: "version.json",
-        source: JSON.stringify({ version }),
+        source: JSON.stringify({ version: APP_VERSION }),
       });
     },
   };
@@ -28,7 +26,7 @@ function versionJsonPlugin(): Plugin {
 export default defineConfig({
   base: basePath,
   define: {
-    __APP_VERSION__: JSON.stringify(Date.now().toString(36)),
+    __APP_VERSION__: JSON.stringify(APP_VERSION),
   },
   plugins: [
     react(),
