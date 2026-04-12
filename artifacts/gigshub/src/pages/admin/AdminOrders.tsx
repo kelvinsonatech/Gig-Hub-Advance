@@ -5,7 +5,7 @@ import {
   Loader2, ShoppingBag, Clock, Wifi, Package, UserCheck,
   Copy, Check, Phone, ChevronDown,
   CircleDot, CircleCheck, CircleX, Timer,
-  Trash2, AlertTriangle, X,
+  Trash2, AlertTriangle, X, Ban,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { UserAvatar } from "@/components/ui/UserAvatar";
@@ -41,14 +41,14 @@ type OrderDetails = {
 type Order = {
   id: string;
   type: "bundle" | "afa_registration" | "agent_registration";
-  status: "pending" | "processing" | "completed" | "failed";
+  status: "pending" | "processing" | "completed" | "failed" | "payment_failed";
   amount: number;
   details: OrderDetails | null;
   createdAt: string;
   user: { name: string; email: string; phone: string };
 };
 
-type StatusKey = "pending" | "processing" | "completed" | "failed";
+type StatusKey = "pending" | "processing" | "completed" | "failed" | "payment_failed";
 
 const STATUS_META: Record<StatusKey, {
   label: string; color: string; bg: string; border: string;
@@ -57,7 +57,8 @@ const STATUS_META: Record<StatusKey, {
   pending:    { label: "Pending",    color: "text-amber-700",   bg: "bg-amber-50",   border: "border-amber-200",  dot: "bg-amber-400",   stripe: "bg-amber-400",   icon: Timer },
   processing: { label: "Processing", color: "text-blue-700",    bg: "bg-blue-50",    border: "border-blue-200",   dot: "bg-blue-500",    stripe: "bg-blue-500",    icon: CircleDot },
   completed:  { label: "Delivered",  color: "text-emerald-700", bg: "bg-emerald-50", border: "border-emerald-200",dot: "bg-emerald-500", stripe: "bg-emerald-500", icon: CircleCheck },
-  failed:     { label: "Failed",     color: "text-red-700",     bg: "bg-red-50",     border: "border-red-200",    dot: "bg-red-500",     stripe: "bg-red-500",     icon: CircleX },
+  failed:         { label: "Failed",         color: "text-red-700",     bg: "bg-red-50",     border: "border-red-200",    dot: "bg-red-500",     stripe: "bg-red-500",     icon: CircleX },
+  payment_failed: { label: "Paid · No Order", color: "text-rose-700",    bg: "bg-rose-50",    border: "border-rose-300",   dot: "bg-rose-500",    stripe: "bg-rose-500",    icon: Ban },
 };
 
 const ALL_STATUSES: StatusKey[] = ["pending", "processing", "completed"];
@@ -68,7 +69,7 @@ const TYPE_META: Record<string, { label: string; icon: any; color: string }> = {
   agent_registration: { label: "Agent Registration", icon: ShoppingBag, color: "text-pink-600 bg-pink-50 border-pink-200" },
 };
 
-const FILTER_STATUSES = ["all", "pending", "processing", "completed", "failed"] as const;
+const FILTER_STATUSES = ["all", "pending", "processing", "completed", "failed", "payment_failed"] as const;
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("en-GB", {
@@ -635,11 +636,18 @@ export default function AdminOrders() {
                         <p className="text-xs text-gray-400 truncate">{order.user.email}</p>
                       </div>
                       <div className="shrink-0">
-                        <StatusDropdown
-                          current={order.status as StatusKey}
-                          isPending={isPending}
-                          onSelect={status => updateStatus.mutate({ id: order.id, status })}
-                        />
+                        {order.status === "payment_failed" ? (
+                          <span className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border-2 ${STATUS_META.payment_failed.bg} ${STATUS_META.payment_failed.color} ${STATUS_META.payment_failed.border}`}>
+                            <Ban className="w-3.5 h-3.5" />
+                            Paid · No Order
+                          </span>
+                        ) : (
+                          <StatusDropdown
+                            current={order.status as StatusKey}
+                            isPending={isPending}
+                            onSelect={status => updateStatus.mutate({ id: order.id, status })}
+                          />
+                        )}
                       </div>
                     </div>
 
@@ -699,11 +707,19 @@ export default function AdminOrders() {
                     {/* Row 5: amount + order ref */}
                     <div className="mt-2 flex items-center gap-2 flex-wrap">
                       <span className="text-sm font-black text-gray-900">GHS {order.amount.toFixed(2)}</span>
-                      <CopyBtn value={toOrderRef(order.id)}>
-                        <span className="flex items-center gap-1 text-[10px] font-mono font-semibold text-gray-400 bg-gray-50 border border-gray-200 rounded-md px-2 py-0.5">
-                          {toOrderRef(order.id)}
-                        </span>
-                      </CopyBtn>
+                      {order.status === "payment_failed" && details.paystackReference ? (
+                        <CopyBtn value={details.paystackReference as string}>
+                          <span className="flex items-center gap-1 text-[10px] font-mono font-semibold text-rose-500 bg-rose-50 border border-rose-200 rounded-md px-2 py-0.5">
+                            REF: {details.paystackReference as string}
+                          </span>
+                        </CopyBtn>
+                      ) : (
+                        <CopyBtn value={toOrderRef(order.id)}>
+                          <span className="flex items-center gap-1 text-[10px] font-mono font-semibold text-gray-400 bg-gray-50 border border-gray-200 rounded-md px-2 py-0.5">
+                            {toOrderRef(order.id)}
+                          </span>
+                        </CopyBtn>
+                      )}
                     </div>
 
                   </div>

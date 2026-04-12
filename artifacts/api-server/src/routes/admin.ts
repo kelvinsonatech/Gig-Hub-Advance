@@ -1,7 +1,7 @@
 import { Router, type IRouter } from "express";
 import jwt from "jsonwebtoken";
 import { db } from "@workspace/db";
-import { bundlesTable, servicesTable, networksTable, ordersTable, usersTable, notificationsTable, deviceTokensTable, walletsTable, transactionsTable } from "@workspace/db";
+import { bundlesTable, servicesTable, networksTable, ordersTable, usersTable, notificationsTable, deviceTokensTable, walletsTable, transactionsTable, paymentIntentsTable } from "@workspace/db";
 import { eq, count, inArray, gte, lt, lte, sql, desc, isNull, and } from "drizzle-orm";
 import { requireAuth, requireAdmin } from "../middleware/auth";
 import { sendPushToTokens } from "../lib/fcm";
@@ -653,7 +653,7 @@ router.get("/orders", async (req, res) => {
 
     const networkMap = Object.fromEntries(networks.map(n => [n.name, { logoUrl: n.logoUrl, color: n.color }]));
 
-    return res.json(rows.map(o => {
+    const orderItems = rows.map(o => {
       const det = (o.details ?? {}) as Record<string, unknown>;
       const net = det.networkName ? networkMap[det.networkName as string] : null;
       return {
@@ -669,7 +669,59 @@ router.get("/orders", async (req, res) => {
         createdAt: o.createdAt.toISOString(),
         user: { name: o.userName, email: o.userEmail, phone: o.userPhone },
       };
+    });
+
+    const failedIntents = await db
+      .select({
+        id: paymentIntentsTable.id,
+        reference: paymentIntentsTable.reference,
+        amountGhs: paymentIntentsTable.amountGHS,
+        phoneNumber: paymentIntentsTable.phoneNumber,
+        createdAt: paymentIntentsTable.createdAt,
+        bundleName: bundlesTable.name,
+        bundleData: bundlesTable.data,
+        bundlePrice: bundlesTable.price,
+        networkName: networksTable.name,
+        networkLogoUrl: networksTable.logoUrl,
+        networkColor: networksTable.color,
+        userName: usersTable.name,
+        userEmail: usersTable.email,
+        userPhone: usersTable.phone,
+      })
+      .from(paymentIntentsTable)
+      .innerJoin(usersTable, eq(paymentIntentsTable.userId, usersTable.id))
+      .leftJoin(bundlesTable, eq(paymentIntentsTable.bundleId, bundlesTable.id))
+      .leftJoin(networksTable, eq(bundlesTable.networkId, networksTable.id))
+      .where(and(
+        eq(paymentIntentsTable.status, "failed"),
+        eq(paymentIntentsTable.type, "bundle_purchase"),
+      ))
+      .orderBy(desc(paymentIntentsTable.createdAt));
+
+    const failedItems = failedIntents.map(fi => ({
+      id: `pi-${fi.id}`,
+      type: "bundle" as const,
+      status: "payment_failed" as const,
+      amount: parseFloat(fi.amountGhs),
+      details: {
+        phoneNumber: fi.phoneNumber,
+        bundleName: fi.bundleName,
+        data: fi.bundleData,
+        networkName: fi.networkName,
+        networkLogoUrl: fi.networkLogoUrl ?? null,
+        networkColor: fi.networkColor ?? null,
+        paystackReference: fi.reference,
+        bundlePrice: fi.bundlePrice ? parseFloat(fi.bundlePrice) : null,
+      },
+      createdAt: fi.createdAt.toISOString(),
+      user: { name: fi.userName, email: fi.userEmail, phone: fi.userPhone },
     }));
+
+    const allItems = [...orderItems, ...failedItems].sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+
+    return res.json(allItems);
   } catch (err) {
     req.log.error(err, "admin get orders error");
     return res.status(500).json({ error: "internal_error", message: "Failed to get orders" });
