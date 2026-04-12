@@ -34,6 +34,7 @@ type OrderDetails = {
   networkName?: string;
   networkLogoUrl?: string | null;
   networkColor?: string | null;
+  fulfillmentMode?: "manual" | "api";
   [key: string]: unknown;
 };
 
@@ -662,12 +663,21 @@ export default function AdminOrders() {
                       </div>
                     )}
 
-                    {/* Row 3: order type tag */}
-                    <div className="mt-1.5">
+                    {/* Row 3: order type tag + fulfillment mode */}
+                    <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
                       <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold border ${typeMeta.color}`}>
                         <TypeIcon className="w-3 h-3" />
                         {typeMeta.label}
                       </span>
+                      {details.fulfillmentMode && (
+                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold border ${
+                          details.fulfillmentMode === "api"
+                            ? "text-indigo-600 bg-indigo-50 border-indigo-200"
+                            : "text-orange-600 bg-orange-50 border-orange-200"
+                        }`}>
+                          {details.fulfillmentMode === "api" ? "API" : "Manual"}
+                        </span>
+                      )}
                     </div>
 
                     {/* Row 4: phone + date — stack on very narrow, row on wider */}
