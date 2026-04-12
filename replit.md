@@ -128,6 +128,16 @@ Push schema: `pnpm --filter @workspace/db run push`
 JWT tokens signed with `JWT_SECRET` env var (defaults to dev key).
 Set `JWT_SECRET` in production for security.
 
+## Wallet Payment Flow
+
+Wallet debit uses atomic SQL (`UPDATE ... WHERE balance >= amount`) to prevent race conditions on concurrent purchases. The balance check and debit happen in a single query — no double-spend is possible.
+
+## Deployment
+
+- **Frontend (Vercel)**: turboghana.com — push to GitHub triggers rebuild. Set `VITE_API_URL` in Vercel env vars to point at the Replit API server.
+- **API (Replit Reserved VM)**: Publish from Replit for always-on API. Uses `SUPABASE_DATABASE_URL` for production database.
+- The generated API client (`@workspace/api-client-react`) is configured in `main.tsx` via `setBaseUrl(API)` and `setAuthTokenGetter()` to point at the correct API server and attach auth tokens automatically.
+
 ## Packages
 
 ### `artifacts/api-server` (`@workspace/api-server`)

@@ -2,7 +2,7 @@ import { Router, type IRouter } from "express";
 import jwt from "jsonwebtoken";
 import { db } from "@workspace/db";
 import { ordersTable, walletsTable, transactionsTable, bundlesTable, paymentIntentsTable, usersTable } from "@workspace/db";
-import { eq, desc, and } from "drizzle-orm";
+import { eq, desc, and, sql, gte } from "drizzle-orm";
 import { addSseClient, removeSseClient, pushEventToAdmins } from "../lib/sse";
 import { sendOrderNotification, sendFulfillmentAlert } from "../lib/telegram";
 import { getFulfillmentMode } from "../lib/settings";
@@ -346,8 +346,14 @@ router.post("/", async (req, res) => {
         return res.status(400).json({ error: "insufficient_funds", message: "Insufficient wallet balance" });
       }
 
-      const newBalance = (parseFloat(wallet.balance) - amount).toFixed(2);
-      await db.update(walletsTable).set({ balance: newBalance }).where(eq(walletsTable.id, wallet.id));
+      const [updated] = await db.update(walletsTable)
+        .set({ balance: sql`${walletsTable.balance} - ${amount}` })
+        .where(and(eq(walletsTable.id, wallet.id), gte(walletsTable.balance, String(amount))))
+        .returning();
+
+      if (!updated) {
+        return res.status(400).json({ error: "insufficient_funds", message: "Insufficient wallet balance" });
+      }
 
       const description =
         type === "bundle"
@@ -373,10 +379,8 @@ router.post("/", async (req, res) => {
         details: orderDetails,
       }).returning();
 
-      // Notify admin panel in real-time (fire-and-forget)
       notifyAdminsNewOrder(order);
 
-      // Auto-fulfill via JessCo if API mode is active (fire-and-forget)
       tryAutoFulfill(order);
 
       return res.status(201).json({
