@@ -138,6 +138,13 @@ Wallet debit uses atomic SQL (`UPDATE ... WHERE balance >= amount`) to prevent r
 - **API (Replit Reserved VM)**: Publish from Replit for always-on API. Uses `SUPABASE_DATABASE_URL` for production database.
 - The generated API client (`@workspace/api-client-react`) is configured in `main.tsx` via `setBaseUrl(API)` and `setAuthTokenGetter()` to point at the correct API server and attach auth tokens automatically.
 
+## Image Loading & Avatars
+
+- **UserAvatar** (`components/ui/UserAvatar.tsx`): Fetches DiceBear SVGs, caches in localStorage (7-day expiry), shows colored initial placeholder while loading, fades in smoothly.
+- **FadeImage** (`components/ui/FadeImage.tsx`): Reusable image component with opacity fade-in transition and error fallback support.
+- **Image preloader** (`hooks/use-image-preloader.ts`): Preloads static images, network logos (from API), and user avatar on mount. Uses deduplication set.
+- **Auth fetch interceptor** (`App.tsx`): Global fetch override only adds auth token for same-origin and API-origin requests — never for third-party URLs.
+
 ## Packages
 
 ### `artifacts/api-server` (`@workspace/api-server`)

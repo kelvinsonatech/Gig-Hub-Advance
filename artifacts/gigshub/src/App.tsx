@@ -38,15 +38,29 @@ const AdminOrders         = lazy(() => import("@/pages/admin/AdminOrders"));
 const AdminUsers          = lazy(() => import("@/pages/admin/AdminUsers"));
 const AdminSettings       = lazy(() => import("@/pages/admin/AdminSettings"));
 
-// Intercept fetch to automatically add Authorization Bearer token
+// Intercept fetch to automatically add Authorization Bearer token (same-origin + API only)
 const originalFetch = window.fetch;
+const API_ORIGIN = new URL(
+  import.meta.env.VITE_API_URL || window.location.origin
+).origin;
 window.fetch = async (input, init) => {
   const token = localStorage.getItem("gigshub_token");
   if (token) {
-    init = init || {};
-    const headers = new Headers(init.headers as HeadersInit | undefined);
-    headers.set("Authorization", `Bearer ${token}`);
-    init = { ...init, headers };
+    const url = typeof input === "string" ? input : input instanceof URL ? input.href : (input as Request).url;
+    const isRelative = url.startsWith("/") && !url.startsWith("//");
+    let isApiRequest = isRelative;
+    if (!isRelative) {
+      try {
+        const reqOrigin = new URL(url).origin;
+        isApiRequest = reqOrigin === window.location.origin || reqOrigin === API_ORIGIN;
+      } catch {}
+    }
+    if (isApiRequest) {
+      init = init || {};
+      const headers = new Headers(init.headers as HeadersInit | undefined);
+      headers.set("Authorization", `Bearer ${token}`);
+      init = { ...init, headers };
+    }
   }
   return originalFetch(input, init);
 };

@@ -12,6 +12,7 @@ import { format, isToday, parseISO } from "date-fns";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { UserAvatar } from "@/components/ui/UserAvatar";
+import { FadeImage } from "@/components/ui/FadeImage";
 
 const statusConfig: Record<string, { label: string; color: string; icon: React.ElementType }> = {
   completed: { label: "Completed", color: "text-emerald-600 bg-emerald-50 border-emerald-100", icon: CheckCircle2 },
@@ -243,11 +244,16 @@ export default function Dashboard() {
                       <div className="shrink-0">
                         {isBundle ? (
                           net?.logoUrl ? (
-                            <img
+                            <FadeImage
                               src={net.logoUrl}
                               alt={networkName}
                               className="w-11 h-11 rounded-xl object-contain border border-gray-100 shadow-sm bg-white p-0.5"
-                              onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                              fallback={
+                                <div className="w-11 h-11 rounded-xl flex items-center justify-center shadow-sm"
+                                  style={{ backgroundColor: netColor + "20" }}>
+                                  <Wifi className="w-5 h-5" style={{ color: netColor }} />
+                                </div>
+                              }
                             />
                           ) : (
                             <div className="w-11 h-11 rounded-xl flex items-center justify-center shadow-sm"
