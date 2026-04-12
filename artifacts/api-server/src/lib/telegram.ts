@@ -13,6 +13,8 @@ function escapeHtml(text: string): string {
     .replace(/>/g, "&gt;");
 }
 
+console.log(`[Telegram] Config: ${BOT_TOKEN && CHAT_ID ? "✓ BOT_TOKEN + CHAT_ID present" : "✗ Missing credentials"}`);
+
 export async function sendFulfillmentAlert(order: {
   id: number;
   amount: string;
@@ -82,13 +84,23 @@ export async function sendOrderNotification(order: {
     hour: "2-digit", minute: "2-digit",
   });
 
+  const mode = d.fulfillmentMode;
+  const modeLabel = mode === "api" ? "⚡ API (Auto)" : mode === "manual" ? "🖐 Manual" : "";
+
+  const typeLabel =
+    order.type === "bundle" ? "Data Bundle"
+    : order.type === "afa_registration" ? "AFA Registration"
+    : order.type === "agent_registration" ? "Agent Registration"
+    : "Order";
+
   const lines = [
-    `🛒 <b>New Order Received!</b>`,
+    `🛒 <b>New ${typeLabel}!</b>`,
     ``,
     `📦 <b>Bundle:</b> ${network} · ${bundle}${data ? ` (${data})` : ""}`,
     `📱 <b>Phone:</b> <code>${phone}</code>`,
     `💵 <b>Amount:</b> GHS ${amount}`,
     `💳 <b>Payment:</b> ${pmLabel}`,
+    modeLabel ? `🔧 <b>Mode:</b> ${modeLabel}` : null,
     ``,
     `👤 <b>Customer:</b> ${userName}`,
     userEmail ? `📧 ${userEmail}` : null,
@@ -96,7 +108,7 @@ export async function sendOrderNotification(order: {
     `🔖 <b>Ref:</b> <code>${ref}</code>`,
     `🕐 ${now}`,
     ``,
-    `⚡ Status: <b>Processing</b>`,
+    `⚡ Status: <b>${order.status === "processing" ? "Processing" : order.status === "pending" ? "Pending" : order.status}</b>`,
   ].filter((l): l is string => l !== null).join("\n");
 
   try {
