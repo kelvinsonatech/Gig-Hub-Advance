@@ -1,18 +1,39 @@
-import { defineConfig } from "vite";
+import { defineConfig, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import path from "path";
+import fs from "fs";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 
-// Use defaults so Vercel (and other CI environments) can build without Replit env vars
 const port = Number(process.env.PORT ?? 3000);
 const basePath = process.env.BASE_PATH ?? "/";
 
+function versionJsonPlugin(): Plugin {
+  const version = Date.now().toString(36);
+  return {
+    name: "version-json",
+    buildStart() {
+      process.env.VITE_APP_VERSION = version;
+    },
+    generateBundle() {
+      this.emitFile({
+        type: "asset",
+        fileName: "version.json",
+        source: JSON.stringify({ version }),
+      });
+    },
+  };
+}
+
 export default defineConfig({
   base: basePath,
+  define: {
+    __APP_VERSION__: JSON.stringify(Date.now().toString(36)),
+  },
   plugins: [
     react(),
     tailwindcss(),
+    versionJsonPlugin(),
     ...(process.env.NODE_ENV !== "production"
       ? [runtimeErrorOverlay()]
       : []),

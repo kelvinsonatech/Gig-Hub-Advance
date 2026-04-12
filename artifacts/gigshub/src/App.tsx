@@ -14,6 +14,7 @@ import { useFcm } from "@/hooks/use-fcm";
 import { useImagePreloader } from "@/hooks/use-image-preloader";
 import { useOrdersStream } from "@/hooks/use-orders-stream";
 import LivePurchasePopup from "@/components/LivePurchasePopup";
+import { UpdateBanner } from "@/components/UpdateBanner";
 
 // Lazy-loaded pages — each page becomes its own JS chunk
 const Login            = lazy(() => import("@/pages/Login"));
@@ -203,6 +204,7 @@ function App() {
           <PaymentGuard />
         </WouterRouter>
         <Toaster />
+        <UpdateBanner />
       </TooltipProvider>
     </QueryClientProvider>
   );
