@@ -250,9 +250,13 @@ router.post("/", async (req, res) => {
       }
 
       // ── Amount integrity check (server-stored price vs what Paystack charged) ─
+      // Paystack may add processing fees (typically ~1.95% + flat), so the paid
+      // amount can exceed the bundle price.  We only reject when paid < expected
+      // (underpayment) or when the overpayment is suspiciously high (>5%).
       const paidGHS = psData.data.amount / 100;
       const expectedGHS = parseFloat(intent.amountGHS);
-      if (Math.abs(paidGHS - expectedGHS) > 0.5) {
+      const maxOverpay = expectedGHS * 0.05;
+      if (paidGHS < expectedGHS - 0.5 || paidGHS > expectedGHS + maxOverpay + 1) {
         req.log.warn({ paidGHS, expectedGHS, paystackReference, userId }, "Amount mismatch on bundle order");
         await db.update(paymentIntentsTable)
           .set({ status: "failed" })
