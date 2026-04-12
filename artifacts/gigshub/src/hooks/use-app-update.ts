@@ -8,23 +8,23 @@ const isDev = import.meta.env.DEV;
 export function useAppUpdate() {
   const [updateAvailable, setUpdateAvailable] = useState(false);
   const dismissed = useRef(false);
-  const hasCheckedOnLoad = useRef(false);
+  const found = useRef(false);
 
   const checkForUpdate = useCallback(async () => {
-    if (!currentVersion || isDev || dismissed.current || updateAvailable) return;
+    if (!currentVersion || isDev || dismissed.current || found.current) return;
     try {
       const res = await fetch(`/version.json?_=${Date.now()}`, { cache: "no-store" });
       if (!res.ok) return;
       const data = await res.json();
       if (data.version && data.version !== currentVersion) {
+        found.current = true;
         setUpdateAvailable(true);
       }
     } catch {}
-  }, [updateAvailable]);
+  }, []);
 
   useEffect(() => {
-    if (!currentVersion || isDev || hasCheckedOnLoad.current) return;
-    hasCheckedOnLoad.current = true;
+    if (!currentVersion || isDev) return;
     const timeout = setTimeout(checkForUpdate, 5_000);
     return () => clearTimeout(timeout);
   }, [checkForUpdate]);
