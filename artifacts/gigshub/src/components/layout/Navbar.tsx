@@ -133,8 +133,8 @@ function NotificationsPanel({ onClose, isOpen, avatarStyle }: { onClose: () => v
           <Bell className="w-4 h-4 text-primary" />
           <span className="font-bold text-sm text-gray-900">Notifications</span>
           {unread.length > 0 && (
-            <span className="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
-              {unread.length}
+            <span className="bg-gray-100 text-blue-600 text-[11px] font-semibold px-2.5 py-0.5 rounded-full">
+              {unread.length} new
             </span>
           )}
         </div>
