@@ -189,10 +189,15 @@ router.post("/topup/verify", async (req, res) => {
     }
 
     // ── Credit the wallet ────────────────────────────────────────────────────
+    // Credit the intended top-up amount, not the Paystack-charged amount
+    // (which includes processing fees the user already paid to Paystack).
+    const creditGHS = expectedGHS;
+    const paystackFee = +(paidGHS - expectedGHS).toFixed(2);
+
     const [wallet] = await db.select().from(walletsTable).where(eq(walletsTable.userId, userId)).limit(1);
     if (!wallet) return res.status(404).json({ error: "not_found", message: "Wallet not found" });
 
-    const newBalance = parseFloat(wallet.balance) + paidGHS;
+    const newBalance = parseFloat(wallet.balance) + creditGHS;
     const [updated] = await db.update(walletsTable)
       .set({ balance: newBalance.toFixed(2) })
       .where(eq(walletsTable.id, wallet.id))
@@ -201,7 +206,7 @@ router.post("/topup/verify", async (req, res) => {
     await db.insert(transactionsTable).values({
       walletId: wallet.id,
       type: "credit",
-      amount: paidGHS.toFixed(2),
+      amount: creditGHS.toFixed(2),
       description: `Top up via Paystack (${reference})`,
     });
 
