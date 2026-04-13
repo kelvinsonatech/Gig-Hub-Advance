@@ -5,7 +5,7 @@ import {
   Loader2, ShoppingBag, Clock, Wifi, Package, UserCheck,
   Copy, Check, Phone, ChevronDown,
   CircleDot, CircleCheck, CircleX, Timer,
-  Trash2, AlertTriangle, X, Ban,
+  Trash2, AlertTriangle, X, Ban, Wallet,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { UserAvatar } from "@/components/ui/UserAvatar";
@@ -40,7 +40,7 @@ type OrderDetails = {
 
 type Order = {
   id: string;
-  type: "bundle" | "afa_registration" | "agent_registration";
+  type: "bundle" | "afa_registration" | "agent_registration" | "wallet_topup";
   status: "pending" | "processing" | "completed" | "failed" | "payment_failed";
   amount: number;
   details: OrderDetails | null;
@@ -65,6 +65,7 @@ const ALL_STATUSES: StatusKey[] = ["pending", "processing", "completed"];
 
 const TYPE_META: Record<string, { label: string; icon: any; color: string }> = {
   bundle:             { label: "Data Bundle",        icon: Wifi,        color: "text-blue-600 bg-blue-50 border-blue-200" },
+  wallet_topup:       { label: "Wallet Top-up",      icon: Wallet,      color: "text-emerald-600 bg-emerald-50 border-emerald-200" },
   afa_registration:   { label: "AFA Registration",   icon: UserCheck,   color: "text-purple-600 bg-purple-50 border-purple-200" },
   agent_registration: { label: "Agent Registration", icon: ShoppingBag, color: "text-pink-600 bg-pink-50 border-pink-200" },
 };

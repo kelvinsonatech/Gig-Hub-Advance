@@ -174,9 +174,13 @@ router.post("/topup/verify", async (req, res) => {
     }
 
     // ── Amount integrity check ───────────────────────────────────────────────
+    // Paystack may add processing fees (typically ~1.95% + flat), so the paid
+    // amount can exceed the requested top-up amount.  We only reject when
+    // underpaid by >GHS 0.50 OR overpaid by >5%+GHS 1.
     const paidGHS = paystackData.data.amount / 100;
     const expectedGHS = parseFloat(intent.amountGHS);
-    if (Math.abs(paidGHS - expectedGHS) > 0.5) {
+    const maxOverpay = expectedGHS * 0.05;
+    if (paidGHS < expectedGHS - 0.5 || paidGHS > expectedGHS + maxOverpay + 1) {
       req.log.warn({ paidGHS, expectedGHS, reference, userId }, "Amount mismatch on wallet topup");
       await db.update(paymentIntentsTable)
         .set({ status: "failed" })

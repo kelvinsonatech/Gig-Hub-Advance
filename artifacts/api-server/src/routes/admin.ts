@@ -675,6 +675,7 @@ router.get("/orders", async (req, res) => {
       .select({
         id: paymentIntentsTable.id,
         reference: paymentIntentsTable.reference,
+        type: paymentIntentsTable.type,
         amountGhs: paymentIntentsTable.amountGHS,
         phoneNumber: paymentIntentsTable.phoneNumber,
         createdAt: paymentIntentsTable.createdAt,
@@ -692,15 +693,12 @@ router.get("/orders", async (req, res) => {
       .innerJoin(usersTable, eq(paymentIntentsTable.userId, usersTable.id))
       .leftJoin(bundlesTable, eq(paymentIntentsTable.bundleId, bundlesTable.id))
       .leftJoin(networksTable, eq(bundlesTable.networkId, networksTable.id))
-      .where(and(
-        eq(paymentIntentsTable.status, "failed"),
-        eq(paymentIntentsTable.type, "bundle_purchase"),
-      ))
+      .where(eq(paymentIntentsTable.status, "failed"))
       .orderBy(desc(paymentIntentsTable.createdAt));
 
     const failedItems = failedIntents.map(fi => ({
       id: `pi-${fi.id}`,
-      type: "bundle" as const,
+      type: fi.type === "wallet_topup" ? "wallet_topup" as const : "bundle" as const,
       status: "payment_failed" as const,
       amount: parseFloat(fi.amountGhs),
       details: {
