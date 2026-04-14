@@ -30,6 +30,13 @@ type ChatData = {
   messages: ChatMessage[];
 };
 
+const QUICK_TOPICS = [
+  "Data bundle issue",
+  "Wallet top-up",
+  "Account help",
+  "Other",
+];
+
 async function chatFetch(path: string, opts?: RequestInit) {
   const token = localStorage.getItem("gigshub_token");
   const res = await fetch(`${API}/api/chat${path}`, {
@@ -62,6 +69,39 @@ function formatDateLabel(iso: string) {
   return d.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
 }
 
+function playNotificationSound() {
+  try {
+    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const now = ctx.currentTime;
+
+    const osc1 = ctx.createOscillator();
+    const gain1 = ctx.createGain();
+    osc1.type = "sine";
+    osc1.frequency.setValueAtTime(880, now);
+    osc1.frequency.setValueAtTime(1100, now + 0.08);
+    gain1.gain.setValueAtTime(0.15, now);
+    gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+    osc1.connect(gain1);
+    gain1.connect(ctx.destination);
+    osc1.start(now);
+    osc1.stop(now + 0.25);
+
+    const osc2 = ctx.createOscillator();
+    const gain2 = ctx.createGain();
+    osc2.type = "sine";
+    osc2.frequency.setValueAtTime(1320, now + 0.1);
+    gain2.gain.setValueAtTime(0, now);
+    gain2.gain.setValueAtTime(0.12, now + 0.1);
+    gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+    osc2.connect(gain2);
+    gain2.connect(ctx.destination);
+    osc2.start(now + 0.1);
+    osc2.stop(now + 0.35);
+
+    setTimeout(() => ctx.close(), 500);
+  } catch {}
+}
+
 export function ChatWidget() {
   const { isAuthenticated, user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
@@ -69,6 +109,8 @@ export function ChatWidget() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const qc = useQueryClient();
+  const prevMsgCountRef = useRef(0);
+  const prevAdminMsgCountRef = useRef(0);
 
   const { data: chat, isLoading } = useQuery<ChatData>({
     queryKey: ["chat"],
@@ -85,6 +127,23 @@ export function ChatWidget() {
   });
 
   const unreadCount = unreadData?.unreadCount ?? 0;
+
+  useEffect(() => {
+    if (!chat?.messages) return;
+    const adminMsgs = chat.messages.filter(m => m.senderType === "admin").length;
+    if (prevAdminMsgCountRef.current > 0 && adminMsgs > prevAdminMsgCountRef.current) {
+      playNotificationSound();
+    }
+    prevAdminMsgCountRef.current = adminMsgs;
+    prevMsgCountRef.current = chat.messages.length;
+  }, [chat?.messages]);
+
+  useEffect(() => {
+    if (!isOpen || !unreadData) return;
+    if (unreadCount > 0) {
+      playNotificationSound();
+    }
+  }, [isOpen]);
 
   const sendMessage = useMutation({
     mutationFn: (message: string) =>
@@ -128,6 +187,10 @@ export function ChatWidget() {
     }
   };
 
+  const handleQuickTopic = (topic: string) => {
+    sendMessage.mutate(topic);
+  };
+
   const [location] = useLocation();
 
   if (!isAuthenticated || location.startsWith("/admin")) return null;
@@ -161,7 +224,7 @@ export function ChatWidget() {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-white font-bold text-sm">{chat?.admin?.name ?? "TurboGH Support"}</p>
-                <p className="text-white/70 text-[11px]">We typically reply within minutes</p>
+                <p className="text-white/70 text-[11px]">Typically replies in minutes</p>
               </div>
               <button
                 onClick={() => setIsOpen(false)}
@@ -178,12 +241,23 @@ export function ChatWidget() {
                   <Loader2 className="w-6 h-6 animate-spin text-gray-300" />
                 </div>
               ) : messages.length === 0 ? (
-                <div className="text-center py-10 px-4">
-                  <div className="w-14 h-14 rounded-full bg-orange-100 flex items-center justify-center mx-auto mb-3">
-                    <MessageCircle className="w-7 h-7 text-orange-500" />
+                <div className="py-6 px-2">
+                  <div className="bg-white border border-gray-100 rounded-2xl rounded-bl-md px-4 py-3 shadow-sm mb-4">
+                    <p className="text-[13px] text-gray-800 font-medium">Hi! How can we help you today?</p>
+                    <p className="text-[12px] text-gray-500 mt-1">Send us a message and we'll reply shortly.</p>
                   </div>
-                  <p className="font-bold text-gray-800 text-sm">Start a conversation</p>
-                  <p className="text-xs text-gray-500 mt-1">Ask us anything — we're here to help!</p>
+                  <div className="flex flex-wrap gap-2">
+                    {QUICK_TOPICS.map((topic) => (
+                      <button
+                        key={topic}
+                        onClick={() => handleQuickTopic(topic)}
+                        disabled={sendMessage.isPending}
+                        className="px-3 py-1.5 rounded-full text-[12px] font-medium border border-orange-200 bg-orange-50 text-orange-600 hover:bg-orange-100 hover:border-orange-300 transition-all active:scale-95 disabled:opacity-50"
+                      >
+                        {topic}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               ) : (
                 messages.map((msg, i) => {
@@ -248,7 +322,7 @@ export function ChatWidget() {
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  placeholder="Type a message..."
+                  placeholder="Message support..."
                   rows={1}
                   className="flex-1 resize-none bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-300 transition-all max-h-24"
                   style={{ minHeight: 40 }}
@@ -265,6 +339,7 @@ export function ChatWidget() {
                   )}
                 </button>
               </div>
+              <p className="text-[10px] text-gray-400 mt-1.5 text-center">Enter to send &middot; Shift+Enter for new line</p>
             </form>
           </motion.div>
         )}

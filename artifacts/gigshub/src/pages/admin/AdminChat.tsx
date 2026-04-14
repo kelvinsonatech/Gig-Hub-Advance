@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Loader2, Send, MessageCircle, X, ArrowLeft,
@@ -63,6 +63,25 @@ function formatDate(iso: string) {
   if (diff < 86400000 && d.getDate() === now.getDate()) return formatTime(iso);
   if (diff < 172800000) return "Yesterday";
   return d.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+}
+
+function playNotificationSound() {
+  try {
+    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const now = ctx.currentTime;
+    const osc1 = ctx.createOscillator();
+    const gain1 = ctx.createGain();
+    osc1.type = "sine";
+    osc1.frequency.setValueAtTime(660, now);
+    osc1.frequency.setValueAtTime(880, now + 0.08);
+    gain1.gain.setValueAtTime(0.12, now);
+    gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+    osc1.connect(gain1);
+    gain1.connect(ctx.destination);
+    osc1.start(now);
+    osc1.stop(now + 0.2);
+    setTimeout(() => ctx.close(), 400);
+  } catch {}
 }
 
 function formatDateLabel(iso: string) {
@@ -173,12 +192,22 @@ function ChatPanel({
   const qc = useQueryClient();
   const { toast } = useToast();
   const { user: adminUser } = useAuth();
+  const prevUserMsgCountRef = useRef(0);
 
   const { data: chat, isLoading } = useQuery<ConversationDetail>({
     queryKey: ["admin-chat", conversationId],
     queryFn: () => apiFetch(`/chats/${conversationId}`),
     refetchInterval: 5000,
   });
+
+  useEffect(() => {
+    if (!chat?.messages) return;
+    const userMsgs = chat.messages.filter(m => m.senderType === "user").length;
+    if (prevUserMsgCountRef.current > 0 && userMsgs > prevUserMsgCountRef.current) {
+      playNotificationSound();
+    }
+    prevUserMsgCountRef.current = userMsgs;
+  }, [chat?.messages]);
 
   const sendMessage = useMutation({
     mutationFn: (message: string) =>
