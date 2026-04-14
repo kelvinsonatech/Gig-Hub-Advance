@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -218,6 +218,12 @@ export function ChatWidget() {
 
   const [location] = useLocation();
 
+  const chatBgStyle = useMemo(() => ({
+    backgroundImage: `url('https://occ-0-8407-2219.1.nflxso.net/dnm/api/v6/6AYY37jfdO6hpXcMjf9Yu5cnmO0/AAAABUV_jDjJ4_X_PSYgTJthNlfoStaN1fqwW1vcTx8bKIwYizu5-VL1365SJPeFB1FIig2dpPVvYdgfODQ9DEKR8t9Ak3G5NIa1HeWv.jpg?r=513')`,
+    backgroundSize: 'cover' as const,
+    backgroundPosition: 'center' as const,
+  }), []);
+
   if (!isAuthenticated || location.startsWith("/admin")) return null;
 
   const messages = chat?.messages ?? [];
@@ -260,11 +266,7 @@ export function ChatWidget() {
             {/* Messages */}
             <div
               className="flex-1 overflow-y-auto px-4 py-3 space-y-1 min-h-0"
-              style={{
-                backgroundImage: `url('https://occ-0-8407-2219.1.nflxso.net/dnm/api/v6/6AYY37jfdO6hpXcMjf9Yu5cnmO0/AAAABUV_jDjJ4_X_PSYgTJthNlfoStaN1fqwW1vcTx8bKIwYizu5-VL1365SJPeFB1FIig2dpPVvYdgfODQ9DEKR8t9Ak3G5NIa1HeWv.jpg?r=513')`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-              }}
+              style={chatBgStyle}
             >
               {isLoading ? (
                 <div className="flex justify-center py-12">
