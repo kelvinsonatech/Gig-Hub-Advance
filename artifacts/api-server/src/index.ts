@@ -2,6 +2,7 @@ import app from "./app";
 import { logger } from "./lib/logger";
 import { seedDatabase } from "./lib/seed";
 import { startJesscoPoller } from "./lib/jessco";
+import { startPaymentRecovery } from "./lib/payment-recovery";
 
 const rawPort = process.env["PORT"];
 
@@ -30,5 +31,6 @@ seedDatabase().finally(() => {
     }
     logger.info({ port }, "Server listening");
     startJesscoPoller(30_000);
+    startPaymentRecovery(60_000);
   });
 });
