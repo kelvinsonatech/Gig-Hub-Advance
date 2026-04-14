@@ -22,6 +22,8 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UserAvatar, AVATAR_STYLES, getAvatarSrc } from "@/components/ui/UserAvatar";
+
+const ADMIN_AVATAR_URL = getAvatarSrc("mablequartey04@gmail.com", "adventurer");
 import logoUrl from "@/assets/logo.png";
 import { API } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
@@ -409,7 +411,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
       {/* Profile + logout at bottom */}
       <div className="px-3 pb-5 border-t border-gray-100 pt-4 space-y-3">
         <div className="flex items-center gap-3 px-2">
-          <UserAvatar name={user.name} seed={user.email} size={40} avatarStyle={user.avatarStyle} className="ring-2 ring-white shadow-md" />
+          <img src={ADMIN_AVATAR_URL} alt={user.name} className="w-10 h-10 rounded-full object-cover ring-2 ring-white shadow-md" />
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-gray-900 truncate">{user.name}</p>
             <p className="text-[11px] text-gray-400 truncate">{user.email}</p>
@@ -495,7 +497,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
             className="shrink-0"
             aria-label="Open menu"
           >
-            <UserAvatar name={user.name} seed={user.email} size={32} avatarStyle={user.avatarStyle} className="ring-2 ring-white shadow-md" />
+            <img src={ADMIN_AVATAR_URL} alt={user.name} className="w-8 h-8 rounded-full object-cover ring-2 ring-white shadow-md" />
           </button>
         </header>
 
