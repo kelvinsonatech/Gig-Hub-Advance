@@ -45,9 +45,29 @@ router.get("/", requireAuth, async (req, res) => {
   try {
     const { userId } = (req as any).auth as AuthPayload;
 
-    const conversation = await getOrCreateConversation(userId);
+    const [conversation] = await db
+      .select()
+      .from(conversationsTable)
+      .where(and(
+        eq(conversationsTable.userId, userId),
+        eq(conversationsTable.status, "open"),
+      ))
+      .orderBy(desc(conversationsTable.updatedAt))
+      .limit(1);
+
+    const [admin] = await db
+      .select({ name: usersTable.name, email: usersTable.email, avatarStyle: usersTable.avatarStyle })
+      .from(usersTable)
+      .where(eq(usersTable.role, "admin"))
+      .limit(1);
+
     if (!conversation) {
-      return res.status(500).json({ error: "internal_error", message: "Failed to create conversation" });
+      return res.json({
+        conversationId: null,
+        status: "open",
+        admin: admin ? { name: admin.name, avatarStyle: admin.avatarStyle, seed: admin.email } : null,
+        messages: [],
+      });
     }
 
     const messages = await db
@@ -63,12 +83,6 @@ router.get("/", requireAuth, async (req, res) => {
         eq(chatMessagesTable.senderType, "admin"),
         eq(chatMessagesTable.isRead, false),
       ));
-
-    const [admin] = await db
-      .select({ name: usersTable.name, email: usersTable.email, avatarStyle: usersTable.avatarStyle })
-      .from(usersTable)
-      .where(eq(usersTable.role, "admin"))
-      .limit(1);
 
     return res.json({
       conversationId: conversation.id,

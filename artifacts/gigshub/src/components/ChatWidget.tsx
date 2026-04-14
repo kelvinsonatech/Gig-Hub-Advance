@@ -25,7 +25,7 @@ type AdminProfile = {
 };
 
 type ChatData = {
-  conversationId: number;
+  conversationId: number | null;
   status: string;
   admin: AdminProfile | null;
   messages: ChatMessage[];
@@ -151,10 +151,14 @@ export function ChatWidget() {
     mutationFn: (message: string) =>
       chatFetch("", { method: "POST", body: JSON.stringify({ message }) }),
     onSuccess: (newMsg) => {
-      qc.setQueryData<ChatData>(["chat"], (old) => {
-        if (!old) return old;
-        return { ...old, messages: [...old.messages, newMsg] };
-      });
+      if (!chat?.conversationId) {
+        qc.invalidateQueries({ queryKey: ["chat"] });
+      } else {
+        qc.setQueryData<ChatData>(["chat"], (old) => {
+          if (!old) return old;
+          return { ...old, messages: [...old.messages, newMsg] };
+        });
+      }
       setInput("");
       qc.invalidateQueries({ queryKey: ["chat-unread"] });
     },
