@@ -117,7 +117,7 @@ export function ChatWidget() {
     queryKey: ["chat"],
     queryFn: () => chatFetch(""),
     enabled: isAuthenticated && isOpen,
-    refetchInterval: isOpen ? 5000 : false,
+    refetchInterval: isOpen ? 2000 : false,
     placeholderData: (prev) => prev,
   });
 
@@ -150,16 +150,28 @@ export function ChatWidget() {
   const sendMessage = useMutation({
     mutationFn: (message: string) =>
       chatFetch("", { method: "POST", body: JSON.stringify({ message }) }),
-    onSuccess: (newMsg) => {
-      if (!chat?.conversationId) {
-        qc.invalidateQueries({ queryKey: ["chat"] });
-      } else {
-        qc.setQueryData<ChatData>(["chat"], (old) => {
-          if (!old) return old;
-          return { ...old, messages: [...old.messages, newMsg] };
-        });
-      }
+    onMutate: async (message) => {
       setInput("");
+      if (!chat?.conversationId) return;
+      await qc.cancelQueries({ queryKey: ["chat"] });
+      const previous = qc.getQueryData<ChatData>(["chat"]);
+      qc.setQueryData<ChatData>(["chat"], (old) => {
+        if (!old) return old;
+        const optimistic: ChatMessage = {
+          id: Date.now(),
+          senderType: "user",
+          message,
+          createdAt: new Date().toISOString(),
+        };
+        return { ...old, messages: [...old.messages, optimistic] };
+      });
+      return { previous };
+    },
+    onError: (_err, _msg, context) => {
+      if (context?.previous) qc.setQueryData(["chat"], context.previous);
+    },
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: ["chat"] });
       qc.invalidateQueries({ queryKey: ["chat-unread"] });
     },
   });

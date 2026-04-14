@@ -199,7 +199,7 @@ function ChatPanel({
   const { data: chat, isLoading } = useQuery<ConversationDetail>({
     queryKey: ["admin-chat", conversationId],
     queryFn: () => apiFetch(`/chats/${conversationId}`),
-    refetchInterval: 5000,
+    refetchInterval: 2000,
   });
 
   useEffect(() => {
@@ -214,15 +214,31 @@ function ChatPanel({
   const sendMessage = useMutation({
     mutationFn: (message: string) =>
       apiFetch(`/chats/${conversationId}`, { method: "POST", body: JSON.stringify({ message }) }),
-    onSuccess: (newMsg) => {
+    onMutate: async (message) => {
+      setInput("");
+      await qc.cancelQueries({ queryKey: ["admin-chat", conversationId] });
+      const previous = qc.getQueryData<ConversationDetail>(["admin-chat", conversationId]);
       qc.setQueryData<ConversationDetail>(["admin-chat", conversationId], (old) => {
         if (!old) return old;
-        return { ...old, messages: [...old.messages, newMsg] };
+        const optimistic: ChatMessage = {
+          id: Date.now(),
+          senderType: "admin",
+          message,
+          isRead: false,
+          createdAt: new Date().toISOString(),
+        };
+        return { ...old, messages: [...old.messages, optimistic] };
       });
-      setInput("");
+      return { previous };
+    },
+    onError: (e: Error, _msg, context) => {
+      if (context?.previous) qc.setQueryData(["admin-chat", conversationId], context.previous);
+      toast({ title: "Failed to send", description: e.message, variant: "destructive" });
+    },
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: ["admin-chat", conversationId] });
       qc.invalidateQueries({ queryKey: ["admin-chats"] });
     },
-    onError: (e: Error) => toast({ title: "Failed to send", description: e.message, variant: "destructive" }),
   });
 
   const closeChat = useMutation({
@@ -414,7 +430,7 @@ export default function AdminChat() {
   const { data: conversations = [], isLoading } = useQuery<ConversationSummary[]>({
     queryKey: ["admin-chats"],
     queryFn: () => apiFetch("/chats"),
-    refetchInterval: 10000,
+    refetchInterval: 3000,
   });
 
   const closedCount = conversations.filter(c => c.status === "closed").length;
