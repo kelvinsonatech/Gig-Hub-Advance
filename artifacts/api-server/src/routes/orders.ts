@@ -222,9 +222,15 @@ router.post("/", async (req, res) => {
         return res.status(400).json({ error: "payment_failed", message: "This payment was not completed" });
       }
 
-      // ── Verify with Paystack FIRST (before expiry check) ────────────────
-      // If Paystack confirms the payment succeeded, we honor it even if our
-      // intent window expired — the customer already paid.
+      // Expiry check
+      if (new Date() > intent.expiresAt) {
+        await db.update(paymentIntentsTable)
+          .set({ status: "cancelled" })
+          .where(eq(paymentIntentsTable.reference, paystackReference));
+        return res.status(400).json({ error: "payment_expired", message: "Payment session expired. Please try again." });
+      }
+
+      // ── Verify with Paystack ────────────────────────────────────────────
       const psRes = await fetch(
         `https://api.paystack.co/transaction/verify/${encodeURIComponent(paystackReference)}`,
         { headers: { Authorization: `Bearer ${secretKey}` } }
@@ -234,14 +240,6 @@ router.post("/", async (req, res) => {
       if (!psData.status || psData.data?.status !== "success") {
         const txStatus = psData.data?.status;
         const isCancelled = txStatus === "abandoned";
-
-        if (new Date() > intent.expiresAt && !isCancelled) {
-          await db.update(paymentIntentsTable)
-            .set({ status: "cancelled" })
-            .where(eq(paymentIntentsTable.reference, paystackReference));
-          return res.status(400).json({ error: "payment_expired", message: "Payment session expired. Please try again." });
-        }
-
         await db.update(paymentIntentsTable)
           .set({ status: isCancelled ? "cancelled" : "failed" })
           .where(eq(paymentIntentsTable.reference, paystackReference));
