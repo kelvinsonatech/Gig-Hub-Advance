@@ -6,6 +6,7 @@ import { eq, count, inArray, gte, lt, lte, sql, desc, isNull, and } from "drizzl
 import { requireAuth, requireAdmin } from "../middleware/auth";
 import { sendPushToTokens } from "../lib/fcm";
 import { pushEventToUser, pushEventToAdmins, addAdminSseClient, removeAdminSseClient } from "../lib/sse";
+import { encrypt, decrypt } from "../lib/crypto";
 import { getFulfillmentMode, setFulfillmentMode, type FulfillmentMode } from "../lib/settings";
 import { fulfillBundle } from "../lib/jessco";
 import bcrypt from "bcryptjs";
@@ -1003,7 +1004,7 @@ router.get("/chats", async (req, res) => {
         updatedAt: c.updatedAt.toISOString(),
         user: { name: c.userName, email: c.userEmail, phone: c.userPhone, avatarStyle: c.userAvatarStyle },
         lastMessage: lastMsg ? {
-          message: lastMsg.message,
+          message: decrypt(lastMsg.message),
           senderType: lastMsg.senderType,
           createdAt: lastMsg.createdAt.toISOString(),
         } : null,
@@ -1068,7 +1069,7 @@ router.get("/chats/:id", async (req, res) => {
       messages: messages.map(m => ({
         id: m.id,
         senderType: m.senderType,
-        message: m.message,
+        message: decrypt(m.message),
         isRead: m.isRead,
         createdAt: m.createdAt.toISOString(),
       })),
@@ -1102,11 +1103,12 @@ router.post("/chats/:id", async (req, res) => {
       return res.status(404).json({ error: "not_found", message: "Conversation not found" });
     }
 
+    const plaintext = message.trim();
     const [msg] = await db.insert(chatMessagesTable).values({
       conversationId,
       senderType: "admin",
       senderId: userId,
-      message: message.trim(),
+      message: encrypt(plaintext),
     }).returning();
 
     await db.update(conversationsTable)
@@ -1116,7 +1118,7 @@ router.post("/chats/:id", async (req, res) => {
     return res.status(201).json({
       id: msg.id,
       senderType: msg.senderType,
-      message: msg.message,
+      message: plaintext,
       createdAt: msg.createdAt.toISOString(),
     });
   } catch (err) {

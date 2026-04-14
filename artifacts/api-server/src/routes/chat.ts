@@ -4,6 +4,7 @@ import { conversationsTable, chatMessagesTable, usersTable } from "@workspace/db
 import { eq, desc, and, sql } from "drizzle-orm";
 import { requireAuth } from "../middleware/auth";
 import type { AuthPayload } from "../middleware/auth";
+import { encrypt, decrypt } from "../lib/crypto";
 
 const router = Router();
 
@@ -91,7 +92,7 @@ router.get("/", requireAuth, async (req, res) => {
       messages: messages.map(m => ({
         id: m.id,
         senderType: m.senderType,
-        message: m.message,
+        message: decrypt(m.message),
         createdAt: m.createdAt.toISOString(),
       })),
     });
@@ -115,11 +116,12 @@ router.post("/", requireAuth, async (req, res) => {
       return res.status(500).json({ error: "internal_error", message: "Failed to create conversation" });
     }
 
+    const plaintext = message.trim();
     const [msg] = await db.insert(chatMessagesTable).values({
       conversationId: conversation.id,
       senderType: "user",
       senderId: userId,
-      message: message.trim(),
+      message: encrypt(plaintext),
     }).returning();
 
     await db.update(conversationsTable)
@@ -129,7 +131,7 @@ router.post("/", requireAuth, async (req, res) => {
     return res.status(201).json({
       id: msg.id,
       senderType: msg.senderType,
-      message: msg.message,
+      message: plaintext,
       createdAt: msg.createdAt.toISOString(),
     });
   } catch (err) {
