@@ -11,7 +11,9 @@ import {
 import { format, isToday, parseISO } from "date-fns";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { UserAvatar } from "@/components/ui/UserAvatar";
+import { UserAvatar, getAvatarSrc } from "@/components/ui/UserAvatar";
+
+const ADMIN_AVATAR_URL = getAvatarSrc("mablequartey04@gmail.com", "adventurer");
 import { FadeImage } from "@/components/ui/FadeImage";
 
 const statusConfig: Record<string, { label: string; color: string; icon: React.ElementType }> = {
@@ -76,8 +78,12 @@ export default function Dashboard() {
               {user?.name?.split(" ")[0]} 👋
             </h1>
           </div>
-          <div className="ring-2 ring-white shadow-lg shadow-orange-100 rounded-full">
-            <UserAvatar name={user?.name} seed={user?.email} size={40} avatarStyle={user?.avatarStyle} />
+          <div className="ring-2 ring-white shadow-lg shadow-orange-100 rounded-full overflow-hidden">
+            {user?.role === "admin" ? (
+              <img src={ADMIN_AVATAR_URL} alt={user?.name} className="w-10 h-10 rounded-full object-cover" />
+            ) : (
+              <UserAvatar name={user?.name} seed={user?.email} size={40} avatarStyle={user?.avatarStyle} />
+            )}
           </div>
         </div>
 
