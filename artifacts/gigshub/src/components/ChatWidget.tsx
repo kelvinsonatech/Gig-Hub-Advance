@@ -326,7 +326,7 @@ export function ChatWidget() {
                           >
                             <p className="whitespace-pre-wrap break-words">{msg.message}</p>
                             <p className={`text-[9px] mt-1 ${
-                              msg.senderType === "user" ? "text-white/60" : "text-gray-400"
+                              msg.senderType === "user" ? "text-black/40" : "text-gray-400"
                             }`}>
                               {formatTime(msg.createdAt)}
                             </p>
