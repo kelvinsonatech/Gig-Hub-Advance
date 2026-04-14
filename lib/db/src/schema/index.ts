@@ -8,3 +8,5 @@ export * from "./notifications";
 export * from "./device_tokens";
 export * from "./payment_intents";
 export * from "./settings";
+export * from "./conversations";
+export * from "./chat_messages";

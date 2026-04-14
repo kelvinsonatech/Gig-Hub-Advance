@@ -18,6 +18,7 @@ import {
   Check,
   Loader2,
   Settings,
+  MessageCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UserAvatar, AVATAR_STYLES, getAvatarSrc } from "@/components/ui/UserAvatar";
@@ -33,6 +34,7 @@ const navItems = [
   { href: "/admin/bundles", label: "Data Bundles", icon: Package },
   { href: "/admin/orders", label: "Orders", icon: ShoppingBag },
   { href: "/admin/users", label: "Users", icon: Users },
+  { href: "/admin/chat", label: "Support Chat", icon: MessageCircle },
   { href: "/admin/notifications", label: "Notifications", icon: Bell },
   { href: "/admin/settings", label: "Settings", icon: Settings },
 ];

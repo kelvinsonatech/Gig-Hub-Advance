@@ -1,7 +1,7 @@
 import { Router, type IRouter } from "express";
 import jwt from "jsonwebtoken";
 import { db } from "@workspace/db";
-import { bundlesTable, servicesTable, networksTable, ordersTable, usersTable, notificationsTable, deviceTokensTable, walletsTable, transactionsTable, paymentIntentsTable } from "@workspace/db";
+import { bundlesTable, servicesTable, networksTable, ordersTable, usersTable, notificationsTable, deviceTokensTable, walletsTable, transactionsTable, paymentIntentsTable, conversationsTable, chatMessagesTable } from "@workspace/db";
 import { eq, count, inArray, gte, lt, lte, sql, desc, isNull, and } from "drizzle-orm";
 import { requireAuth, requireAdmin } from "../middleware/auth";
 import { sendPushToTokens } from "../lib/fcm";
@@ -954,6 +954,218 @@ router.post("/orders/:id/retry-fulfillment", async (req, res) => {
   } catch (err) {
     req.log.error(err, "retry fulfillment error");
     return res.status(500).json({ error: "internal_error", message: "Failed to retry fulfillment" });
+  }
+});
+
+// ── Chat Support ─────────────────────────────────────────────────────────────
+
+router.get("/chats", async (req, res) => {
+  try {
+    const conversations = await db
+      .select({
+        id: conversationsTable.id,
+        userId: conversationsTable.userId,
+        status: conversationsTable.status,
+        subject: conversationsTable.subject,
+        createdAt: conversationsTable.createdAt,
+        updatedAt: conversationsTable.updatedAt,
+        userName: usersTable.name,
+        userEmail: usersTable.email,
+        userPhone: usersTable.phone,
+      })
+      .from(conversationsTable)
+      .innerJoin(usersTable, eq(conversationsTable.userId, usersTable.id))
+      .orderBy(desc(conversationsTable.updatedAt));
+
+    const result = await Promise.all(conversations.map(async (c) => {
+      const [lastMsg] = await db
+        .select()
+        .from(chatMessagesTable)
+        .where(eq(chatMessagesTable.conversationId, c.id))
+        .orderBy(desc(chatMessagesTable.createdAt))
+        .limit(1);
+
+      const unreadRows = await db
+        .select({ cnt: count() })
+        .from(chatMessagesTable)
+        .where(and(
+          eq(chatMessagesTable.conversationId, c.id),
+          eq(chatMessagesTable.senderType, "user"),
+          eq(chatMessagesTable.isRead, false),
+        ));
+
+      return {
+        id: c.id,
+        status: c.status,
+        subject: c.subject,
+        createdAt: c.createdAt.toISOString(),
+        updatedAt: c.updatedAt.toISOString(),
+        user: { name: c.userName, email: c.userEmail, phone: c.userPhone },
+        lastMessage: lastMsg ? {
+          message: lastMsg.message,
+          senderType: lastMsg.senderType,
+          createdAt: lastMsg.createdAt.toISOString(),
+        } : null,
+        unreadCount: Number(unreadRows[0]?.cnt ?? 0),
+      };
+    }));
+
+    return res.json(result);
+  } catch (err) {
+    req.log.error(err, "admin get chats error");
+    return res.status(500).json({ error: "internal_error", message: "Failed to get chats" });
+  }
+});
+
+router.get("/chats/:id", async (req, res) => {
+  try {
+    const conversationId = parseInt(req.params.id, 10);
+    if (isNaN(conversationId)) {
+      return res.status(400).json({ error: "validation_error", message: "Invalid conversation ID" });
+    }
+
+    const [conversation] = await db
+      .select({
+        id: conversationsTable.id,
+        userId: conversationsTable.userId,
+        status: conversationsTable.status,
+        subject: conversationsTable.subject,
+        createdAt: conversationsTable.createdAt,
+        userName: usersTable.name,
+        userEmail: usersTable.email,
+        userPhone: usersTable.phone,
+      })
+      .from(conversationsTable)
+      .innerJoin(usersTable, eq(conversationsTable.userId, usersTable.id))
+      .where(eq(conversationsTable.id, conversationId))
+      .limit(1);
+
+    if (!conversation) {
+      return res.status(404).json({ error: "not_found", message: "Conversation not found" });
+    }
+
+    const messages = await db
+      .select()
+      .from(chatMessagesTable)
+      .where(eq(chatMessagesTable.conversationId, conversationId))
+      .orderBy(chatMessagesTable.createdAt);
+
+    await db.update(chatMessagesTable)
+      .set({ isRead: true })
+      .where(and(
+        eq(chatMessagesTable.conversationId, conversationId),
+        eq(chatMessagesTable.senderType, "user"),
+        eq(chatMessagesTable.isRead, false),
+      ));
+
+    return res.json({
+      id: conversation.id,
+      status: conversation.status,
+      subject: conversation.subject,
+      user: { name: conversation.userName, email: conversation.userEmail, phone: conversation.userPhone },
+      messages: messages.map(m => ({
+        id: m.id,
+        senderType: m.senderType,
+        message: m.message,
+        isRead: m.isRead,
+        createdAt: m.createdAt.toISOString(),
+      })),
+    });
+  } catch (err) {
+    req.log.error(err, "admin get chat error");
+    return res.status(500).json({ error: "internal_error", message: "Failed to get chat" });
+  }
+});
+
+router.post("/chats/:id", async (req, res) => {
+  try {
+    const conversationId = parseInt(req.params.id, 10);
+    if (isNaN(conversationId)) {
+      return res.status(400).json({ error: "validation_error", message: "Invalid conversation ID" });
+    }
+    const { message } = req.body;
+    const { userId } = (req as any).auth;
+
+    if (!message || typeof message !== "string" || !message.trim()) {
+      return res.status(400).json({ error: "validation_error", message: "Message is required" });
+    }
+
+    const [conversation] = await db
+      .select()
+      .from(conversationsTable)
+      .where(eq(conversationsTable.id, conversationId))
+      .limit(1);
+
+    if (!conversation) {
+      return res.status(404).json({ error: "not_found", message: "Conversation not found" });
+    }
+
+    const [msg] = await db.insert(chatMessagesTable).values({
+      conversationId,
+      senderType: "admin",
+      senderId: userId,
+      message: message.trim(),
+    }).returning();
+
+    await db.update(conversationsTable)
+      .set({ updatedAt: new Date(), status: "open" })
+      .where(eq(conversationsTable.id, conversationId));
+
+    return res.status(201).json({
+      id: msg.id,
+      senderType: msg.senderType,
+      message: msg.message,
+      createdAt: msg.createdAt.toISOString(),
+    });
+  } catch (err) {
+    req.log.error(err, "admin send chat error");
+    return res.status(500).json({ error: "internal_error", message: "Failed to send message" });
+  }
+});
+
+router.patch("/chats/:id/close", async (req, res) => {
+  try {
+    const conversationId = parseInt(req.params.id, 10);
+    if (isNaN(conversationId)) {
+      return res.status(400).json({ error: "validation_error", message: "Invalid conversation ID" });
+    }
+
+    const [updated] = await db.update(conversationsTable)
+      .set({ status: "closed", updatedAt: new Date() })
+      .where(eq(conversationsTable.id, conversationId))
+      .returning();
+
+    if (!updated) {
+      return res.status(404).json({ error: "not_found", message: "Conversation not found" });
+    }
+
+    return res.json({ id: updated.id, status: updated.status });
+  } catch (err) {
+    req.log.error(err, "admin close chat error");
+    return res.status(500).json({ error: "internal_error", message: "Failed to close conversation" });
+  }
+});
+
+router.patch("/chats/:id/reopen", async (req, res) => {
+  try {
+    const conversationId = parseInt(req.params.id, 10);
+    if (isNaN(conversationId)) {
+      return res.status(400).json({ error: "validation_error", message: "Invalid conversation ID" });
+    }
+
+    const [updated] = await db.update(conversationsTable)
+      .set({ status: "open", updatedAt: new Date() })
+      .where(eq(conversationsTable.id, conversationId))
+      .returning();
+
+    if (!updated) {
+      return res.status(404).json({ error: "not_found", message: "Conversation not found" });
+    }
+
+    return res.json({ id: updated.id, status: updated.status });
+  } catch (err) {
+    req.log.error(err, "admin reopen chat error");
+    return res.status(500).json({ error: "internal_error", message: "Failed to reopen conversation" });
   }
 });
 

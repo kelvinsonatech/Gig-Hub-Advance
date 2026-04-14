@@ -62,6 +62,11 @@ A Ghanaian digital services marketplace with:
 - AFA Registration service
 - Agent Registration
 - Order history with status tracking
+- Live chat support (floating widget for users, admin chat panel)
+  - DB: `conversations` + `chat_messages` tables
+  - User API: `GET/POST /api/chat`, `GET /api/chat/unread`
+  - Admin API: `GET /api/admin/chats`, `GET/POST /api/admin/chats/:id`, `PATCH /api/admin/chats/:id/close|reopen`
+  - Frontend: `ChatWidget.tsx` (floating bubble), `AdminChat.tsx` (admin panel)
 
 ### Branding
 - Primary: #0077C7 (blue)

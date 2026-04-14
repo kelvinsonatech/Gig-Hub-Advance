@@ -15,6 +15,7 @@ import { useImagePreloader } from "@/hooks/use-image-preloader";
 import { useOrdersStream } from "@/hooks/use-orders-stream";
 import LivePurchasePopup from "@/components/LivePurchasePopup";
 import { UpdateBanner } from "@/components/UpdateBanner";
+import { ChatWidget } from "@/components/ChatWidget";
 
 // Lazy-loaded pages — each page becomes its own JS chunk
 const Login            = lazy(() => import("@/pages/Login"));
@@ -37,6 +38,7 @@ const AdminNotifications  = lazy(() => import("@/pages/admin/AdminNotifications"
 const AdminOrders         = lazy(() => import("@/pages/admin/AdminOrders"));
 const AdminUsers          = lazy(() => import("@/pages/admin/AdminUsers"));
 const AdminSettings       = lazy(() => import("@/pages/admin/AdminSettings"));
+const AdminChat           = lazy(() => import("@/pages/admin/AdminChat"));
 
 // Intercept fetch to automatically add Authorization Bearer token (same-origin + API only)
 const originalFetch = window.fetch;
@@ -129,6 +131,7 @@ function Router() {
                 <Route path="/admin/orders" component={AdminOrders} />
                 <Route path="/admin/users" component={AdminUsers} />
                 <Route path="/admin/settings" component={AdminSettings} />
+                <Route path="/admin/chat" component={AdminChat} />
                 <Route component={NotFound} />
               </Switch>
             </Suspense>
@@ -216,6 +219,7 @@ function App() {
           <OrdersStreamInit />
           <ImagePreloader />
           <PaymentGuard />
+          <ChatWidget />
         </WouterRouter>
         <Toaster />
         <UpdateBanner />
