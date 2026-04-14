@@ -9,7 +9,9 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { formatGHS, cn } from "@/lib/utils";
 import logoUrl from "@/assets/logo.png";
 import { useState } from "react";
-import { UserAvatar } from "@/components/ui/UserAvatar";
+import { UserAvatar, getAvatarSrc } from "@/components/ui/UserAvatar";
+
+const ADMIN_AVATAR_URL = getAvatarSrc("mablequartey04@gmail.com", "adventurer");
 import { format } from "date-fns";
 import {
   DropdownMenu,
@@ -201,8 +203,8 @@ function NotificationsPanel({ onClose, isOpen, avatarStyle }: { onClose: () => v
                   <div className="relative flex items-end gap-2.5 px-3 pb-3 pt-20">
                     {/* Admin avatar — bottom left, white ring + megaphone badge */}
                     <div className="shrink-0 relative">
-                      <div className="rounded-full ring-2 ring-white shadow-lg">
-                        <UserAvatar name="TurboGh" size={34} avatarStyle={avatarStyle} />
+                      <div className="rounded-full ring-2 ring-white shadow-lg overflow-hidden">
+                        <img src={ADMIN_AVATAR_URL} alt="TurboGH" className="w-[34px] h-[34px] rounded-full object-cover" />
                       </div>
                       <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full border-2 border-white flex items-center justify-center shadow-sm" style={{ background: "linear-gradient(135deg, #f97316, #ec4899, #8b5cf6)" }}>
                         <Megaphone className="w-2 h-2 text-white" />
@@ -373,12 +375,20 @@ export function Navbar() {
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <button className="ring-2 ring-transparent hover:ring-primary/30 rounded-full transition-all focus:outline-none focus:ring-primary/50">
-                      <UserAvatar name={user?.name} seed={user?.email} size={34} avatarStyle={user?.avatarStyle} />
+                      {user?.role === "admin" ? (
+                        <img src={ADMIN_AVATAR_URL} alt={user?.name} className="w-[34px] h-[34px] rounded-full object-cover" />
+                      ) : (
+                        <UserAvatar name={user?.name} seed={user?.email} size={34} avatarStyle={user?.avatarStyle} />
+                      )}
                     </button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-60 p-2 rounded-xl mt-2">
                     <div className="flex items-center gap-3 p-2">
-                      <UserAvatar name={user?.name} seed={user?.email} size={40} avatarStyle={user?.avatarStyle} />
+                      {user?.role === "admin" ? (
+                        <img src={ADMIN_AVATAR_URL} alt={user?.name} className="w-[40px] h-[40px] rounded-full object-cover" />
+                      ) : (
+                        <UserAvatar name={user?.name} seed={user?.email} size={40} avatarStyle={user?.avatarStyle} />
+                      )}
                       <div className="flex flex-col space-y-0.5 leading-none min-w-0">
                         <p className="font-semibold text-sm truncate">{user?.name}</p>
                         <p className="w-[160px] truncate text-xs text-muted-foreground">{user?.email}</p>
