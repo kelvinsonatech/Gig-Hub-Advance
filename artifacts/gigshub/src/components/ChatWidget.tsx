@@ -321,12 +321,12 @@ export function ChatWidget() {
                             className={`px-3.5 py-2 rounded-2xl text-[13px] leading-relaxed ${
                               msg.senderType === "user"
                                 ? "bg-white text-black rounded-br-md"
-                                : "bg-white/90 text-white border border-white/20 shadow-sm rounded-bl-md"
+                                : "bg-white/90 text-black border border-white/20 shadow-sm rounded-bl-md"
                             }`}
                           >
                             <p className="whitespace-pre-wrap break-words">{msg.message}</p>
                             <p className={`text-[9px] mt-1 ${
-                              msg.senderType === "user" ? "text-black/40" : "text-gray-400"
+                              msg.senderType === "user" ? "text-black/40" : "text-black/40"
                             }`}>
                               {formatTime(msg.createdAt)}
                             </p>
