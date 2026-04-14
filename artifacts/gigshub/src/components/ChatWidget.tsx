@@ -10,6 +10,8 @@ import { useAuth } from "@/hooks/use-auth";
 import { API } from "@/lib/api";
 import { UserAvatar } from "@/components/ui/UserAvatar";
 
+const SUPPORT_AVATAR_URL = `${import.meta.env.BASE_URL}support-avatar.svg`;
+
 type ChatMessage = {
   id: number;
   senderType: "user" | "admin";
@@ -213,13 +215,11 @@ export function ChatWidget() {
             {/* Header */}
             <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-4 py-3.5 flex items-center gap-3">
               <div className="relative">
-                {chat?.admin ? (
-                  <UserAvatar name={chat.admin.name} seed={chat.admin.seed} size={40} avatarStyle={chat.admin.avatarStyle} className="ring-2 ring-white/30" />
-                ) : (
-                  <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-                    <Headphones className="w-5 h-5 text-white" />
-                  </div>
-                )}
+                <img
+                  src={SUPPORT_AVATAR_URL}
+                  alt="Support"
+                  className="w-10 h-10 rounded-full ring-2 ring-white/30 object-cover"
+                />
                 <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-400 border-2 border-orange-500 rounded-full" />
               </div>
               <div className="flex-1 min-w-0">
@@ -278,13 +278,7 @@ export function ChatWidget() {
                         <div className={`flex items-end gap-1.5 max-w-[80%] ${msg.senderType === "user" ? "flex-row-reverse" : ""}`}>
                           {msg.senderType === "admin" ? (
                             <div className="shrink-0 mb-0.5">
-                              {chat?.admin ? (
-                                <UserAvatar name={chat.admin.name} seed={chat.admin.seed} size={24} avatarStyle={chat.admin.avatarStyle} />
-                              ) : (
-                                <div className="w-6 h-6 rounded-full bg-orange-100 flex items-center justify-center">
-                                  <Headphones className="w-3 h-3 text-orange-600" />
-                                </div>
-                              )}
+                              <img src={SUPPORT_AVATAR_URL} alt="Support" className="w-6 h-6 rounded-full object-cover" />
                             </div>
                           ) : (
                             <div className="shrink-0 mb-0.5">
