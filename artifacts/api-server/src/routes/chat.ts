@@ -64,9 +64,16 @@ router.get("/", requireAuth, async (req, res) => {
         eq(chatMessagesTable.isRead, false),
       ));
 
+    const [admin] = await db
+      .select({ name: usersTable.name, email: usersTable.email, avatarStyle: usersTable.avatarStyle })
+      .from(usersTable)
+      .where(eq(usersTable.role, "admin"))
+      .limit(1);
+
     return res.json({
       conversationId: conversation.id,
       status: conversation.status,
+      admin: admin ? { name: admin.name, avatarStyle: admin.avatarStyle, seed: admin.email } : null,
       messages: messages.map(m => ({
         id: m.id,
         senderType: m.senderType,

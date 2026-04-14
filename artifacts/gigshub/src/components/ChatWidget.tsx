@@ -17,9 +17,16 @@ type ChatMessage = {
   createdAt: string;
 };
 
+type AdminProfile = {
+  name: string;
+  avatarStyle: string;
+  seed: string;
+};
+
 type ChatData = {
   conversationId: number;
   status: string;
+  admin: AdminProfile | null;
   messages: ChatMessage[];
 };
 
@@ -143,13 +150,17 @@ export function ChatWidget() {
             {/* Header */}
             <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-4 py-3.5 flex items-center gap-3">
               <div className="relative">
-                <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-                  <Headphones className="w-5 h-5 text-white" />
-                </div>
+                {chat?.admin ? (
+                  <UserAvatar name={chat.admin.name} seed={chat.admin.seed} size={40} avatarStyle={chat.admin.avatarStyle} className="ring-2 ring-white/30" />
+                ) : (
+                  <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                    <Headphones className="w-5 h-5 text-white" />
+                  </div>
+                )}
                 <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-400 border-2 border-orange-500 rounded-full" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-white font-bold text-sm">TurboGH Support</p>
+                <p className="text-white font-bold text-sm">{chat?.admin?.name ?? "TurboGH Support"}</p>
                 <p className="text-white/70 text-[11px]">We typically reply within minutes</p>
               </div>
               <button
@@ -192,8 +203,14 @@ export function ChatWidget() {
                       <div className={`flex ${msg.senderType === "user" ? "justify-end" : "justify-start"} mb-1.5`}>
                         <div className={`flex items-end gap-1.5 max-w-[80%] ${msg.senderType === "user" ? "flex-row-reverse" : ""}`}>
                           {msg.senderType === "admin" ? (
-                            <div className="w-6 h-6 rounded-full bg-orange-100 flex items-center justify-center shrink-0 mb-0.5">
-                              <Headphones className="w-3 h-3 text-orange-600" />
+                            <div className="shrink-0 mb-0.5">
+                              {chat?.admin ? (
+                                <UserAvatar name={chat.admin.name} seed={chat.admin.seed} size={24} avatarStyle={chat.admin.avatarStyle} />
+                              ) : (
+                                <div className="w-6 h-6 rounded-full bg-orange-100 flex items-center justify-center">
+                                  <Headphones className="w-3 h-3 text-orange-600" />
+                                </div>
+                              )}
                             </div>
                           ) : (
                             <div className="shrink-0 mb-0.5">
