@@ -118,6 +118,7 @@ export function ChatWidget() {
     queryFn: () => chatFetch(""),
     enabled: isAuthenticated && isOpen,
     refetchInterval: isOpen ? 5000 : false,
+    placeholderData: (prev) => prev,
   });
 
   const { data: unreadData } = useQuery<{ unreadCount: number }>({
@@ -222,7 +223,7 @@ export function ChatWidget() {
                 <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-400 border-2 border-orange-500 rounded-full" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-white font-bold text-sm">{chat?.admin?.name ?? "TurboGH Support"}</p>
+                <p className="text-white font-bold text-sm">TurboGH Support</p>
                 <p className="text-white/70 text-[11px]">Typically replies in minutes</p>
               </div>
               <button
