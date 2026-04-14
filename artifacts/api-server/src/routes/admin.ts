@@ -972,6 +972,7 @@ router.get("/chats", async (req, res) => {
         userName: usersTable.name,
         userEmail: usersTable.email,
         userPhone: usersTable.phone,
+        userAvatarStyle: usersTable.avatarStyle,
       })
       .from(conversationsTable)
       .innerJoin(usersTable, eq(conversationsTable.userId, usersTable.id))
@@ -1000,7 +1001,7 @@ router.get("/chats", async (req, res) => {
         subject: c.subject,
         createdAt: c.createdAt.toISOString(),
         updatedAt: c.updatedAt.toISOString(),
-        user: { name: c.userName, email: c.userEmail, phone: c.userPhone },
+        user: { name: c.userName, email: c.userEmail, phone: c.userPhone, avatarStyle: c.userAvatarStyle },
         lastMessage: lastMsg ? {
           message: lastMsg.message,
           senderType: lastMsg.senderType,
@@ -1034,6 +1035,7 @@ router.get("/chats/:id", async (req, res) => {
         userName: usersTable.name,
         userEmail: usersTable.email,
         userPhone: usersTable.phone,
+        userAvatarStyle: usersTable.avatarStyle,
       })
       .from(conversationsTable)
       .innerJoin(usersTable, eq(conversationsTable.userId, usersTable.id))
@@ -1062,7 +1064,7 @@ router.get("/chats/:id", async (req, res) => {
       id: conversation.id,
       status: conversation.status,
       subject: conversation.subject,
-      user: { name: conversation.userName, email: conversation.userEmail, phone: conversation.userPhone },
+      user: { name: conversation.userName, email: conversation.userEmail, phone: conversation.userPhone, avatarStyle: conversation.userAvatarStyle },
       messages: messages.map(m => ({
         id: m.id,
         senderType: m.senderType,

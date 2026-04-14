@@ -6,6 +6,7 @@ import {
   CheckCheck, Circle,
 } from "lucide-react";
 import { UserAvatar } from "@/components/ui/UserAvatar";
+import { useAuth } from "@/hooks/use-auth";
 import { API } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 
@@ -30,7 +31,7 @@ type ConversationSummary = {
   subject: string | null;
   createdAt: string;
   updatedAt: string;
-  user: { name: string; email: string; phone: string };
+  user: { name: string; email: string; phone: string; avatarStyle?: string };
   lastMessage: { message: string; senderType: "user" | "admin"; createdAt: string } | null;
   unreadCount: number;
 };
@@ -47,7 +48,7 @@ type ConversationDetail = {
   id: number;
   status: "open" | "closed";
   subject: string | null;
-  user: { name: string; email: string; phone: string };
+  user: { name: string; email: string; phone: string; avatarStyle?: string };
   messages: ChatMessage[];
 };
 
@@ -120,7 +121,7 @@ function ConversationList({
             }`}
           >
             <div className="relative shrink-0 mt-0.5">
-              <UserAvatar name={c.user.name} seed={c.user.email} size={38} />
+              <UserAvatar name={c.user.name} seed={c.user.email} size={38} avatarStyle={c.user.avatarStyle} />
               {c.status === "open" && (
                 <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-400 border-2 border-white rounded-full" />
               )}
@@ -171,6 +172,7 @@ function ChatPanel({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const qc = useQueryClient();
   const { toast } = useToast();
+  const { user: adminUser } = useAuth();
 
   const { data: chat, isLoading } = useQuery<ConversationDetail>({
     queryKey: ["admin-chat", conversationId],
@@ -239,7 +241,7 @@ function ChatPanel({
         </button>
         {chat && (
           <>
-            <UserAvatar name={chat.user.name} seed={chat.user.email} size={36} />
+            <UserAvatar name={chat.user.name} seed={chat.user.email} size={36} avatarStyle={chat.user.avatarStyle} />
             <div className="flex-1 min-w-0">
               <p className="text-sm font-bold text-gray-900 truncate">{chat.user.name}</p>
               <div className="flex items-center gap-2 text-[11px] text-gray-400">
@@ -303,19 +305,40 @@ function ChatPanel({
                   </div>
                 )}
                 <div className={`flex ${msg.senderType === "admin" ? "justify-end" : "justify-start"} mb-1.5`}>
-                  <div className={`max-w-[75%] px-3.5 py-2 rounded-2xl text-[13px] leading-relaxed ${
-                    msg.senderType === "admin"
-                      ? "bg-orange-500 text-white rounded-br-md"
-                      : "bg-white text-gray-800 border border-gray-100 shadow-sm rounded-bl-md"
-                  }`}>
-                    <p className="whitespace-pre-wrap break-words">{msg.message}</p>
-                    <div className={`flex items-center gap-1 mt-1 ${
-                      msg.senderType === "admin" ? "text-white/60 justify-end" : "text-gray-400"
+                  <div className={`flex items-end gap-1.5 max-w-[80%] ${msg.senderType === "admin" ? "flex-row-reverse" : ""}`}>
+                    {msg.senderType === "admin" ? (
+                      <div className="shrink-0 mb-0.5">
+                        <UserAvatar
+                          name={adminUser?.name ?? "Admin"}
+                          seed={adminUser?.email}
+                          size={24}
+                          avatarStyle={adminUser?.avatarStyle}
+                        />
+                      </div>
+                    ) : chat?.user && (
+                      <div className="shrink-0 mb-0.5">
+                        <UserAvatar
+                          name={chat.user.name}
+                          seed={chat.user.email}
+                          size={24}
+                          avatarStyle={chat.user.avatarStyle}
+                        />
+                      </div>
+                    )}
+                    <div className={`px-3.5 py-2 rounded-2xl text-[13px] leading-relaxed ${
+                      msg.senderType === "admin"
+                        ? "bg-orange-500 text-white rounded-br-md"
+                        : "bg-white text-gray-800 border border-gray-100 shadow-sm rounded-bl-md"
                     }`}>
-                      <span className="text-[9px]">{formatTime(msg.createdAt)}</span>
-                      {msg.senderType === "admin" && (
-                        <CheckCheck className={`w-3 h-3 ${msg.isRead ? "text-blue-300" : "text-white/40"}`} />
-                      )}
+                      <p className="whitespace-pre-wrap break-words">{msg.message}</p>
+                      <div className={`flex items-center gap-1 mt-1 ${
+                        msg.senderType === "admin" ? "text-white/60 justify-end" : "text-gray-400"
+                      }`}>
+                        <span className="text-[9px]">{formatTime(msg.createdAt)}</span>
+                        {msg.senderType === "admin" && (
+                          <CheckCheck className={`w-3 h-3 ${msg.isRead ? "text-blue-300" : "text-white/40"}`} />
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>

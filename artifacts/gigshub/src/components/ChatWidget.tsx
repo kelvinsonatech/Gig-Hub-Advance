@@ -191,9 +191,13 @@ export function ChatWidget() {
                       )}
                       <div className={`flex ${msg.senderType === "user" ? "justify-end" : "justify-start"} mb-1.5`}>
                         <div className={`flex items-end gap-1.5 max-w-[80%] ${msg.senderType === "user" ? "flex-row-reverse" : ""}`}>
-                          {msg.senderType === "admin" && (
+                          {msg.senderType === "admin" ? (
                             <div className="w-6 h-6 rounded-full bg-orange-100 flex items-center justify-center shrink-0 mb-0.5">
                               <Headphones className="w-3 h-3 text-orange-600" />
+                            </div>
+                          ) : (
+                            <div className="shrink-0 mb-0.5">
+                              <UserAvatar name={user?.name} seed={user?.email} size={24} avatarStyle={user?.avatarStyle} />
                             </div>
                           )}
                           <div
