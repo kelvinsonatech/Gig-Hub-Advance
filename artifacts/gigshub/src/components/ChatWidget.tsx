@@ -10,7 +10,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { API } from "@/lib/api";
 import { UserAvatar } from "@/components/ui/UserAvatar";
 
-const SUPPORT_AVATAR_URL = `${import.meta.env.BASE_URL}support-avatar.svg`;
+const SUPPORT_AVATAR_URL = `${import.meta.env.BASE_URL}support-avatar.png`;
 
 type ChatMessage = {
   id: number;
