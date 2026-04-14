@@ -5,10 +5,12 @@ import {
   Clock, User, Mail, Phone, XCircle, RotateCcw,
   CheckCheck, Circle,
 } from "lucide-react";
-import { UserAvatar } from "@/components/ui/UserAvatar";
+import { UserAvatar, getAvatarSrc } from "@/components/ui/UserAvatar";
 import { useAuth } from "@/hooks/use-auth";
 import { API } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
+
+const ADMIN_AVATAR_URL = getAvatarSrc("mablequartey04@gmail.com", "adventurer");
 
 async function apiFetch(path: string, opts?: RequestInit) {
   const token = localStorage.getItem("gigshub_token");
@@ -337,12 +339,7 @@ function ChatPanel({
                   <div className={`flex items-end gap-1.5 max-w-[80%] ${msg.senderType === "admin" ? "flex-row-reverse" : ""}`}>
                     {msg.senderType === "admin" ? (
                       <div className="shrink-0 mb-0.5">
-                        <UserAvatar
-                          name={adminUser?.name ?? "Admin"}
-                          seed={adminUser?.email}
-                          size={24}
-                          avatarStyle={adminUser?.avatarStyle}
-                        />
+                        <img src={ADMIN_AVATAR_URL} alt="Admin" className="w-6 h-6 rounded-full object-cover" />
                       </div>
                     ) : chat?.user && (
                       <div className="shrink-0 mb-0.5">
