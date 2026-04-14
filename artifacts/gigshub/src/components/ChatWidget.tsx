@@ -110,8 +110,8 @@ export function ChatWidget() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const qc = useQueryClient();
-  const prevMsgCountRef = useRef(0);
-  const prevAdminMsgCountRef = useRef(0);
+  const lastSeenAdminMsgIdRef = useRef<number>(0);
+  const hasInitializedRef = useRef(false);
 
   const { data: chat, isLoading } = useQuery<ChatData>({
     queryKey: ["chat"],
@@ -125,20 +125,27 @@ export function ChatWidget() {
     queryKey: ["chat-unread"],
     queryFn: () => chatFetch("/unread"),
     enabled: isAuthenticated && !isOpen,
-    refetchInterval: 30000,
+    refetchInterval: 10000,
   });
 
   const unreadCount = unreadData?.unreadCount ?? 0;
 
   useEffect(() => {
     if (!chat?.messages) return;
-    const adminMsgs = chat.messages.filter(m => m.senderType === "admin").length;
-    if (prevAdminMsgCountRef.current > 0 && adminMsgs > prevAdminMsgCountRef.current) {
-      playNotificationSound();
+    const adminMsgs = chat.messages.filter(m => m.senderType === "admin");
+    const latestAdminId = adminMsgs.length > 0 ? adminMsgs[adminMsgs.length - 1].id : 0;
+
+    if (!hasInitializedRef.current) {
+      hasInitializedRef.current = true;
+      lastSeenAdminMsgIdRef.current = latestAdminId;
+      return;
     }
-    prevAdminMsgCountRef.current = adminMsgs;
-    prevMsgCountRef.current = chat.messages.length;
-  }, [chat?.messages]);
+
+    if (latestAdminId > lastSeenAdminMsgIdRef.current) {
+      playNotificationSound();
+      lastSeenAdminMsgIdRef.current = latestAdminId;
+    }
+  }, [chat?.messages?.length, chat?.messages?.at(-1)?.id]);
 
   useEffect(() => {
     if (!isOpen || !unreadData) return;
