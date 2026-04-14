@@ -321,7 +321,7 @@ export function ChatWidget() {
                             className={`px-3.5 py-2 rounded-2xl text-[13px] leading-relaxed ${
                               msg.senderType === "user"
                                 ? "bg-orange-500 text-white rounded-br-md"
-                                : "bg-white text-gray-800 border border-gray-100 shadow-sm rounded-bl-md"
+                                : "bg-white/90 text-white border border-white/20 shadow-sm rounded-bl-md"
                             }`}
                           >
                             <p className="whitespace-pre-wrap break-words">{msg.message}</p>
