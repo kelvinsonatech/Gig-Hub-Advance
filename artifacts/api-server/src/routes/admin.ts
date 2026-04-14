@@ -1171,4 +1171,30 @@ router.patch("/chats/:id/reopen", async (req, res) => {
   }
 });
 
+router.delete("/chats/closed", async (req, res) => {
+  try {
+    const closedConvos = await db
+      .select({ id: conversationsTable.id })
+      .from(conversationsTable)
+      .where(eq(conversationsTable.status, "closed"));
+
+    if (closedConvos.length === 0) {
+      return res.json({ deleted: 0 });
+    }
+
+    const ids = closedConvos.map(c => c.id);
+
+    await db.delete(chatMessagesTable).where(
+      sql`${chatMessagesTable.conversationId} IN (${sql.join(ids.map(id => sql`${id}`), sql`, `)})`
+    );
+
+    await db.delete(conversationsTable).where(eq(conversationsTable.status, "closed"));
+
+    return res.json({ deleted: ids.length });
+  } catch (err) {
+    req.log.error(err, "admin delete closed chats error");
+    return res.status(500).json({ error: "internal_error", message: "Failed to delete closed conversations" });
+  }
+});
+
 export default router;

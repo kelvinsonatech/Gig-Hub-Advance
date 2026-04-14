@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Loader2, Send, MessageCircle, X, ArrowLeft,
   Clock, User, Mail, Phone, XCircle, RotateCcw,
-  CheckCheck, Circle,
+  CheckCheck, Circle, Trash2,
 } from "lucide-react";
 import { UserAvatar, getAvatarSrc } from "@/components/ui/UserAvatar";
 import { useAuth } from "@/hooks/use-auth";
@@ -407,6 +407,9 @@ function ChatPanel({
 
 export default function AdminChat() {
   const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const qc = useQueryClient();
+  const { toast } = useToast();
 
   const { data: conversations = [], isLoading } = useQuery<ConversationSummary[]>({
     queryKey: ["admin-chats"],
@@ -414,25 +417,83 @@ export default function AdminChat() {
     refetchInterval: 10000,
   });
 
+  const closedCount = conversations.filter(c => c.status === "closed").length;
+
+  const deleteClosed = useMutation({
+    mutationFn: () => apiFetch("/chats/closed", { method: "DELETE" }),
+    onSuccess: (data) => {
+      const closedIds = conversations.filter(c => c.status === "closed").map(c => c.id);
+      if (closedIds.includes(selectedId as number)) setSelectedId(null);
+      qc.invalidateQueries({ queryKey: ["admin-chats"] });
+      toast({ title: `${data.deleted} closed conversation${data.deleted === 1 ? "" : "s"} deleted` });
+      setShowDeleteConfirm(false);
+    },
+    onError: (e: Error) => toast({ title: "Failed to delete", description: e.message, variant: "destructive" }),
+  });
+
   const totalUnread = conversations.reduce((sum, c) => sum + c.unreadCount, 0);
 
   return (
     <div className="p-3 sm:p-6 max-w-6xl mx-auto">
       <div className="mb-4 sm:mb-6">
-        <div className="flex items-center gap-2">
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Support Chat</h1>
-          {totalUnread > 0 && (
-            <span className="bg-orange-500 text-white text-[11px] font-bold px-2 py-0.5 rounded-full">
-              {totalUnread} new
-            </span>
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Support Chat</h1>
+              {totalUnread > 0 && (
+                <span className="bg-orange-500 text-white text-[11px] font-bold px-2 py-0.5 rounded-full">
+                  {totalUnread} new
+                </span>
+              )}
+            </div>
+            <p className="text-xs sm:text-sm text-gray-400 mt-0.5">Respond to customer messages</p>
+          </div>
+          {closedCount > 0 && (
+            <button
+              onClick={() => setShowDeleteConfirm(true)}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-red-600 bg-red-50 border border-red-200 hover:bg-red-100 transition-colors"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              Delete Closed ({closedCount})
+            </button>
           )}
         </div>
-        <p className="text-xs sm:text-sm text-gray-400 mt-0.5">Respond to customer messages</p>
       </div>
+
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={() => setShowDeleteConfirm(false)}>
+          <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full mx-4 p-6" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                <Trash2 className="w-5 h-5 text-red-600" />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-gray-900">Delete closed conversations?</p>
+                <p className="text-xs text-gray-500 mt-0.5">This will permanently remove {closedCount} closed conversation{closedCount === 1 ? "" : "s"} and all their messages.</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 justify-end">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => deleteClosed.mutate()}
+                disabled={deleteClosed.isPending}
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-white bg-red-500 hover:bg-red-600 disabled:bg-red-300 transition-colors flex items-center gap-1.5"
+              >
+                {deleteClosed.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+                Delete All
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden" style={{ height: "calc(100vh - 200px)", minHeight: 500 }}>
         <div className="flex h-full">
-          {/* Sidebar — conversation list */}
           <div className={`w-full lg:w-[340px] border-r border-gray-100 flex flex-col shrink-0 ${
             selectedId !== null ? "hidden lg:flex" : "flex"
           }`}>
@@ -448,7 +509,6 @@ export default function AdminChat() {
             />
           </div>
 
-          {/* Chat panel */}
           <div className={`flex-1 flex flex-col min-w-0 ${
             selectedId === null ? "hidden lg:flex" : "flex"
           }`}>
