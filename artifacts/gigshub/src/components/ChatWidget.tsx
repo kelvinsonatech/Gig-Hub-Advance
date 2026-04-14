@@ -320,7 +320,7 @@ export function ChatWidget() {
                           <div
                             className={`px-3.5 py-2 rounded-2xl text-[13px] leading-relaxed ${
                               msg.senderType === "user"
-                                ? "bg-white text-white rounded-br-md"
+                                ? "bg-white text-black rounded-br-md"
                                 : "bg-white/90 text-white border border-white/20 shadow-sm rounded-bl-md"
                             }`}
                           >
