@@ -233,7 +233,7 @@ export function ChatWidget() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ type: "spring", damping: 25, stiffness: 350 }}
-            className="fixed inset-0 sm:inset-auto sm:bottom-6 sm:right-6 z-[60] w-full sm:w-[380px] h-full sm:h-auto sm:max-h-[min(520px,calc(100vh-140px))] bg-white sm:rounded-2xl shadow-2xl sm:border sm:border-gray-200 flex flex-col overflow-hidden"
+            className="fixed bottom-20 sm:bottom-6 right-4 sm:right-6 z-[60] w-[calc(100vw-2rem)] sm:w-[380px] max-h-[min(520px,calc(100vh-140px))] bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden"
           >
             {/* Header */}
             <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-4 py-3.5 flex items-center gap-3">

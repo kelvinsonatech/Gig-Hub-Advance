@@ -282,21 +282,21 @@ function ChatPanel({
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 border-b border-gray-100 bg-white shrink-0">
-        <button onClick={onBack} className="lg:hidden w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center shrink-0">
+      <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-100 bg-white shrink-0">
+        <button onClick={onBack} className="lg:hidden w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center">
           <ArrowLeft className="w-4 h-4 text-gray-600" />
         </button>
         {chat && (
           <>
-            <UserAvatar name={chat.user.name} seed={chat.user.email} size={32} avatarStyle={chat.user.avatarStyle} className="shrink-0 sm:!w-9 sm:!h-9 sm:!min-w-[36px]" />
+            <UserAvatar name={chat.user.name} seed={chat.user.email} size={36} avatarStyle={chat.user.avatarStyle} />
             <div className="flex-1 min-w-0">
-              <p className="text-xs sm:text-sm font-bold text-gray-900 truncate">{chat.user.name}</p>
-              <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-[11px] text-gray-400 overflow-hidden">
-                <span className="flex items-center gap-0.5 truncate">
-                  <Mail className="w-3 h-3 shrink-0" /> <span className="truncate">{chat.user.email}</span>
+              <p className="text-sm font-bold text-gray-900 truncate">{chat.user.name}</p>
+              <div className="flex items-center gap-2 text-[11px] text-gray-400">
+                <span className="flex items-center gap-0.5">
+                  <Mail className="w-3 h-3" /> {chat.user.email}
                 </span>
                 {chat.user.phone && (
-                  <span className="hidden sm:flex items-center gap-0.5">
+                  <span className="flex items-center gap-0.5">
                     <Phone className="w-3 h-3" /> {chat.user.phone}
                   </span>
                 )}
@@ -467,7 +467,7 @@ export default function AdminChat() {
           {closedCount > 0 && (
             <button
               onClick={() => setShowDeleteConfirm(true)}
-              className="hidden lg:flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-red-600 bg-red-50 border border-red-200 hover:bg-red-100 transition-colors"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-red-600 bg-red-50 border border-red-200 hover:bg-red-100 transition-colors"
             >
               <Trash2 className="w-3.5 h-3.5" />
               Delete Closed ({closedCount})
@@ -508,27 +508,14 @@ export default function AdminChat() {
         </div>
       )}
 
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden" style={{ height: "calc(100dvh - 180px)", minHeight: 400 }}>
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden" style={{ height: "calc(100vh - 200px)", minHeight: 500 }}>
         <div className="flex h-full">
           <div className={`w-full lg:w-[340px] border-r border-gray-100 flex flex-col shrink-0 ${
             selectedId !== null ? "hidden lg:flex" : "flex"
           }`}>
             <div className="px-4 py-3 border-b border-gray-100 shrink-0">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-bold text-gray-700">Conversations</p>
-                  <p className="text-[11px] text-gray-400">{conversations.length} total</p>
-                </div>
-                {closedCount > 0 && (
-                  <button
-                    onClick={() => setShowDeleteConfirm(true)}
-                    className="lg:hidden flex items-center gap-1 px-2 py-1.5 rounded-lg text-[10px] font-semibold text-red-600 bg-red-50 border border-red-200"
-                  >
-                    <Trash2 className="w-3 h-3" />
-                    Clear ({closedCount})
-                  </button>
-                )}
-              </div>
+              <p className="text-sm font-bold text-gray-700">Conversations</p>
+              <p className="text-[11px] text-gray-400">{conversations.length} total</p>
             </div>
             <ConversationList
               conversations={conversations}
