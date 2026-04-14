@@ -120,11 +120,11 @@ export function UserAvatar({ name = "User", seed, size = 40, className = "", ava
         width: size,
         height: size,
         minWidth: size,
-        backgroundColor: bgColor,
+        backgroundColor: svgDataUri ? "transparent" : bgColor,
         position: "relative",
       }}
     >
-      {!loaded && (
+      {!svgDataUri && (
         <div
           style={{
             width: size,
@@ -154,10 +154,7 @@ export function UserAvatar({ name = "User", seed, size = 40, className = "", ava
             position: "absolute",
             top: 0,
             left: 0,
-            opacity: loaded ? 1 : 0,
-            transition: "opacity 0.2s ease-in",
           }}
-          onLoad={() => setLoaded(true)}
         />
       )}
     </div>
