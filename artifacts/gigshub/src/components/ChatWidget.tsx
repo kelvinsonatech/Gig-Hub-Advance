@@ -3,14 +3,11 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   MessageCircle, X, Send, Loader2, ArrowDown,
-  Headphones, Smile,
 } from "lucide-react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { API } from "@/lib/api";
 import { UserAvatar } from "@/components/ui/UserAvatar";
-
-const SUPPORT_AVATAR_URL = `${import.meta.env.BASE_URL}support-avatar.png`;
 
 type ChatMessage = {
   id: number;
@@ -215,10 +212,12 @@ export function ChatWidget() {
             {/* Header */}
             <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-4 py-3.5 flex items-center gap-3">
               <div className="relative">
-                <img
-                  src={SUPPORT_AVATAR_URL}
-                  alt="Support"
-                  className="w-10 h-10 rounded-full ring-2 ring-white/30 object-cover"
+                <UserAvatar
+                  name={chat?.admin?.name ?? "TurboGH Support"}
+                  seed={chat?.admin?.seed ?? "mablequartey04@gmail.com"}
+                  size={40}
+                  avatarStyle={chat?.admin?.avatarStyle ?? "adventurer"}
+                  className="ring-2 ring-white/30"
                 />
                 <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-400 border-2 border-orange-500 rounded-full" />
               </div>
@@ -278,7 +277,12 @@ export function ChatWidget() {
                         <div className={`flex items-end gap-1.5 max-w-[80%] ${msg.senderType === "user" ? "flex-row-reverse" : ""}`}>
                           {msg.senderType === "admin" ? (
                             <div className="shrink-0 mb-0.5">
-                              <img src={SUPPORT_AVATAR_URL} alt="Support" className="w-6 h-6 rounded-full object-cover" />
+                              <UserAvatar
+                                name={chat?.admin?.name ?? "TurboGH Support"}
+                                seed={chat?.admin?.seed ?? "mablequartey04@gmail.com"}
+                                size={24}
+                                avatarStyle={chat?.admin?.avatarStyle ?? "adventurer"}
+                              />
                             </div>
                           ) : (
                             <div className="shrink-0 mb-0.5">
