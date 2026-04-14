@@ -258,7 +258,14 @@ export function ChatWidget() {
             </div>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto px-4 py-3 space-y-1 min-h-0 bg-gray-50/50">
+            <div
+              className="flex-1 overflow-y-auto px-4 py-3 space-y-1 min-h-0"
+              style={{
+                backgroundImage: `url('https://occ-0-8407-2219.1.nflxso.net/dnm/api/v6/6AYY37jfdO6hpXcMjf9Yu5cnmO0/AAAABUV_jDjJ4_X_PSYgTJthNlfoStaN1fqwW1vcTx8bKIwYizu5-VL1365SJPeFB1FIig2dpPVvYdgfODQ9DEKR8t9Ak3G5NIa1HeWv.jpg?r=513')`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+              }}
+            >
               {isLoading ? (
                 <div className="flex justify-center py-12">
                   <Loader2 className="w-6 h-6 animate-spin text-gray-300" />
