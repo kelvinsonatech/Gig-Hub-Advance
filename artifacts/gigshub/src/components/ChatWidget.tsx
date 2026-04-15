@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo, type ChangeEvent } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -127,6 +127,25 @@ export function ChatWidget() {
     enabled: isAuthenticated && !isOpen,
     refetchInterval: 10000,
   });
+
+  const { data: typingData } = useQuery<{ isTyping: boolean }>({
+    queryKey: ["chat-typing"],
+    queryFn: () => chatFetch("/typing"),
+    enabled: isAuthenticated && isOpen,
+    refetchInterval: 2000,
+  });
+
+  const adminIsTyping = typingData?.isTyping ?? false;
+
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
+  const lastTypingSentRef = useRef(0);
+
+  const sendTypingSignal = useCallback(() => {
+    const now = Date.now();
+    if (now - lastTypingSentRef.current < 2000) return;
+    lastTypingSentRef.current = now;
+    chatFetch("/typing", { method: "POST" }).catch(() => {});
+  }, []);
 
   const unreadCount = unreadData?.unreadCount ?? 0;
 
@@ -337,6 +356,22 @@ export function ChatWidget() {
                   );
                 })
               )}
+              {adminIsTyping && (
+                <div className="flex justify-start mb-1.5">
+                  <div className="flex items-end gap-1.5 max-w-[80%]">
+                    <div className="shrink-0 mb-0.5">
+                      <img src={ADMIN_AVATAR_URL} alt="Support" className="w-6 h-6 rounded-full object-cover" />
+                    </div>
+                    <div className="bg-white/90 border border-white/20 shadow-sm rounded-2xl rounded-bl-md px-4 py-2.5">
+                      <div className="flex items-center gap-1">
+                        <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                        <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                        <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
               <div ref={messagesEndRef} />
             </div>
 
@@ -346,7 +381,7 @@ export function ChatWidget() {
                 <textarea
                   ref={inputRef}
                   value={input}
-                  onChange={(e) => setInput(e.target.value)}
+                  onChange={(e) => { setInput(e.target.value); if (e.target.value.trim()) sendTypingSignal(); }}
                   onKeyDown={handleKeyDown}
                   placeholder="Message support..."
                   rows={1}

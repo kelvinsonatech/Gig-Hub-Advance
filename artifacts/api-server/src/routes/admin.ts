@@ -1173,6 +1173,29 @@ router.patch("/chats/:id/reopen", async (req, res) => {
   }
 });
 
+router.post("/chats/:id/typing", async (req, res) => {
+  try {
+    const conversationId = parseInt(req.params.id, 10);
+    if (isNaN(conversationId)) return res.json({ ok: true });
+    const { setTyping } = await import("./chat");
+    setTyping(conversationId, "admin");
+    return res.json({ ok: true });
+  } catch {
+    return res.json({ ok: true });
+  }
+});
+
+router.get("/chats/:id/typing", async (req, res) => {
+  try {
+    const conversationId = parseInt(req.params.id, 10);
+    if (isNaN(conversationId)) return res.json({ isTyping: false });
+    const { getTyping } = await import("./chat");
+    return res.json({ isTyping: getTyping(conversationId, "admin") });
+  } catch {
+    return res.json({ isTyping: false });
+  }
+});
+
 router.delete("/chats/closed", async (req, res) => {
   try {
     const closedConvos = await db

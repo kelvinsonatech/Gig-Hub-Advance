@@ -140,6 +140,85 @@ router.post("/", requireAuth, async (req, res) => {
   }
 });
 
+const typingState = new Map<number, { userExpiresAt: number; adminExpiresAt: number }>();
+
+const TYPING_TTL_MS = 4000;
+
+function setTyping(conversationId: number, senderType: "user" | "admin") {
+  const existing = typingState.get(conversationId) || { userExpiresAt: 0, adminExpiresAt: 0 };
+  if (senderType === "user") {
+    existing.userExpiresAt = Date.now() + TYPING_TTL_MS;
+  } else {
+    existing.adminExpiresAt = Date.now() + TYPING_TTL_MS;
+  }
+  typingState.set(conversationId, existing);
+}
+
+function getTyping(conversationId: number, forSender: "user" | "admin"): boolean {
+  const state = typingState.get(conversationId);
+  if (!state) return false;
+  const now = Date.now();
+  const expiresAt = forSender === "user" ? state.adminExpiresAt : state.userExpiresAt;
+  if (now > expiresAt) return false;
+  if (now > state.userExpiresAt && now > state.adminExpiresAt) {
+    typingState.delete(conversationId);
+  }
+  return true;
+}
+
+setInterval(() => {
+  const now = Date.now();
+  for (const [id, state] of typingState) {
+    if (now > state.userExpiresAt && now > state.adminExpiresAt) {
+      typingState.delete(id);
+    }
+  }
+}, 30000);
+
+router.post("/typing", requireAuth, async (req, res) => {
+  try {
+    const { userId } = (req as any).auth as AuthPayload;
+    const [conversation] = await db
+      .select()
+      .from(conversationsTable)
+      .where(and(
+        eq(conversationsTable.userId, userId),
+        eq(conversationsTable.status, "open"),
+      ))
+      .orderBy(desc(conversationsTable.updatedAt))
+      .limit(1);
+
+    if (conversation) {
+      setTyping(conversation.id, "user");
+    }
+    return res.json({ ok: true });
+  } catch {
+    return res.json({ ok: true });
+  }
+});
+
+router.get("/typing", requireAuth, async (req, res) => {
+  try {
+    const { userId } = (req as any).auth as AuthPayload;
+    const [conversation] = await db
+      .select()
+      .from(conversationsTable)
+      .where(and(
+        eq(conversationsTable.userId, userId),
+        eq(conversationsTable.status, "open"),
+      ))
+      .orderBy(desc(conversationsTable.updatedAt))
+      .limit(1);
+
+    if (!conversation) return res.json({ isTyping: false });
+    return res.json({ isTyping: getTyping(conversation.id, "user") });
+  } catch {
+    return res.json({ isTyping: false });
+  }
+});
+
+export { setTyping, getTyping };
+
 router.get("/unread", requireAuth, async (req, res) => {
   try {
     const { userId } = (req as any).auth as AuthPayload;

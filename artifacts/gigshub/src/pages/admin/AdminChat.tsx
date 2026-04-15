@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, type ChangeEvent } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Loader2, Send, MessageCircle, X, ArrowLeft,
@@ -241,6 +241,23 @@ function ChatPanel({
     },
   });
 
+  const { data: typingData } = useQuery<{ isTyping: boolean }>({
+    queryKey: ["admin-chat-typing", conversationId],
+    queryFn: () => apiFetch(`/chats/${conversationId}/typing`),
+    refetchInterval: 2000,
+  });
+
+  const userIsTyping = typingData?.isTyping ?? false;
+
+  const lastTypingSentRef = useRef(0);
+
+  const sendTypingSignal = useCallback(() => {
+    const now = Date.now();
+    if (now - lastTypingSentRef.current < 2000) return;
+    lastTypingSentRef.current = now;
+    apiFetch(`/chats/${conversationId}/typing`, { method: "POST" }).catch(() => {});
+  }, [conversationId]);
+
   const closeChat = useMutation({
     mutationFn: () => apiFetch(`/chats/${conversationId}/close`, { method: "PATCH" }),
     onSuccess: () => {
@@ -390,6 +407,22 @@ function ChatPanel({
             );
           })
         )}
+        {userIsTyping && chat?.user && (
+          <div className="flex justify-start mb-1.5">
+            <div className="flex items-end gap-1.5 max-w-[80%]">
+              <div className="shrink-0 mb-0.5">
+                <UserAvatar name={chat.user.name} seed={chat.user.email} size={24} avatarStyle={chat.user.avatarStyle} />
+              </div>
+              <div className="bg-white text-gray-800 border border-gray-100 shadow-sm rounded-2xl rounded-bl-md px-4 py-2.5">
+                <div className="flex items-center gap-1">
+                  <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                  <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                  <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
         <div ref={messagesEndRef} />
       </div>
 
@@ -398,7 +431,7 @@ function ChatPanel({
         <div className="flex items-end gap-2">
           <textarea
             value={input}
-            onChange={(e) => setInput(e.target.value)}
+            onChange={(e) => { setInput(e.target.value); if (e.target.value.trim()) sendTypingSignal(); }}
             onKeyDown={handleKeyDown}
             placeholder={chat?.status === "closed" ? "Reopen to reply..." : "Type your reply..."}
             disabled={chat?.status === "closed"}
