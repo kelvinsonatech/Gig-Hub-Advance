@@ -384,7 +384,7 @@ export function Navbar() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-10 w-10 rounded-full text-muted-foreground hover:text-primary"
+                  className="h-10 w-10 rounded-full text-muted-foreground hover:text-primary -mr-1"
                   onClick={() => { setShowVoucherModal(true); setVoucherResult(null); }}
                 >
                   <Gift className="w-5 h-5" />
