@@ -1330,4 +1330,31 @@ router.delete("/vouchers/:id", async (req, res) => {
   }
 });
 
+router.delete("/vouchers/:id/purge", async (req, res) => {
+  try {
+    const voucherId = parseInt(req.params.id, 10);
+    if (isNaN(voucherId)) {
+      return res.status(400).json({ error: "validation_error", message: "Invalid voucher ID" });
+    }
+
+    const [voucher] = await db
+      .select()
+      .from(vouchersTable)
+      .where(and(eq(vouchersTable.id, voucherId), eq(vouchersTable.isActive, false)))
+      .limit(1);
+
+    if (!voucher) {
+      return res.status(404).json({ error: "not_found", message: "Voucher not found or still active" });
+    }
+
+    await db.delete(voucherRedemptionsTable).where(eq(voucherRedemptionsTable.voucherId, voucherId));
+    await db.delete(vouchersTable).where(eq(vouchersTable.id, voucherId));
+
+    return res.json({ deleted: true, id: voucherId });
+  } catch (err) {
+    req.log.error(err, "admin purge voucher error");
+    return res.status(500).json({ error: "internal_error", message: "Failed to clear voucher" });
+  }
+});
+
 export default router;

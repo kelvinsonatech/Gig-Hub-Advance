@@ -81,6 +81,21 @@ export default function AdminVouchers() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-vouchers"] }),
   });
 
+  const purgeMut = useMutation({
+    mutationFn: async (id: number) => {
+      const res = await fetch(`${API}/api/admin/vouchers/${id}/purge`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${getToken()}` },
+      });
+      if (!res.ok) throw new Error("Failed");
+      return res.json();
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-vouchers"] });
+      setExpandedId(null);
+    },
+  });
+
   const { data: redemptions = [], isLoading: loadingRedemptions } = useQuery<Redemption[]>({
     queryKey: ["admin-voucher-redemptions", expandedId],
     queryFn: async () => {
@@ -201,7 +216,7 @@ export default function AdminVouchers() {
                     <Users className="w-3.5 h-3.5" />
                     {expandedId === v.id ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
                   </Button>
-                  {v.isActive && (
+                  {v.isActive ? (
                     <Button
                       variant="ghost"
                       size="sm"
@@ -210,6 +225,17 @@ export default function AdminVouchers() {
                       disabled={deactivateMut.isPending}
                     >
                       <Trash2 className="w-4 h-4" />
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="rounded-xl text-red-500 hover:text-red-600 hover:bg-red-50 gap-1 text-xs"
+                      onClick={() => purgeMut.mutate(v.id)}
+                      disabled={purgeMut.isPending}
+                    >
+                      {purgeMut.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <X className="w-3.5 h-3.5" />}
+                      Clear
                     </Button>
                   )}
                 </div>
