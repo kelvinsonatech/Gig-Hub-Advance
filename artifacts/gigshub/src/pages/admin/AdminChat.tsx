@@ -280,6 +280,12 @@ function ChatPanel({
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chat?.messages?.length]);
 
+  useEffect(() => {
+    if (userIsTyping) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [userIsTyping]);
+
   const handleSubmit = (e?: React.FormEvent) => {
     e?.preventDefault();
     if (!input.trim() || sendMessage.isPending) return;

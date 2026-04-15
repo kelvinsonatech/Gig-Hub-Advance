@@ -213,6 +213,12 @@ export function ChatWidget() {
   }, [isOpen, chat?.messages?.length, scrollToBottom]);
 
   useEffect(() => {
+    if (adminIsTyping) {
+      setTimeout(scrollToBottom, 100);
+    }
+  }, [adminIsTyping, scrollToBottom]);
+
+  useEffect(() => {
     if (isOpen) {
       qc.invalidateQueries({ queryKey: ["chat-unread"] });
     }
