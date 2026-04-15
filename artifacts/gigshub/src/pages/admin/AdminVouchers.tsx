@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { API } from "@/lib/api";
 import { Button } from "@/components/ui/button";
-import { Gift, Plus, Trash2, X, Loader2, ChevronDown, ChevronUp, Users } from "lucide-react";
+import { Gift, Plus, Trash2, X, Loader2, ChevronDown, ChevronUp, Users, Eye, EyeOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { UserAvatar } from "@/components/ui/UserAvatar";
 
@@ -38,6 +38,20 @@ export default function AdminVouchers() {
   const [maxRedemptions, setMaxRedemptions] = useState("1");
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [confirmPurgeId, setConfirmPurgeId] = useState<number | null>(null);
+  const [revealedIds, setRevealedIds] = useState<Set<number>>(new Set());
+
+  const toggleReveal = (id: number) => {
+    setRevealedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const maskCode = (code: string) => {
+    if (code.length <= 2) return "••••";
+    return code[0] + "•".repeat(code.length - 2) + code[code.length - 1];
+  };
 
   const { data: vouchers = [], isLoading } = useQuery<Voucher[]>({
     queryKey: ["admin-vouchers"],
@@ -196,7 +210,19 @@ export default function AdminVouchers() {
             <div key={v.id} className={cn("bg-white border rounded-2xl shadow-sm overflow-hidden", !v.isActive && "opacity-60")}>
               <div className="flex items-center justify-between p-4">
                 <div className="flex items-center gap-4">
-                  <div className="font-mono text-lg font-bold tracking-wider text-primary">{v.code}</div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-mono text-lg font-bold tracking-wider text-primary">
+                      {v.isActive && !revealedIds.has(v.id) ? maskCode(v.code) : v.code}
+                    </span>
+                    {v.isActive && (
+                      <button
+                        onClick={() => toggleReveal(v.id)}
+                        className="p-1 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+                      >
+                        {revealedIds.has(v.id) ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                      </button>
+                    )}
+                  </div>
                   <div className="hidden sm:flex items-center gap-3 text-sm text-muted-foreground">
                     <span className="font-semibold text-foreground">GHS {parseFloat(v.amount).toFixed(2)}</span>
                     <span className="text-xs bg-gray-100 px-2 py-0.5 rounded-full">
