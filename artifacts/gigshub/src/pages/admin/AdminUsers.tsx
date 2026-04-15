@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { UserAvatar } from "@/components/ui/UserAvatar";
+import { VerifiedBadge } from "@/components/ui/VerifiedBadge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -259,7 +260,7 @@ export default function AdminUsers() {
                 <UserAvatar name={user.name} seed={user.email} size={48} className="ring-2 ring-white shadow-md shrink-0" />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    <p className="font-bold text-gray-900 text-sm truncate">{user.name}</p>
+                    <p className="font-bold text-gray-900 text-sm truncate flex items-center gap-1">{user.name} <VerifiedBadge size={13} /></p>
                     {user.role === "admin" && (
                       <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-pink-50 text-[10px] font-semibold text-[#E91E8C] uppercase shrink-0">
                         <ShieldCheck className="w-2.5 h-2.5" /> Admin

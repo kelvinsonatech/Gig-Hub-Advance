@@ -12,6 +12,7 @@ import { format, isToday, parseISO } from "date-fns";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { UserAvatar, getAvatarSrc } from "@/components/ui/UserAvatar";
+import { VerifiedBadge } from "@/components/ui/VerifiedBadge";
 
 const ADMIN_AVATAR_URL = getAvatarSrc("mablequartey04@gmail.com", "adventurer");
 import { FadeImage } from "@/components/ui/FadeImage";
@@ -74,8 +75,8 @@ export default function Dashboard() {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-xs text-muted-foreground font-medium">Good day,</p>
-            <h1 className="text-xl sm:text-2xl font-extrabold text-gray-900 leading-tight">
-              {user?.name?.split(" ")[0]} 👋
+            <h1 className="text-xl sm:text-2xl font-extrabold text-gray-900 leading-tight flex items-center gap-1.5">
+              {user?.name?.split(" ")[0]} <VerifiedBadge size={18} /> 👋
             </h1>
           </div>
           <div className="ring-2 ring-white shadow-lg shadow-orange-100 rounded-full overflow-hidden">

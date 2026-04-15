@@ -10,6 +10,7 @@ import { formatGHS, cn } from "@/lib/utils";
 import logoUrl from "@/assets/logo.png";
 import { useState } from "react";
 import { UserAvatar, getAvatarSrc } from "@/components/ui/UserAvatar";
+import { VerifiedBadge } from "@/components/ui/VerifiedBadge";
 
 const ADMIN_AVATAR_URL = getAvatarSrc("mablequartey04@gmail.com", "adventurer");
 import { format } from "date-fns";
@@ -390,7 +391,7 @@ export function Navbar() {
                         <UserAvatar name={user?.name} seed={user?.email} size={40} avatarStyle={user?.avatarStyle} />
                       )}
                       <div className="flex flex-col space-y-0.5 leading-none min-w-0">
-                        <p className="font-semibold text-sm truncate">{user?.name}</p>
+                        <p className="font-semibold text-sm truncate flex items-center gap-1">{user?.name} <VerifiedBadge size={14} /></p>
                         <p className="w-[160px] truncate text-xs text-muted-foreground">{user?.email}</p>
                       </div>
                     </div>

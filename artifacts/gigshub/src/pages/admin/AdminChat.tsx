@@ -6,6 +6,7 @@ import {
   CheckCheck, Circle, Trash2,
 } from "lucide-react";
 import { UserAvatar, getAvatarSrc } from "@/components/ui/UserAvatar";
+import { VerifiedBadge } from "@/components/ui/VerifiedBadge";
 import { useAuth } from "@/hooks/use-auth";
 import { API } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
@@ -149,7 +150,7 @@ function ConversationList({
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between gap-2">
-                <p className="text-sm font-bold text-gray-900 truncate">{c.user.name}</p>
+                <p className="text-sm font-bold text-gray-900 truncate flex items-center gap-1">{c.user.name} <VerifiedBadge size={13} /></p>
                 <span className="text-[10px] text-gray-400 shrink-0">
                   {c.lastMessage ? formatDate(c.lastMessage.createdAt) : formatDate(c.createdAt)}
                 </span>
@@ -315,7 +316,7 @@ function ChatPanel({
               <UserAvatar name={chat.user.name} seed={chat.user.email} size={32} avatarStyle={chat.user.avatarStyle} />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-xs sm:text-sm font-bold text-gray-900 truncate">{chat.user.name}</p>
+              <p className="text-xs sm:text-sm font-bold text-gray-900 truncate flex items-center gap-1">{chat.user.name} <VerifiedBadge size={13} /></p>
               <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-[11px] text-gray-400 overflow-hidden">
                 <span className="flex items-center gap-0.5 truncate min-w-0">
                   <Mail className="w-3 h-3 shrink-0" /> <span className="truncate">{chat.user.email}</span>

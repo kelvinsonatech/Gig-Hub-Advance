@@ -8,6 +8,7 @@ import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { API } from "@/lib/api";
 import { UserAvatar, getAvatarSrc } from "@/components/ui/UserAvatar";
+import { VerifiedBadge } from "@/components/ui/VerifiedBadge";
 
 const ADMIN_AVATAR_URL = getAvatarSrc("mablequartey04@gmail.com", "adventurer");
 
@@ -277,7 +278,7 @@ export function ChatWidget() {
                 <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-400 border-2 border-orange-500 rounded-full" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-white font-bold text-sm">TurboGH Support</p>
+                <p className="text-white font-bold text-sm flex items-center gap-1">TurboGH Support <VerifiedBadge size={14} className="text-white" /></p>
                 <p className="text-white/70 text-[11px]">Typically replies in minutes</p>
               </div>
               <button
