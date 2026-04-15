@@ -532,10 +532,6 @@ export function Navbar() {
               </div>
             ) : (
               <div className="flex flex-col gap-2 pt-3 border-t border-border">
-                <div className="flex items-center gap-2 px-3 py-2 bg-emerald-50 text-emerald-700 rounded-xl border border-emerald-100 text-sm font-semibold">
-                  <Wallet className="w-4 h-4" />
-                  <span>{formatGHS(displayBalance)}</span>
-                </div>
                 <Button variant="outline" asChild className="w-full rounded-xl justify-center">
                   <Link href="/wallet" onClick={close}>Wallet & Top Up</Link>
                 </Button>
