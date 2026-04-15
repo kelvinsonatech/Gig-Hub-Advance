@@ -3,7 +3,7 @@ import { Link, useRoute } from "wouter";
 import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
-import { Wallet, Sun, Users, Menu, LogOut, X, LayoutDashboard, ShoppingBag, Bell, CheckCheck, Trash2, Megaphone } from "lucide-react";
+import { Wallet, Sun, Users, Menu, LogOut, X, LayoutDashboard, ShoppingBag, Bell, CheckCheck, Trash2, Megaphone, Gift, Loader2 } from "lucide-react";
 import { useGetWallet } from "@workspace/api-client-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { formatGHS, cn } from "@/lib/utils";
@@ -306,6 +306,40 @@ export function Navbar() {
 
   const close = () => setIsMobileMenuOpen(false);
 
+  const [showVoucherModal, setShowVoucherModal] = useState(false);
+  const [voucherCode, setVoucherCode] = useState("");
+  const [voucherResult, setVoucherResult] = useState<{ success: boolean; message: string } | null>(null);
+  const qc = useQueryClient();
+
+  const redeemVoucher = useMutation({
+    mutationFn: async (code: string) => {
+      const token = localStorage.getItem("gigshub_token");
+      const res = await fetch(`${API}/api/vouchers/redeem`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ code }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Failed to redeem");
+      return data;
+    },
+    onSuccess: (data) => {
+      setVoucherResult({ success: true, message: data.message });
+      setVoucherCode("");
+      qc.invalidateQueries({ queryKey: ["/api/wallet"] });
+    },
+    onError: (err: Error) => {
+      setVoucherResult({ success: false, message: err.message });
+    },
+  });
+
+  const handleRedeemSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!voucherCode.trim() || redeemVoucher.isPending) return;
+    setVoucherResult(null);
+    redeemVoucher.mutate(voucherCode.trim());
+  };
+
   return (
     <>
       {isMobileMenuOpen && (
@@ -345,6 +379,16 @@ export function Navbar() {
                   <Wallet className="hidden sm:block w-3.5 h-3.5" />
                   <span>{formatGHS(displayBalance)}</span>
                 </div>
+
+                {/* Gift — voucher redeem */}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-10 w-10 rounded-full text-muted-foreground hover:text-primary"
+                  onClick={() => { setShowVoucherModal(true); setVoucherResult(null); }}
+                >
+                  <Gift className="w-5 h-5" />
+                </Button>
 
                 {/* Bell — notification toggle */}
                 <div className="relative">
@@ -495,6 +539,63 @@ export function Navbar() {
         )}
 
       </header>
+
+      {showVoucherModal && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center px-4" onClick={() => setShowVoucherModal(false)}>
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6" onClick={e => e.stopPropagation()}>
+            <button
+              className="absolute top-3 right-3 text-gray-400 hover:text-gray-600"
+              onClick={() => setShowVoucherModal(false)}
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                <Gift className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-gray-900">Redeem Voucher</h3>
+                <p className="text-xs text-gray-500">Enter your gift code to add credit to your wallet</p>
+              </div>
+            </div>
+
+            <form onSubmit={handleRedeemSubmit} className="space-y-3">
+              <input
+                type="text"
+                value={voucherCode}
+                onChange={e => setVoucherCode(e.target.value.toUpperCase())}
+                placeholder="Enter voucher code"
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-center text-lg font-mono tracking-widest placeholder:text-sm placeholder:tracking-normal placeholder:font-sans focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                autoFocus
+                disabled={redeemVoucher.isPending}
+              />
+
+              {voucherResult && (
+                <div className={cn(
+                  "text-sm px-3 py-2 rounded-lg text-center font-medium",
+                  voucherResult.success ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-600"
+                )}>
+                  {voucherResult.message}
+                </div>
+              )}
+
+              <Button
+                type="submit"
+                className="w-full rounded-xl h-11"
+                disabled={!voucherCode.trim() || redeemVoucher.isPending}
+              >
+                {redeemVoucher.isPending ? (
+                  <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Redeeming...</>
+                ) : (
+                  "Redeem"
+                )}
+              </Button>
+            </form>
+          </div>
+        </div>
+      )}
     </>
   );
 }

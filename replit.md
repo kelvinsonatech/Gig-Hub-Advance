@@ -67,6 +67,11 @@ A Ghanaian digital services marketplace with:
   - User API: `GET/POST /api/chat`, `GET /api/chat/unread`
   - Admin API: `GET /api/admin/chats`, `GET/POST /api/admin/chats/:id`, `PATCH /api/admin/chats/:id/close|reopen`
   - Frontend: `ChatWidget.tsx` (floating bubble), `AdminChat.tsx` (admin panel)
+- Voucher/Gift system
+  - DB: `vouchers` + `voucher_redemptions` tables (unique constraint on voucher_id+user_id)
+  - User API: `POST /api/vouchers/redeem` (atomic transaction, race-safe)
+  - Admin API: `GET/POST /api/admin/vouchers`, `GET /api/admin/vouchers/:id/redemptions`, `DELETE /api/admin/vouchers/:id`
+  - Frontend: Gift icon in Navbar opens redeem modal; `AdminVouchers.tsx` for CRUD + redemption history
 
 ### Branding
 - Primary: #0077C7 (blue)

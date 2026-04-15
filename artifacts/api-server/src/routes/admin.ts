@@ -1,7 +1,7 @@
 import { Router, type IRouter } from "express";
 import jwt from "jsonwebtoken";
 import { db } from "@workspace/db";
-import { bundlesTable, servicesTable, networksTable, ordersTable, usersTable, notificationsTable, deviceTokensTable, walletsTable, transactionsTable, paymentIntentsTable, conversationsTable, chatMessagesTable } from "@workspace/db";
+import { bundlesTable, servicesTable, networksTable, ordersTable, usersTable, notificationsTable, deviceTokensTable, walletsTable, transactionsTable, paymentIntentsTable, conversationsTable, chatMessagesTable, vouchersTable, voucherRedemptionsTable } from "@workspace/db";
 import { eq, count, inArray, gte, lt, lte, sql, desc, isNull, and } from "drizzle-orm";
 import { requireAuth, requireAdmin } from "../middleware/auth";
 import { sendPushToTokens } from "../lib/fcm";
@@ -1219,6 +1219,114 @@ router.delete("/chats/closed", async (req, res) => {
   } catch (err) {
     req.log.error(err, "admin delete closed chats error");
     return res.status(500).json({ error: "internal_error", message: "Failed to delete closed conversations" });
+  }
+});
+
+router.get("/vouchers", async (req, res) => {
+  try {
+    const vouchers = await db
+      .select()
+      .from(vouchersTable)
+      .orderBy(desc(vouchersTable.createdAt));
+
+    return res.json(vouchers);
+  } catch (err) {
+    req.log.error(err, "admin get vouchers error");
+    return res.status(500).json({ error: "internal_error", message: "Failed to get vouchers" });
+  }
+});
+
+router.post("/vouchers", async (req, res) => {
+  try {
+    const { code, amount, maxRedemptions } = req.body;
+
+    if (!code || typeof code !== "string" || !code.trim()) {
+      return res.status(400).json({ error: "validation_error", message: "Voucher code is required" });
+    }
+    const amountNum = parseFloat(amount);
+    if (!isFinite(amountNum) || amountNum <= 0) {
+      return res.status(400).json({ error: "validation_error", message: "Amount must be a positive number" });
+    }
+    const maxRedeem = parseInt(maxRedemptions) || 1;
+    if (maxRedeem < 1) {
+      return res.status(400).json({ error: "validation_error", message: "Max redemptions must be at least 1" });
+    }
+
+    const normalizedCode = code.trim().toUpperCase();
+
+    const [existing] = await db
+      .select()
+      .from(vouchersTable)
+      .where(eq(vouchersTable.code, normalizedCode))
+      .limit(1);
+
+    if (existing) {
+      return res.status(400).json({ error: "duplicate", message: "A voucher with this code already exists" });
+    }
+
+    const [voucher] = await db.insert(vouchersTable).values({
+      code: normalizedCode,
+      amount: amountNum.toFixed(2),
+      maxRedemptions: maxRedeem,
+    }).returning();
+
+    return res.status(201).json(voucher);
+  } catch (err) {
+    req.log.error(err, "admin create voucher error");
+    return res.status(500).json({ error: "internal_error", message: "Failed to create voucher" });
+  }
+});
+
+router.get("/vouchers/:id/redemptions", async (req, res) => {
+  try {
+    const voucherId = parseInt(req.params.id, 10);
+    if (isNaN(voucherId)) {
+      return res.status(400).json({ error: "validation_error", message: "Invalid voucher ID" });
+    }
+
+    const redemptions = await db
+      .select({
+        id: voucherRedemptionsTable.id,
+        amount: voucherRedemptionsTable.amount,
+        redeemedAt: voucherRedemptionsTable.redeemedAt,
+        userName: usersTable.name,
+        userEmail: usersTable.email,
+        userPhone: usersTable.phone,
+        userAvatarStyle: usersTable.avatarStyle,
+      })
+      .from(voucherRedemptionsTable)
+      .innerJoin(usersTable, eq(voucherRedemptionsTable.userId, usersTable.id))
+      .where(eq(voucherRedemptionsTable.voucherId, voucherId))
+      .orderBy(desc(voucherRedemptionsTable.redeemedAt));
+
+    return res.json(redemptions);
+  } catch (err) {
+    req.log.error(err, "admin get voucher redemptions error");
+    return res.status(500).json({ error: "internal_error", message: "Failed to get redemptions" });
+  }
+});
+
+router.delete("/vouchers/:id", async (req, res) => {
+  try {
+    const voucherId = parseInt(req.params.id, 10);
+    if (isNaN(voucherId)) {
+      return res.status(400).json({ error: "validation_error", message: "Invalid voucher ID" });
+    }
+
+    const [voucher] = await db
+      .update(vouchersTable)
+      .set({ isActive: false })
+      .where(eq(vouchersTable.id, voucherId))
+      .returning();
+
+    if (!voucher) {
+      return res.status(404).json({ error: "not_found", message: "Voucher not found" });
+    }
+
+    return res.json({ id: voucher.id, isActive: false });
+  } catch (err) {
+    req.log.error(err, "admin delete voucher error");
+    return res.status(500).json({ error: "internal_error", message: "Failed to delete voucher" });
   }
 });
 

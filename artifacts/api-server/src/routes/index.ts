@@ -13,6 +13,7 @@ import paymentsRouter from "./payments";
 import webhooksRouter from "./webhooks";
 import purchasesRouter from "./purchases";
 import chatRouter from "./chat";
+import vouchersRouter from "./vouchers";
 
 const router: IRouter = Router();
 
@@ -30,5 +31,6 @@ router.use("/payments", paymentsRouter);
 router.use("/webhooks", webhooksRouter);
 router.use("/purchases", purchasesRouter);
 router.use("/chat", chatRouter);
+router.use("/vouchers", vouchersRouter);
 
 export default router;
