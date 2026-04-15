@@ -37,6 +37,7 @@ export default function AdminVouchers() {
   const [amount, setAmount] = useState("");
   const [maxRedemptions, setMaxRedemptions] = useState("1");
   const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [confirmPurgeId, setConfirmPurgeId] = useState<number | null>(null);
 
   const { data: vouchers = [], isLoading } = useQuery<Voucher[]>({
     queryKey: ["admin-vouchers"],
@@ -226,15 +227,34 @@ export default function AdminVouchers() {
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>
+                  ) : confirmPurgeId === v.id ? (
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="rounded-xl text-red-600 hover:bg-red-50 gap-1 text-xs font-bold"
+                        onClick={() => { purgeMut.mutate(v.id); setConfirmPurgeId(null); }}
+                        disabled={purgeMut.isPending}
+                      >
+                        {purgeMut.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Yes, clear"}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="rounded-xl text-gray-500 hover:bg-gray-100 text-xs"
+                        onClick={() => setConfirmPurgeId(null)}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
                   ) : (
                     <Button
                       variant="ghost"
                       size="sm"
                       className="rounded-xl text-red-500 hover:text-red-600 hover:bg-red-50 gap-1 text-xs"
-                      onClick={() => purgeMut.mutate(v.id)}
-                      disabled={purgeMut.isPending}
+                      onClick={() => setConfirmPurgeId(v.id)}
                     >
-                      {purgeMut.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <X className="w-3.5 h-3.5" />}
+                      <X className="w-3.5 h-3.5" />
                       Clear
                     </Button>
                   )}
