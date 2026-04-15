@@ -1,4 +1,5 @@
 import React, { useRef, useEffect } from "react";
+import confetti from "canvas-confetti";
 import { Link, useRoute } from "wouter";
 import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/use-auth";
@@ -327,6 +328,14 @@ export function Navbar() {
       setVoucherResult({ success: true, message: data.message });
       setVoucherCode("");
       qc.invalidateQueries({ queryKey: ["/api/wallet"] });
+
+      const end = Date.now() + 1500;
+      const frame = () => {
+        confetti({ particleCount: 3, angle: 60, spread: 55, origin: { x: 0, y: 0.7 }, colors: ["#ff6b00", "#0077C7", "#ffd700", "#22c55e"] });
+        confetti({ particleCount: 3, angle: 120, spread: 55, origin: { x: 1, y: 0.7 }, colors: ["#ff6b00", "#0077C7", "#ffd700", "#22c55e"] });
+        if (Date.now() < end) requestAnimationFrame(frame);
+      };
+      frame();
     },
     onError: (err: Error) => {
       setVoucherResult({ success: false, message: err.message });
