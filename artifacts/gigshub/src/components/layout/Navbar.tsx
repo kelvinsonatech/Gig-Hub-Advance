@@ -465,7 +465,7 @@ export function Navbar() {
                         <ShoppingBag className="mr-2 h-4 w-4" /> Services
                       </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem asChild className="cursor-pointer rounded-lg text-emerald-700 focus:text-emerald-800 focus:bg-emerald-50">
+                    <DropdownMenuItem asChild className="cursor-pointer rounded-lg bg-emerald-50 text-emerald-700 focus:bg-emerald-100 focus:text-emerald-800 hover:bg-emerald-100">
                       <Link href="/wallet">
                         <Wallet className="mr-2 h-4 w-4" /> Wallet & Top Up
                       </Link>
