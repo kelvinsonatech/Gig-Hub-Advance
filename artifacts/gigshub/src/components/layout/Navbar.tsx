@@ -360,7 +360,7 @@ export function Navbar() {
 
           {/* Logo */}
           <Link href={isAuthenticated ? "/dashboard" : "/login"} className="flex items-center flex-shrink-0 group">
-            <img src={logoUrl} alt="TurboGH" className="w-32 sm:w-40 h-auto group-hover:scale-105 transition-transform" />
+            <img src={logoUrl} alt="TurboGH" className="w-36 sm:w-44 h-auto group-hover:scale-105 transition-transform" />
           </Link>
 
           {/* Center Nav */}
