@@ -356,11 +356,11 @@ export function Navbar() {
       )}
 
       <header className="sticky top-0 z-50 w-full flex justify-center pt-3 pb-2 px-4">
-        <div className="w-full max-w-4xl bg-white/90 backdrop-blur-md border border-gray-200 shadow-md rounded-full pl-2 pr-5 h-14 flex items-center justify-between">
+        <div className="w-full max-w-4xl bg-white/90 backdrop-blur-md border border-gray-200 shadow-md rounded-full pl-2 pr-2 sm:pr-4 h-14 flex items-center justify-between gap-2">
 
           {/* Logo */}
           <Link href={isAuthenticated ? "/dashboard" : "/login"} className="flex items-center flex-shrink-0 group">
-            <img src={logoUrl} alt="TurboGH" className="w-36 h-auto group-hover:scale-105 transition-transform" />
+            <img src={logoUrl} alt="TurboGH" className="w-28 sm:w-36 h-auto group-hover:scale-105 transition-transform" />
           </Link>
 
           {/* Center Nav */}
