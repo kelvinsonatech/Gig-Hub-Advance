@@ -532,7 +532,7 @@ export function Navbar() {
               </div>
             ) : (
               <div className="flex flex-col gap-2 pt-3 border-t border-border">
-                <Button variant="outline" asChild className="w-full rounded-xl justify-center">
+                <Button asChild className="w-full rounded-xl justify-center bg-emerald-600 hover:bg-emerald-700 text-white border-0">
                   <Link href="/wallet" onClick={close}>Wallet & Top Up</Link>
                 </Button>
                 <Button variant="ghost" className="w-full rounded-xl justify-center text-destructive" onClick={() => { logout(); close(); }}>
