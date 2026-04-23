@@ -501,10 +501,10 @@ export function Navbar() {
             <Button
               variant="ghost"
               size="icon"
-              className="md:hidden h-8 w-8 rounded-full"
+              className="md:hidden h-9 w-9 rounded-full text-muted-foreground hover:text-primary shrink-0"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             >
-              {isMobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+              {isMobileMenuOpen ? <X className="w-[18px] h-[18px]" /> : <Menu className="w-[18px] h-[18px]" />}
             </Button>
           </div>
         </div>
