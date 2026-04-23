@@ -455,6 +455,16 @@ export function Navbar() {
                         <LayoutDashboard className="mr-2 h-4 w-4" /> Dashboard
                       </Link>
                     </DropdownMenuItem>
+                    <DropdownMenuItem asChild className="cursor-pointer rounded-lg md:hidden">
+                      <Link href="/bundles">
+                        <ShoppingBag className="mr-2 h-4 w-4" /> Data Bundles
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild className="cursor-pointer rounded-lg md:hidden">
+                      <Link href="/services">
+                        <ShoppingBag className="mr-2 h-4 w-4" /> Services
+                      </Link>
+                    </DropdownMenuItem>
                     <DropdownMenuItem asChild className="cursor-pointer rounded-lg">
                       <Link href="/wallet">
                         <Wallet className="mr-2 h-4 w-4" /> Wallet & Top Up
@@ -497,15 +507,17 @@ export function Navbar() {
               </div>
             )}
 
-            {/* Mobile hamburger */}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="md:hidden h-9 w-9 rounded-full text-muted-foreground hover:text-primary shrink-0"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            >
-              {isMobileMenuOpen ? <X className="w-[18px] h-[18px]" /> : <Menu className="w-[18px] h-[18px]" />}
-            </Button>
+            {/* Mobile hamburger — only when not authenticated (avatar dropdown handles nav otherwise) */}
+            {!isAuthenticated && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="md:hidden h-9 w-9 rounded-full text-muted-foreground hover:text-primary shrink-0"
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              >
+                {isMobileMenuOpen ? <X className="w-[18px] h-[18px]" /> : <Menu className="w-[18px] h-[18px]" />}
+              </Button>
+            )}
           </div>
         </div>
 
