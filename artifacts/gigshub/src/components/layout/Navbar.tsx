@@ -429,11 +429,11 @@ export function Navbar() {
                 {/* User dropdown */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <button className="ring-2 ring-transparent hover:ring-primary/30 rounded-full transition-all focus:outline-none focus:ring-primary/50">
+                    <button className="ring-2 ring-gray-100 hover:ring-primary/40 rounded-full transition-all focus:outline-none focus:ring-primary/50 shrink-0">
                       {user?.role === "admin" ? (
-                        <img src={ADMIN_AVATAR_URL} alt={user?.name} className="w-[34px] h-[34px] rounded-full object-cover" />
+                        <img src={ADMIN_AVATAR_URL} alt={user?.name} className="w-9 h-9 rounded-full object-cover block" />
                       ) : (
-                        <UserAvatar name={user?.name} seed={user?.email} size={34} avatarStyle={user?.avatarStyle} />
+                        <UserAvatar name={user?.name} seed={user?.email} size={36} avatarStyle={user?.avatarStyle} />
                       )}
                     </button>
                   </DropdownMenuTrigger>
