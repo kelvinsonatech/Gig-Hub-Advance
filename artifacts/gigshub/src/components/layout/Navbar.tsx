@@ -380,49 +380,50 @@ export function Navbar() {
           </nav>
 
           {/* Right side */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
             {isAuthenticated ? (
               <>
                 {/* Wallet balance */}
-                <div className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 bg-emerald-50 text-emerald-700 rounded-full border border-emerald-100 text-xs sm:text-sm font-semibold">
+                <div className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 h-8 bg-emerald-50 text-emerald-700 rounded-full border border-emerald-100 text-xs sm:text-sm font-semibold">
                   <Wallet className="hidden sm:block w-3.5 h-3.5" />
                   <span>{formatGHS(displayBalance)}</span>
                 </div>
 
-                {/* Gift — voucher redeem */}
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-10 w-10 rounded-full text-muted-foreground hover:text-primary -mr-2.5"
-                  onClick={() => { setShowVoucherModal(true); setVoucherResult(null); }}
-                >
-                  <Gift className="w-5 h-5" />
-                </Button>
-
-                {/* Bell — notification toggle */}
-                <div className="relative">
+                {/* Icon group: gift + bell */}
+                <div className="flex items-center">
                   <Button
                     variant="ghost"
                     size="icon"
-                    className={cn(
-                      "h-10 w-10 rounded-full relative",
-                      showNotifications ? "text-primary bg-orange-50" : "text-muted-foreground hover:text-primary"
-                    )}
-                    onClick={() => setShowNotifications(v => !v)}
+                    className="h-9 w-9 rounded-full text-muted-foreground hover:text-primary"
+                    onClick={() => { setShowVoucherModal(true); setVoucherResult(null); }}
                   >
-                    <Bell className="w-5 h-5" />
-                    {unreadCount > 0 && (
-                      <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-bold rounded-full border-2 border-white flex items-center justify-center px-1 leading-none">
-                        {unreadCount > 9 ? "9+" : unreadCount}
-                      </span>
-                    )}
+                    <Gift className="w-[18px] h-[18px]" />
                   </Button>
 
-                  <NotificationsPanel
-                    isOpen={showNotifications}
-                    onClose={() => setShowNotifications(false)}
-                    avatarStyle={user?.avatarStyle}
-                  />
+                  <div className="relative">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className={cn(
+                        "h-9 w-9 rounded-full relative",
+                        showNotifications ? "text-primary bg-orange-50" : "text-muted-foreground hover:text-primary"
+                      )}
+                      onClick={() => setShowNotifications(v => !v)}
+                    >
+                      <Bell className="w-[18px] h-[18px]" />
+                      {unreadCount > 0 && (
+                        <span className="absolute top-1 right-1 min-w-[16px] h-[16px] bg-red-500 text-white text-[10px] font-bold rounded-full border-2 border-white flex items-center justify-center px-1 leading-none">
+                          {unreadCount > 9 ? "9+" : unreadCount}
+                        </span>
+                      )}
+                    </Button>
+
+                    <NotificationsPanel
+                      isOpen={showNotifications}
+                      onClose={() => setShowNotifications(false)}
+                      avatarStyle={user?.avatarStyle}
+                    />
+                  </div>
                 </div>
 
                 {/* User dropdown */}
