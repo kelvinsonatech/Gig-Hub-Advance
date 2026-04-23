@@ -431,9 +431,16 @@ export function Navbar() {
                   <DropdownMenuTrigger asChild>
                     <button className="ring-2 ring-gray-100 hover:ring-primary/40 rounded-full transition-all focus:outline-none focus:ring-primary/50 shrink-0">
                       {user?.role === "admin" ? (
-                        <img src={ADMIN_AVATAR_URL} alt={user?.name} className="w-9 h-9 rounded-full object-cover block" />
+                        <img src={ADMIN_AVATAR_URL} alt={user?.name} className="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover block" />
                       ) : (
-                        <UserAvatar name={user?.name} seed={user?.email} size={36} avatarStyle={user?.avatarStyle} />
+                        <>
+                          <span className="block sm:hidden">
+                            <UserAvatar name={user?.name} seed={user?.email} size={32} avatarStyle={user?.avatarStyle} />
+                          </span>
+                          <span className="hidden sm:block">
+                            <UserAvatar name={user?.name} seed={user?.email} size={36} avatarStyle={user?.avatarStyle} />
+                          </span>
+                        </>
                       )}
                     </button>
                   </DropdownMenuTrigger>
