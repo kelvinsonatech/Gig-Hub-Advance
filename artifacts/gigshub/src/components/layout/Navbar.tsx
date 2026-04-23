@@ -511,7 +511,7 @@ export function Navbar() {
 
         {/* Mobile menu */}
         {isMobileMenuOpen && (
-          <div className="absolute top-[68px] left-4 right-4 max-w-4xl mx-auto bg-white border border-gray-200 rounded-2xl shadow-xl p-4 space-y-3 z-40">
+          <div className="absolute top-[60px] left-4 right-4 max-w-4xl mx-auto bg-white/95 backdrop-blur-md border border-gray-200 border-t-0 rounded-b-3xl shadow-md p-4 pt-6 -mt-3 space-y-3 z-40">
             <nav className="flex flex-col gap-1">
               <MobileNavLink href="/bundles" onClick={close}>Data Bundles</MobileNavLink>
               <MobileNavLink href="/services" onClick={close}>Services</MobileNavLink>
