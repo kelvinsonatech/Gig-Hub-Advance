@@ -40,6 +40,7 @@ const AdminUsers          = lazy(() => import("@/pages/admin/AdminUsers"));
 const AdminSettings       = lazy(() => import("@/pages/admin/AdminSettings"));
 const AdminChat           = lazy(() => import("@/pages/admin/AdminChat"));
 const AdminVouchers       = lazy(() => import("@/pages/admin/AdminVouchers"));
+const AdminPayments       = lazy(() => import("@/pages/admin/AdminPayments"));
 
 // Intercept fetch to automatically add Authorization Bearer token (same-origin + API only)
 const originalFetch = window.fetch;
@@ -134,6 +135,7 @@ function Router() {
                 <Route path="/admin/settings" component={AdminSettings} />
                 <Route path="/admin/chat" component={AdminChat} />
                 <Route path="/admin/vouchers" component={AdminVouchers} />
+                <Route path="/admin/payments" component={AdminPayments} />
                 <Route component={NotFound} />
               </Switch>
             </Suspense>

@@ -20,6 +20,7 @@ import {
   Settings,
   MessageCircle,
   Gift,
+  Activity,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UserAvatar, AVATAR_STYLES, getAvatarSrc } from "@/components/ui/UserAvatar";
@@ -36,6 +37,7 @@ const navItems = [
   { href: "/admin/networks", label: "Networks", icon: Radio },
   { href: "/admin/bundles", label: "Data Bundles", icon: Package },
   { href: "/admin/orders", label: "Orders", icon: ShoppingBag },
+  { href: "/admin/payments", label: "Payment Health", icon: Activity },
   { href: "/admin/users", label: "Users", icon: Users },
   { href: "/admin/chat", label: "Support Chat", icon: MessageCircle },
   { href: "/admin/vouchers", label: "Vouchers", icon: Gift },

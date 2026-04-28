@@ -2,6 +2,7 @@ import { Router, type IRouter } from "express";
 import jwt from "jsonwebtoken";
 import { db } from "@workspace/db";
 import { bundlesTable, servicesTable, networksTable, ordersTable, usersTable, notificationsTable, deviceTokensTable, walletsTable, transactionsTable, paymentIntentsTable, conversationsTable, chatMessagesTable, vouchersTable, voucherRedemptionsTable } from "@workspace/db";
+import { getPaymentHealth, listStuckIntents, verifyAndProcessIntent } from "../lib/payment-reconciler";
 import { eq, count, inArray, gte, lt, lte, sql, desc, isNull, and } from "drizzle-orm";
 import { requireAuth, requireAdmin } from "../middleware/auth";
 import { sendPushToTokens } from "../lib/fcm";
@@ -1354,6 +1355,38 @@ router.delete("/vouchers/:id/purge", async (req, res) => {
   } catch (err) {
     req.log.error(err, "admin purge voucher error");
     return res.status(500).json({ error: "internal_error", message: "Failed to clear voucher" });
+  }
+});
+
+// ─── Payment Health & Reconciliation ────────────────────────────────────────
+// These endpoints power the admin "Payment System Health" panel. They surface
+// pending payment intents, missed-webhook recoveries, and let the admin force
+// a verify on any reference if support tickets come in.
+
+router.get("/payment-health", async (req, res) => {
+  try {
+    const [health, stuck] = await Promise.all([
+      getPaymentHealth(),
+      listStuckIntents(),
+    ]);
+    return res.json({ ...health, stuckIntents: stuck });
+  } catch (err) {
+    req.log.error(err, "admin payment-health error");
+    return res.status(500).json({ error: "internal_error", message: "Failed to load payment health" });
+  }
+});
+
+router.post("/payment-intents/:reference/reconcile", async (req, res) => {
+  try {
+    const reference = req.params.reference;
+    if (!reference || !/^[a-zA-Z0-9_\-]{5,100}$/.test(reference)) {
+      return res.status(400).json({ error: "validation_error", message: "Invalid reference" });
+    }
+    const result = await verifyAndProcessIntent(reference, "manual");
+    return res.json(result);
+  } catch (err) {
+    req.log.error(err, "admin manual reconcile error");
+    return res.status(500).json({ error: "internal_error", message: "Reconcile failed" });
   }
 });
 

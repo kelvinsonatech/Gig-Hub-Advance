@@ -7,6 +7,7 @@ import { addSseClient, removeSseClient, pushEventToAdmins } from "../lib/sse";
 import { sendOrderNotification, sendFulfillmentAlert } from "../lib/telegram";
 import { getFulfillmentMode } from "../lib/settings";
 import { fulfillBundle } from "../lib/jessco";
+import { verifyAndProcessIntent } from "../lib/payment-reconciler";
 
 const router: IRouter = Router();
 const JWT_SECRET = process.env.JWT_SECRET || "gigshub-secret-key-change-in-production";
@@ -172,10 +173,7 @@ router.post("/", async (req, res) => {
         return res.status(400).json({ error: "validation_error", message: "Invalid payment reference format" });
       }
 
-      const secretKey = process.env.PAYSTACK_SECRET_KEY;
-      if (!secretKey) return res.status(500).json({ error: "config_error", message: "Payment not configured" });
-
-      // ── Load and validate server-side intent ─────────────────────────────
+      // Ownership check — make sure this reference belongs to the requesting user
       const [intent] = await db
         .select()
         .from(paymentIntentsTable)
@@ -195,116 +193,44 @@ router.post("/", async (req, res) => {
         });
       }
 
-      // Idempotency: if already processed, return the existing order
-      if (intent.status === "processed") {
-        const orders = await db
-          .select()
-          .from(ordersTable)
-          .where(eq(ordersTable.userId, userId))
-          .orderBy(desc(ordersTable.createdAt));
-        const existing = orders.find(o =>
-          (o.details as any)?.paystackReference === paystackReference
-        );
-        if (existing) {
-          return res.json({
-            id: String(existing.id),
-            userId: String(existing.userId),
-            type: existing.type,
-            status: existing.status,
-            amount: parseFloat(existing.amount),
-            details: existing.details,
-            createdAt: existing.createdAt.toISOString(),
-          });
-        }
+      // Delegate to the shared verify-and-process pipeline. This is the same
+      // function used by the Paystack webhook and the background reconciler.
+      // The transactional intent → order flip in there protects against double
+      // creation if the webhook fires at the same moment as this call.
+      const result = await verifyAndProcessIntent(paystackReference, "frontend_callback");
+
+      if (!result.ok) {
+        const errorMap: Record<string, { http: number; error: string }> = {
+          intent_not_found: { http: 404, error: "not_found" },
+          intent_failed: { http: 400, error: "payment_failed" },
+          intent_expired: { http: 400, error: "payment_expired" },
+          payment_pending: { http: 202, error: "payment_pending" },
+          payment_failed: { http: 400, error: "payment_failed" },
+          payment_cancelled: { http: 400, error: "payment_cancelled" },
+          amount_mismatch: { http: 400, error: "amount_mismatch" },
+          bundle_not_found: { http: 404, error: "not_found" },
+          paystack_error: { http: 502, error: "paystack_error" },
+          internal_error: { http: 500, error: "internal_error" },
+        };
+        const mapped = errorMap[result.status] ?? { http: 400, error: "payment_failed" };
+        return res.status(mapped.http).json({ error: mapped.error, message: result.message });
       }
 
-      if (intent.status !== "pending") {
-        return res.status(400).json({ error: "payment_failed", message: "This payment was not completed" });
+      // Success — fetch the order to return to the client
+      if (!result.orderId) {
+        return res.status(500).json({ error: "internal_error", message: "Order id missing after verify" });
+      }
+      const [order] = await db
+        .select()
+        .from(ordersTable)
+        .where(eq(ordersTable.id, result.orderId))
+        .limit(1);
+      if (!order) {
+        return res.status(500).json({ error: "internal_error", message: "Order not found after creation" });
       }
 
-      // Expiry check
-      if (new Date() > intent.expiresAt) {
-        await db.update(paymentIntentsTable)
-          .set({ status: "cancelled" })
-          .where(eq(paymentIntentsTable.reference, paystackReference));
-        return res.status(400).json({ error: "payment_expired", message: "Payment session expired. Please try again." });
-      }
-
-      // ── Verify with Paystack ────────────────────────────────────────────
-      const psRes = await fetch(
-        `https://api.paystack.co/transaction/verify/${encodeURIComponent(paystackReference)}`,
-        { headers: { Authorization: `Bearer ${secretKey}` } }
-      );
-      const psData = await psRes.json() as any;
-
-      if (!psData.status || psData.data?.status !== "success") {
-        const txStatus = psData.data?.status;
-        const isCancelled = txStatus === "abandoned";
-        await db.update(paymentIntentsTable)
-          .set({ status: isCancelled ? "cancelled" : "failed" })
-          .where(eq(paymentIntentsTable.reference, paystackReference));
-        return res.status(400).json({
-          error: isCancelled ? "payment_cancelled" : "payment_failed",
-          message: isCancelled ? "Payment was cancelled" : "Paystack payment was not successful",
-        });
-      }
-
-      // ── Amount integrity check (server-stored price vs what Paystack charged) ─
-      // Paystack may add processing fees (typically ~1.95% + flat), so the paid
-      // amount can exceed the bundle price.  We only reject when paid < expected
-      // (underpayment) or when the overpayment is suspiciously high (>5%).
-      const paidGHS = psData.data.amount / 100;
-      const expectedGHS = parseFloat(intent.amountGHS);
-      const maxOverpay = expectedGHS * 0.05;
-      if (paidGHS < expectedGHS - 0.5 || paidGHS > expectedGHS + maxOverpay + 1) {
-        req.log.warn({ paidGHS, expectedGHS, paystackReference, userId }, "Amount mismatch on bundle order");
-        await db.update(paymentIntentsTable)
-          .set({ status: "failed" })
-          .where(eq(paymentIntentsTable.reference, paystackReference));
-        return res.status(400).json({ error: "amount_mismatch", message: "Payment amount does not match bundle price" });
-      }
-
-      // ── Fetch bundle details from DB using the server-stored bundleId ───
-      if (!intent.bundleId) {
-        return res.status(400).json({ error: "validation_error", message: "No bundle associated with this payment" });
-      }
-      const [bundle] = await db.select().from(bundlesTable).where(eq(bundlesTable.id, intent.bundleId)).limit(1);
-      if (!bundle) return res.status(404).json({ error: "not_found", message: "Bundle not found" });
-
-      const fulfillmentMode = await getFulfillmentMode();
-      const initialStatus = fulfillmentMode === "api" ? "processing" : "pending";
-
-      const orderDetails = {
-        phoneNumber: intent.phoneNumber || phoneNumber,
-        paymentMethod: "momo",
-        paystackReference,
-        bundleId: String(intent.bundleId),
-        bundleName: bundle.name,
-        data: bundle.data,
-        networkName: bundle.networkName,
-        fulfillmentMode,
-      };
-
-      const [order] = await db.insert(ordersTable).values({
-        userId,
-        type: "bundle",
-        status: initialStatus,
-        amount: expectedGHS.toFixed(2),
-        details: orderDetails,
-      }).returning();
-
-      // Mark intent as processed
-      await db.update(paymentIntentsTable)
-        .set({ status: "processed", processedAt: new Date() })
-        .where(eq(paymentIntentsTable.reference, paystackReference));
-
-      // Notify admin panel in real-time (fire-and-forget)
-      notifyAdminsNewOrder(order);
-
-      // Auto-fulfill via JessCo if API mode is active (fire-and-forget)
-      tryAutoFulfill(order);
-
-      return res.status(201).json({
+      const httpStatus = result.status === "order_already_exists" ? 200 : 201;
+      return res.status(httpStatus).json({
         id: String(order.id),
         userId: String(order.userId),
         type: order.type,

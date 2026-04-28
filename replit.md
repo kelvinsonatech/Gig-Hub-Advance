@@ -142,6 +142,23 @@ Set `JWT_SECRET` in production for security.
 
 Wallet debit uses atomic SQL (`UPDATE ... WHERE balance >= amount`) to prevent race conditions on concurrent purchases. The balance check and debit happen in a single query — no double-spend is possible.
 
+Wallet credits (top-ups) **must** go through Paystack: client calls `POST /api/payments/initialize` then `POST /api/wallet/topup/verify`. The legacy `POST /api/wallet/topup` endpoint that credited balance directly was removed (returns 410 Gone) — it was a vulnerability that let any authenticated user mint funds.
+
+## Payment Verification System
+
+Single source of truth: `artifacts/api-server/src/lib/payment-reconciler.ts` exports `verifyAndProcessIntent(reference, source)`. Used by:
+- Paystack webhook (`routes/webhooks.ts`)
+- Frontend redirect callback (`POST /api/orders` in `routes/orders.ts`)
+- Wallet topup verify (`POST /api/wallet/topup/verify` in `routes/wallet.ts`)
+- Background reconciler poller (`startPaymentReconciler` in `index.ts`, every 45s)
+- Admin manual force-verify (`POST /api/admin/payment-intents/:reference/reconcile`)
+
+**Race-safety**: idempotency is enforced by an atomic claim — `UPDATE payment_intents SET status='processed' WHERE reference=? AND status='pending' RETURNING *` inside a transaction. Only one concurrent caller wins; the others see 0 rows returned and short-circuit to `order_already_exists`. If the subsequent INSERT throws, the whole tx rolls back so a retry can succeed.
+
+**Reconciler poller**: scans `pending` intents 60s–60min old, asks Paystack directly. Catches missed/delayed webhooks. Sends Telegram alert on recovery. Also expires ancient pending intents (past `expiresAt`).
+
+**Admin observability**: `GET /api/admin/payment-health` returns counts + reconciler heartbeat. UI at `/admin/payments` (`AdminPayments.tsx`).
+
 ## Deployment
 
 - **Frontend (Vercel)**: turboghana.com — push to GitHub triggers rebuild. Set `VITE_API_URL` in Vercel env vars to point at the Replit API server.
