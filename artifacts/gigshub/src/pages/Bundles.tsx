@@ -321,14 +321,15 @@ export default function Bundles() {
 
       {/* Purchase Modal */}
       <Dialog open={isModalOpen} onOpenChange={(open) => { if (!isPaying) setIsModalOpen(open); }}>
-        <DialogContent className="sm:max-w-md rounded-3xl">
+        <DialogContent className="sm:max-w-md rounded-3xl p-0 overflow-hidden border-0 shadow-2xl">
 
           {/* Loading overlay — shown while redirecting to Paystack */}
           {isPaying ? (
-            <div className="flex flex-col items-center justify-center gap-5 py-10 px-4 text-center">
+            <div className="flex flex-col items-center justify-center gap-5 py-12 px-6 text-center">
               <div className="relative">
-                <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center">
-                  <Loader2 className="w-10 h-10 animate-spin text-primary" />
+                <div className="absolute inset-0 rounded-full bg-primary/20 animate-ping" />
+                <div className="relative w-20 h-20 rounded-full bg-gradient-to-br from-primary to-orange-500 flex items-center justify-center shadow-lg shadow-primary/30">
+                  <Loader2 className="w-10 h-10 animate-spin text-white" />
                 </div>
               </div>
               <div>
@@ -342,46 +343,63 @@ export default function Bundles() {
             </div>
           ) : (
           <>
-          <DialogHeader>
-            <DialogTitle className="text-2xl">Complete Purchase</DialogTitle>
-            <DialogDescription>Choose how to pay and enter the recipient number.</DialogDescription>
-          </DialogHeader>
+          {/* Hero header with bundle summary */}
+          <div className="relative bg-gradient-to-br from-primary via-orange-500 to-orange-600 px-6 pt-6 pb-8 text-white overflow-hidden">
+            <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-white/10 blur-2xl" />
+            <div className="absolute -bottom-16 -left-10 w-40 h-40 rounded-full bg-white/10 blur-2xl" />
+
+            <DialogHeader className="relative space-y-1 mb-5">
+              <DialogTitle className="text-xl font-bold text-white">Complete Purchase</DialogTitle>
+              <DialogDescription className="text-white/80 text-sm">Almost there — just a couple of details.</DialogDescription>
+            </DialogHeader>
+
+            {selectedBundle && (
+              <div className="relative bg-white/15 backdrop-blur-sm border border-white/25 rounded-2xl px-4 py-3.5 flex items-center justify-between gap-3 shadow-lg">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-11 h-11 rounded-xl bg-white/95 flex items-center justify-center shadow-md flex-shrink-0">
+                    <Wifi className="w-5 h-5 text-primary" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-extrabold text-lg leading-tight truncate">{selectedBundle.data}</p>
+                    <p className="text-[11px] text-white/85 font-medium truncate">{selectedBundle.validity} • {selectedBundle.networkName}</p>
+                  </div>
+                </div>
+                <div className="text-right flex-shrink-0">
+                  <p className="text-[10px] uppercase tracking-wider text-white/70 font-bold">Total</p>
+                  <p className="font-extrabold text-xl leading-none">{formatGHS(selectedBundle.price)}</p>
+                </div>
+              </div>
+            )}
+          </div>
 
           {selectedBundle && (
-            <div className="space-y-5 my-2">
-              {/* Bundle summary */}
-              <div className="bg-secondary/50 p-4 rounded-2xl border border-border flex justify-between items-center">
-                <div>
-                  <p className="font-bold text-lg">{selectedBundle.data}</p>
-                  <p className="text-sm text-muted-foreground">{selectedBundle.validity} • {selectedBundle.networkName}</p>
-                </div>
-                <p className="font-bold text-primary text-xl">{formatGHS(selectedBundle.price)}</p>
-              </div>
-
+            <div className="px-6 py-5 space-y-5">
               {/* Payment method */}
-              <div className="space-y-2">
-                <Label>Payment Method</Label>
+              <div className="space-y-2.5">
+                <Label className="text-xs font-bold uppercase tracking-wider text-gray-500">Payment Method</Label>
                 <div className="grid grid-cols-2 gap-3">
                   {/* MoMo */}
                   <button
                     type="button"
                     onClick={() => setPaymentMethod("momo")}
                     className={cn(
-                      "relative flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all text-left",
+                      "relative flex items-center gap-3 p-3 rounded-2xl border-2 transition-all text-left",
                       paymentMethod === "momo"
-                        ? "border-orange-400 bg-orange-50 shadow-sm"
-                        : "border-gray-100 bg-white hover:border-gray-200"
+                        ? "border-orange-400 bg-gradient-to-br from-orange-50 to-orange-100/50 shadow-md shadow-orange-100"
+                        : "border-gray-150 bg-white hover:border-gray-300 hover:bg-gray-50"
                     )}
                   >
                     {paymentMethod === "momo" && (
-                      <CheckCircle2 className="absolute top-2 right-2 w-4 h-4 text-orange-500" />
+                      <div className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-orange-500 flex items-center justify-center shadow-md ring-2 ring-white">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-white" />
+                      </div>
                     )}
-                    <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", paymentMethod === "momo" ? "bg-orange-100" : "bg-gray-100")}>
-                      <Smartphone className={cn("w-5 h-5", paymentMethod === "momo" ? "text-orange-500" : "text-gray-400")} />
+                    <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0", paymentMethod === "momo" ? "bg-orange-500 shadow-md shadow-orange-200" : "bg-gray-100")}>
+                      <Smartphone className={cn("w-5 h-5", paymentMethod === "momo" ? "text-white" : "text-gray-400")} />
                     </div>
-                    <div>
-                      <p className={cn("text-sm font-bold", paymentMethod === "momo" ? "text-orange-700" : "text-gray-700")}>MoMo</p>
-                      <p className="text-[11px] text-gray-400">Mobile Money</p>
+                    <div className="min-w-0">
+                      <p className={cn("text-sm font-bold leading-tight", paymentMethod === "momo" ? "text-orange-700" : "text-gray-800")}>MoMo</p>
+                      <p className="text-[10px] text-gray-500 leading-tight">Mobile Money</p>
                     </div>
                   </button>
 
@@ -390,22 +408,23 @@ export default function Bundles() {
                     type="button"
                     onClick={() => setPaymentMethod("wallet")}
                     className={cn(
-                      "relative flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all text-left",
+                      "relative flex items-center gap-3 p-3 rounded-2xl border-2 transition-all text-left",
                       paymentMethod === "wallet"
-                        ? "border-green-400 bg-green-50 shadow-sm"
-                        : "border-gray-100 bg-white hover:border-gray-200"
+                        ? "border-emerald-400 bg-gradient-to-br from-emerald-50 to-emerald-100/50 shadow-md shadow-emerald-100"
+                        : "border-gray-150 bg-white hover:border-gray-300 hover:bg-gray-50"
                     )}
                   >
                     {paymentMethod === "wallet" && (
-                      <CheckCircle2 className="absolute top-2 right-2 w-4 h-4 text-green-500" />
+                      <div className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center shadow-md ring-2 ring-white">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-white" />
+                      </div>
                     )}
-                    <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", paymentMethod === "wallet" ? "bg-green-100" : "bg-gray-100")}>
-                      <Wallet className={cn("w-5 h-5", paymentMethod === "wallet" ? "text-green-600" : "text-gray-400")} />
+                    <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0", paymentMethod === "wallet" ? "bg-emerald-500 shadow-md shadow-emerald-200" : "bg-gray-100")}>
+                      <Wallet className={cn("w-5 h-5", paymentMethod === "wallet" ? "text-white" : "text-gray-400")} />
                     </div>
-                    <div>
-                      <p className={cn("text-sm font-bold", paymentMethod === "wallet" ? "text-green-700" : "text-gray-700")}>Wallet</p>
-                      <p className="text-[11px] text-gray-400">Wallet Balance</p>
-                      <p className={cn("text-[11px] font-bold", paymentMethod === "wallet" ? "text-green-600" : "text-gray-500")}>
+                    <div className="min-w-0">
+                      <p className={cn("text-sm font-bold leading-tight", paymentMethod === "wallet" ? "text-emerald-700" : "text-gray-800")}>Wallet</p>
+                      <p className={cn("text-[10px] font-bold leading-tight", paymentMethod === "wallet" ? "text-emerald-600" : "text-gray-500")}>
                         {wallet ? formatGHS(wallet.balance) : "—"}
                       </p>
                     </div>
@@ -414,53 +433,65 @@ export default function Bundles() {
 
                 {/* Wallet insufficient warning */}
                 {paymentMethod === "wallet" && wallet && wallet.balance < (selectedBundle?.price ?? 0) && (
-                  <p className="text-xs text-red-500 font-medium mt-1">
-                    Insufficient balance — you need {formatGHS((selectedBundle?.price ?? 0) - wallet.balance)} more.
-                  </p>
+                  <div className="flex items-start gap-2 px-3 py-2 rounded-xl bg-red-50 border border-red-100">
+                    <div className="w-4 h-4 rounded-full bg-red-500 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <span className="text-white text-[10px] font-bold">!</span>
+                    </div>
+                    <p className="text-xs text-red-600 font-medium leading-tight">
+                      Insufficient balance — top up <span className="font-bold">{formatGHS((selectedBundle?.price ?? 0) - wallet.balance)}</span> more to pay from wallet.
+                    </p>
+                  </div>
                 )}
               </div>
 
               {/* Phone number */}
               <div className="space-y-2">
-                <Label htmlFor="phone">Recipient Phone Number</Label>
+                <Label htmlFor="phone" className="text-xs font-bold uppercase tracking-wider text-gray-500">Recipient Phone Number</Label>
                 <div className="relative">
-                  <Phone className={`absolute left-3 top-3 h-5 w-5 ${phoneTouched && phoneNumber.replace(/\D/g, "").length < 10 ? "text-red-400" : "text-muted-foreground"}`} />
+                  <Phone className={cn("absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 transition-colors",
+                    phoneTouched && phoneNumber.replace(/\D/g, "").length < 10 ? "text-red-400" : "text-gray-400"
+                  )} />
                   <Input
-                    id="phone" type="tel" placeholder="Enter phone number"
-                    className={`pl-10 h-12 rounded-xl text-lg font-medium transition-colors ${
+                    id="phone" type="tel" placeholder="0XX XXX XXXX"
+                    className={cn(
+                      "pl-11 h-13 py-3 rounded-2xl text-base font-semibold tracking-wide transition-colors bg-gray-50 border-gray-150 focus-visible:bg-white",
                       phoneTouched && phoneNumber.replace(/\D/g, "").length < 10
-                        ? "border-red-400 ring-2 ring-red-200 focus-visible:ring-red-300 focus-visible:border-red-400"
+                        ? "border-red-300 ring-2 ring-red-100 focus-visible:ring-red-200 focus-visible:border-red-400 bg-red-50/30"
                         : ""
-                    }`}
+                    )}
                     value={phoneNumber}
                     onChange={(e) => { setPhoneNumber(e.target.value); setPhoneTouched(true); }}
                   />
                 </div>
                 {phoneTouched && phoneNumber.replace(/\D/g, "").length < 10 && (
-                  <p className="text-xs text-red-500 font-medium flex items-center gap-1">
-                    <span className="font-bold">{phoneNumber.replace(/\D/g, "").length} / 10</span> digits entered — needs {10 - phoneNumber.replace(/\D/g, "").length} more
+                  <p className="text-xs text-red-500 font-medium pl-1">
+                    <span className="font-bold">{phoneNumber.replace(/\D/g, "").length} / 10</span> digits — needs {10 - phoneNumber.replace(/\D/g, "").length} more
                   </p>
                 )}
               </div>
             </div>
           )}
 
-          <DialogFooter className="flex-col sm:flex-row gap-3 mt-4">
-            <Button variant="outline" onClick={() => setIsModalOpen(false)} className="rounded-xl h-12 flex-1">Cancel</Button>
+          <DialogFooter className="flex-col sm:flex-row gap-2 px-6 pb-6 pt-2 border-t border-gray-100 bg-gray-50/50">
+            <Button variant="outline" onClick={() => setIsModalOpen(false)} className="rounded-2xl h-12 flex-1 font-semibold border-gray-200 hover:bg-white">Cancel</Button>
             <Button
               onClick={handlePurchase}
               disabled={phoneNumber.replace(/\D/g, "").length < 10 || isPaying || createOrder.isPending || (paymentMethod === "wallet" && !!wallet && wallet.balance < (selectedBundle?.price ?? 0))}
               className={cn(
-                "rounded-xl h-12 flex-1 shadow-md",
+                "rounded-2xl h-12 flex-1 font-bold shadow-lg gap-2",
                 paymentMethod === "wallet"
-                  ? "bg-green-600 hover:bg-green-700 text-white shadow-green-200"
-                  : "shadow-primary/20"
+                  ? "bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white shadow-emerald-200"
+                  : "bg-gradient-to-r from-primary to-orange-500 hover:from-primary/90 hover:to-orange-500/90 text-white shadow-orange-200"
               )}
             >
-              {isPaying || createOrder.isPending
-                ? <Loader2 className="w-5 h-5 animate-spin" />
-                : paymentMethod === "wallet" ? "Pay from Wallet" : "Pay with MoMo"
-              }
+              {isPaying || createOrder.isPending ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <>
+                  {paymentMethod === "wallet" ? <Wallet className="w-4 h-4" /> : <Smartphone className="w-4 h-4" />}
+                  {paymentMethod === "wallet" ? "Pay from Wallet" : "Pay with MoMo"}
+                </>
+              )}
             </Button>
           </DialogFooter>
           </>
