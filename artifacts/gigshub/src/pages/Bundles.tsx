@@ -344,7 +344,7 @@ export default function Bundles() {
           ) : (
           <>
           {/* Hero header with bundle summary */}
-          <div className="relative bg-gradient-to-br from-primary via-orange-500 to-orange-600 px-6 pt-6 pb-8 text-white overflow-hidden">
+          <div className="relative bg-gradient-to-br from-orange-500 via-orange-500 to-orange-600 px-6 pt-6 pb-8 text-white overflow-hidden">
             <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-white/10 blur-2xl" />
             <div className="absolute -bottom-16 -left-10 w-40 h-40 rounded-full bg-white/10 blur-2xl" />
 
@@ -395,7 +395,7 @@ export default function Bundles() {
                       "relative flex items-center gap-3 p-3 rounded-2xl border-2 transition-all text-left",
                       paymentMethod === "momo"
                         ? "border-orange-400 bg-gradient-to-br from-orange-50 to-orange-100/50 shadow-md shadow-orange-100"
-                        : "border-gray-150 bg-white hover:border-gray-300 hover:bg-gray-50"
+                        : "border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50"
                     )}
                   >
                     {paymentMethod === "momo" && (
@@ -420,7 +420,7 @@ export default function Bundles() {
                       "relative flex items-center gap-3 p-3 rounded-2xl border-2 transition-all text-left",
                       paymentMethod === "wallet"
                         ? "border-emerald-400 bg-gradient-to-br from-emerald-50 to-emerald-100/50 shadow-md shadow-emerald-100"
-                        : "border-gray-150 bg-white hover:border-gray-300 hover:bg-gray-50"
+                        : "border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50"
                     )}
                   >
                     {paymentMethod === "wallet" && (
