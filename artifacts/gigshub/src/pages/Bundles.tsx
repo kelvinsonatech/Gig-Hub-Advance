@@ -356,9 +356,18 @@ export default function Bundles() {
             {selectedBundle && (
               <div className="relative bg-white/15 backdrop-blur-sm border border-white/25 rounded-2xl px-4 py-3.5 flex items-center justify-between gap-3 shadow-lg">
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-11 h-11 rounded-xl bg-white/95 flex items-center justify-center shadow-md flex-shrink-0">
-                    <Wifi className="w-5 h-5 text-primary" />
-                  </div>
+                  {(() => {
+                    const network = networks?.find((n: any) => String(n.id) === String(selectedBundle.networkId));
+                    return (
+                      <div className="w-11 h-11 rounded-xl bg-white/95 flex items-center justify-center shadow-md flex-shrink-0 overflow-hidden">
+                        {network?.logoUrl ? (
+                          <img src={network.logoUrl} alt={selectedBundle.networkName} className="w-full h-full object-cover" />
+                        ) : (
+                          <Wifi className="w-5 h-5 text-primary" />
+                        )}
+                      </div>
+                    );
+                  })()}
                   <div className="min-w-0">
                     <p className="font-extrabold text-lg leading-tight truncate">{selectedBundle.data}</p>
                     <p className="text-[11px] text-white/85 font-medium truncate">{selectedBundle.validity} • {selectedBundle.networkName}</p>
