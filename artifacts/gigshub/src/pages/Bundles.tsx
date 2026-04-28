@@ -392,10 +392,10 @@ export default function Bundles() {
                     type="button"
                     onClick={() => setPaymentMethod("momo")}
                     className={cn(
-                      "relative flex items-center gap-3 p-3 rounded-2xl transition-all text-left",
+                      "relative flex items-center gap-3 p-3 rounded-2xl border-2 transition-all text-left",
                       paymentMethod === "momo"
-                        ? "bg-gradient-to-br from-orange-50 to-orange-100/50 shadow-md shadow-orange-100 ring-1 ring-orange-200"
-                        : "bg-gray-50 hover:bg-gray-100"
+                        ? "border-orange-400 bg-gradient-to-br from-orange-50 to-orange-100/50 shadow-md shadow-orange-100"
+                        : "border-gray-150 bg-white hover:border-gray-300 hover:bg-gray-50"
                     )}
                   >
                     {paymentMethod === "momo" && (
@@ -417,10 +417,10 @@ export default function Bundles() {
                     type="button"
                     onClick={() => setPaymentMethod("wallet")}
                     className={cn(
-                      "relative flex items-center gap-3 p-3 rounded-2xl transition-all text-left",
+                      "relative flex items-center gap-3 p-3 rounded-2xl border-2 transition-all text-left",
                       paymentMethod === "wallet"
-                        ? "bg-gradient-to-br from-emerald-50 to-emerald-100/50 shadow-md shadow-emerald-100 ring-1 ring-emerald-200"
-                        : "bg-gray-50 hover:bg-gray-100"
+                        ? "border-emerald-400 bg-gradient-to-br from-emerald-50 to-emerald-100/50 shadow-md shadow-emerald-100"
+                        : "border-gray-150 bg-white hover:border-gray-300 hover:bg-gray-50"
                     )}
                   >
                     {paymentMethod === "wallet" && (
