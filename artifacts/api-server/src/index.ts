@@ -2,6 +2,7 @@ import app from "./app";
 import { logger } from "./lib/logger";
 import { seedDatabase } from "./lib/seed";
 import { startJesscoPoller } from "./lib/jessco";
+import { startXpressGhPoller } from "./lib/xpress-gh";
 import { startPaymentReconciler } from "./lib/payment-reconciler";
 
 const rawPort = process.env["PORT"];
@@ -31,6 +32,7 @@ seedDatabase().finally(() => {
     }
     logger.info({ port }, "Server listening");
     startJesscoPoller(30_000);
+    startXpressGhPoller(30_000);
     startPaymentReconciler(45_000);
   });
 });

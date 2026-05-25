@@ -2,7 +2,7 @@ import { db } from "@workspace/db";
 import { appSettingsTable } from "@workspace/db";
 import { eq, sql } from "drizzle-orm";
 
-export type FulfillmentMode = "manual" | "api";
+export type FulfillmentMode = "manual" | "api" | "xpress_gh";
 
 export async function getSetting(key: string): Promise<string | null> {
   try {
@@ -29,7 +29,9 @@ export async function setSetting(key: string, value: string): Promise<void> {
 
 export async function getFulfillmentMode(): Promise<FulfillmentMode> {
   const mode = await getSetting("fulfillment_mode");
-  return mode === "api" ? "api" : "manual";
+  if (mode === "api") return "api";
+  if (mode === "xpress_gh") return "xpress_gh";
+  return "manual";
 }
 
 export async function setFulfillmentMode(mode: FulfillmentMode): Promise<void> {

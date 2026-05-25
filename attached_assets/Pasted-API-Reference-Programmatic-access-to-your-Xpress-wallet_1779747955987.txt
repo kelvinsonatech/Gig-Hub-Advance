@@ -1,0 +1,157 @@
+API Reference
+Programmatic access to your Xpress wallet and bundle ordering. JSON in, JSON out.
+
+01
+Authentication
+Generate a key from the Dashboard → Overview page. Send it on every request:
+
+X-API-Key: <your-api-key>
+# or
+Authorization: Bearer <your-api-key>
+
+Base URL	https://labppmcqsdeuollwcgwu.supabase.co/functions/v1/agent-api
+Content-Type	application/json
+Units	Money in GHS · data in whole GB
+Pricing	Charged from your assigned plan tier
+Rate limit	60 requests / minute / key
+Batch size	Up to 1,000 items per order
+02
+Errors & idempotency
+All errors return { "error": "message" }
+
+400	Bad input, unknown network, no pricing plan, or insufficient balance
+401	Missing or invalid API key
+404	Unknown route or order not found
+429	Rate limit exceeded — back off and retry
+500	Server error — safe to retry
+Idempotency: include a unique reference on each item. Replays with the same reference within 24h return the original result instead of double-charging.
+
+03
+GET /me
+Returns your account profile and assigned plan tier.
+
+cURL
+Node.js
+Python
+curl -s -H "X-API-Key:$KEY" https://labppmcqsdeuollwcgwu.supabase.co/functions/v1/agent-api/me
+
+Response
+
+{
+  "user_id": "uuid",
+  "name": "Acme Data",
+  "phone": "0241000000",
+  "plan_tier": "pro",
+  "created_at": "2026-05-01T08:00:00Z"
+}
+
+04
+GET /wallet
+Current wallet balance in GHS.
+
+cURL
+Node.js
+Python
+curl -s -H "X-API-Key:$KEY" https://labppmcqsdeuollwcgwu.supabase.co/functions/v1/agent-api/wallet
+
+{ "balance_ghs": 481.00, "updated_at": "2026-05-25T08:00:00Z" }
+
+05
+POST /orders/preview
+Price-check a batch before placing. Verifies every size exists in your plan and that the wallet can cover it.
+
+cURL
+Node.js
+Python
+curl -s -XPOST -H "X-API-Key:$KEY" -H 'Content-Type: application/json' \
+  -d '{"service":"mtn","items":[{"msisdn":"0241000001","data_gb":5}]}' \
+  https://labppmcqsdeuollwcgwu.supabase.co/functions/v1/agent-api/orders/preview
+
+{ "charged": 19.00, "balance": 481.00, "sufficient": true }
+
+06
+POST /orders
+Place a batch order (1–1000 items). Wallet is debited atomically; if any size is unavailable in your plan the whole batch fails before charging.
+
+cURL
+Node.js
+Python
+curl -s -XPOST -H "X-API-Key:$KEY" -H 'Content-Type: application/json' \
+  -d '{
+    "service":"mtn",
+    "items":[
+      {"msisdn":"0241000001","data_gb":5,"reference":"INV-1001"},
+      {"msisdn":"0241000002","data_gb":10,"reference":"INV-1002"}
+    ]
+  }' \
+  https://labppmcqsdeuollwcgwu.supabase.co/functions/v1/agent-api/orders
+
+Response
+
+{
+  "order_id": "uuid",
+  "items": 2,
+  "charged": 36.50,
+  "balance": 444.50
+}
+
+07
+GET /orders & /orders/:id
+List recent orders or fetch a single one with its line items.
+
+curl -s -H "X-API-Key:$KEY" "https://labppmcqsdeuollwcgwu.supabase.co/functions/v1/agent-api/orders?limit=20"
+curl -s -H "X-API-Key:$KEY" https://labppmcqsdeuollwcgwu.supabase.co/functions/v1/agent-api/orders/<order_id>
+
+{
+  "id": "uuid",
+  "service": "mtn",
+  "items_count": 2,
+  "charged": 36.50,
+  "status": "processing",
+  "created_at": "...",
+  "items": [
+    { "msisdn": "0241000001", "data_gb": 5, "reference": "INV-1001", "price": 19.00, "status": "pending" }
+  ]
+}
+
+Item status values: pending, completed, failed,refunded. Failed items are auto-refunded to your wallet.
+
+08
+Webhooks
+Receive a POST to your server when an order's status changes. Configure your endpoint from the Overview page — we'll retry with exponential backoff up to 5 times on non-2xx responses.
+
+Payload
+
+POST https://your-server.com/xpress-webhook
+X-Xpress-Event: order.updated
+Content-Type: application/json
+
+{
+  "event": "order.updated",
+  "order_id": "uuid",
+  "status": "completed",
+  "items": [
+    { "msisdn": "0241000001", "data_gb": 5, "reference": "INV-1001", "status": "completed" }
+  ],
+  "delivered_at": "2026-05-25T08:00:00Z"
+}
+
+Respond with HTTP 2xx within 10 seconds to acknowledge. Events: order.updated, item.completed, item.failed, item.refunded.
+
+09
+Quick start
+KEY=<your-api-key>
+BASE=https://labppmcqsdeuollwcgwu.supabase.co/functions/v1/agent-api
+
+# 1. Check balance
+curl -s -H "X-API-Key:$KEY" $BASE/wallet
+
+# 2. Preview pricing
+curl -s -XPOST -H "X-API-Key:$KEY" -H 'Content-Type: application/json' \
+  -d '{"service":"mtn","items":[{"msisdn":"0241000001","data_gb":5}]}' \
+  $BASE/orders/preview
+
+# 3. Place the order
+curl -s -XPOST -H "X-API-Key:$KEY" -H 'Content-Type: application/json' \
+  -d '{"service":"mtn","items":[{"msisdn":"0241000001","data_gb":5,"reference":"INV-1001"}]}' \
+  $BASE/orders

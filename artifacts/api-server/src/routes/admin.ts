@@ -9,7 +9,8 @@ import { sendPushToTokens } from "../lib/fcm";
 import { pushEventToUser, pushEventToAdmins, addAdminSseClient, removeAdminSseClient } from "../lib/sse";
 import { encrypt, decrypt } from "../lib/crypto";
 import { getFulfillmentMode, setFulfillmentMode, type FulfillmentMode } from "../lib/settings";
-import { fulfillBundle } from "../lib/jessco";
+import { fulfillBundle as fulfillBundleJessco } from "../lib/jessco";
+import { fulfillBundle as fulfillBundleXpressGh, getXpressGhWalletBalance } from "../lib/xpress-gh";
 import bcrypt from "bcryptjs";
 
 const JWT_SECRET = process.env.JWT_SECRET || "gigshub-secret-key-change-in-production";
@@ -916,8 +917,11 @@ router.get("/settings/fulfillment", async (req, res) => {
 router.put("/settings/fulfillment", async (req, res) => {
   try {
     const { mode } = req.body;
-    if (mode !== "manual" && mode !== "api") {
-      return res.status(400).json({ error: "validation_error", message: "Mode must be 'manual' or 'api'" });
+    if (mode !== "manual" && mode !== "api" && mode !== "xpress_gh") {
+      return res.status(400).json({
+        error: "validation_error",
+        message: "Mode must be 'manual', 'api', or 'xpress_gh'",
+      });
     }
     await setFulfillmentMode(mode as FulfillmentMode);
     console.log(`[Settings] Fulfillment mode changed to: ${mode}`);
@@ -925,6 +929,17 @@ router.put("/settings/fulfillment", async (req, res) => {
   } catch (err) {
     req.log.error(err, "set fulfillment mode error");
     return res.status(500).json({ error: "internal_error", message: "Failed to update settings" });
+  }
+});
+
+// Returns Xpress-gh wallet balance for the admin settings page.
+router.get("/settings/xpress-gh/balance", async (req, res) => {
+  try {
+    const r = await getXpressGhWalletBalance();
+    return res.json(r);
+  } catch (err) {
+    req.log.error(err, "xpress-gh balance error");
+    return res.status(500).json({ ok: false, error: "internal_error" });
   }
 });
 
@@ -945,14 +960,24 @@ router.post("/orders/:id/retry-fulfillment", async (req, res) => {
       return res.status(400).json({ error: "validation_error", message: "Only bundle orders can be auto-fulfilled" });
     }
 
-    const result = await fulfillBundle({
+    // Use whichever provider is currently active. If admin previously sent
+    // the order via the other provider and switched modes, we still retry
+    // with the now-active provider — that's the expected behavior.
+    const mode = await getFulfillmentMode();
+    const fulfill = mode === "xpress_gh" ? fulfillBundleXpressGh : fulfillBundleJessco;
+    const result = await fulfill({
       id: order.id,
       userId: order.userId,
       details: order.details,
       amount: order.amount,
     });
 
-    return res.json({ success: result.success, message: result.message, providerRef: result.providerRef });
+    return res.json({
+      success: result.success,
+      message: result.message,
+      providerRef: result.providerRef,
+      provider: mode === "xpress_gh" ? "xpress_gh" : "jessco",
+    });
   } catch (err) {
     req.log.error(err, "retry fulfillment error");
     return res.status(500).json({ error: "internal_error", message: "Failed to retry fulfillment" });

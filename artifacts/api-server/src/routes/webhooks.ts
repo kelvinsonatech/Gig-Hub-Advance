@@ -1,6 +1,7 @@
 import { Router, type IRouter } from "express";
 import crypto from "crypto";
 import { handleJesscoWebhook, getJesscoWebhookSecret } from "../lib/jessco";
+import { handleXpressGhWebhook, getXpressGhWebhookSecret } from "../lib/xpress-gh";
 import { verifyAndProcessIntent } from "../lib/payment-reconciler";
 
 const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY || "";
@@ -26,6 +27,50 @@ router.post("/jessco", async (req, res) => {
     await handleJesscoWebhook(payload);
   } catch (err) {
     console.error("[JessCo Webhook] Error:", err);
+  }
+});
+
+// Xpress-gh fulfillment webhook. Requires XPRESS_GH_WEBHOOK_SECRET env var.
+// Without it set we refuse all webhooks — Xpress-gh's dashboard lets you
+// configure a shared secret that they send back as the X-Webhook-Secret header
+// (also accepted: X-Xpress-Secret, X-Signature). We also require the
+// X-Xpress-Event header and a recognised event name to reject random POSTs.
+const ALLOWED_XPRESS_EVENTS = new Set([
+  "order.updated",
+  "item.completed",
+  "item.failed",
+  "item.refunded",
+]);
+
+router.post("/xpress-gh", async (req, res) => {
+  const secret = getXpressGhWebhookSecret();
+  if (!secret) {
+    console.warn("[Xpress-gh Webhook] XPRESS_GH_WEBHOOK_SECRET not configured — refusing webhook");
+    return res.status(503).json({ error: "Webhook secret not configured" });
+  }
+
+  const provided =
+    (req.headers["x-webhook-secret"] ??
+      req.headers["x-xpress-secret"] ??
+      req.headers["x-signature"] ??
+      "") as string;
+  if (!provided || provided !== secret) {
+    console.warn("[Xpress-gh Webhook] Invalid or missing webhook secret");
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+
+  const event = (req.headers["x-xpress-event"] as string) ?? "";
+  if (!event || !ALLOWED_XPRESS_EVENTS.has(event)) {
+    console.warn(`[Xpress-gh Webhook] Rejected: unknown event "${event}"`);
+    return res.status(400).json({ error: "Unknown event" });
+  }
+
+  res.status(200).json({ received: true });
+
+  try {
+    await handleXpressGhWebhook({ ...req.body, event });
+  } catch (err) {
+    console.error("[Xpress-gh Webhook] Error:", err);
   }
 });
 

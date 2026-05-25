@@ -6,7 +6,8 @@ import { eq, desc, and, sql, gte } from "drizzle-orm";
 import { addSseClient, removeSseClient, pushEventToAdmins } from "../lib/sse";
 import { sendOrderNotification, sendFulfillmentAlert } from "../lib/telegram";
 import { getFulfillmentMode } from "../lib/settings";
-import { fulfillBundle } from "../lib/jessco";
+import { fulfillBundle as fulfillBundleJessco } from "../lib/jessco";
+import { fulfillBundle as fulfillBundleXpressGh } from "../lib/xpress-gh";
 import { verifyAndProcessIntent } from "../lib/payment-reconciler";
 
 const router: IRouter = Router();
@@ -17,14 +18,16 @@ async function tryAutoFulfill(order: typeof ordersTable.$inferSelect) {
   try {
     if (order.type !== "bundle") return;
     const mode = await getFulfillmentMode();
-    if (mode !== "api") return;
+    if (mode === "manual") return;
 
     await db.update(ordersTable)
       .set({ status: "processing" })
       .where(eq(ordersTable.id, order.id));
 
-    console.log(`[AutoFulfill] API mode active — sending order ${order.id} to JessCo`);
-    const result = await fulfillBundle({
+    const provider = mode === "xpress_gh" ? "Xpress-gh" : "JessCo";
+    console.log(`[AutoFulfill] ${provider} mode active — sending order ${order.id}`);
+    const fulfill = mode === "xpress_gh" ? fulfillBundleXpressGh : fulfillBundleJessco;
+    const result = await fulfill({
       id: order.id,
       userId: order.userId,
       details: order.details,
@@ -298,7 +301,7 @@ router.post("/", async (req, res) => {
       });
 
       const fulfillmentMode = await getFulfillmentMode();
-      const initialStatus = fulfillmentMode === "api" ? "processing" : "pending";
+      const initialStatus = fulfillmentMode === "manual" ? "pending" : "processing";
       orderDetails.fulfillmentMode = fulfillmentMode;
 
       const [order] = await db.insert(ordersTable).values({

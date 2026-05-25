@@ -8,7 +8,8 @@ import {
   usersTable,
 } from "@workspace/db";
 import { eq, and, lt, gt, sql } from "drizzle-orm";
-import { fulfillBundle } from "./jessco";
+import { fulfillBundle as fulfillBundleJessco } from "./jessco";
+import { fulfillBundle as fulfillBundleXpressGh } from "./xpress-gh";
 import { getFulfillmentMode } from "./settings";
 import { pushEventToAdmins, pushEventToUser } from "./sse";
 import { sendOrderNotification, sendFulfillmentAlert } from "./telegram";
@@ -104,12 +105,14 @@ async function tryAutoFulfill(
   try {
     if (order.type !== "bundle") return;
     const mode = await getFulfillmentMode();
-    if (mode !== "api") return;
+    if (mode === "manual") return;
 
+    const provider = mode === "xpress_gh" ? "Xpress-gh" : "JessCo";
     console.log(
-      `[PaymentReconciler] Auto-fulfilling order ${order.id} via JessCo`
+      `[PaymentReconciler] Auto-fulfilling order ${order.id} via ${provider}`
     );
-    const result = await fulfillBundle({
+    const fulfill = mode === "xpress_gh" ? fulfillBundleXpressGh : fulfillBundleJessco;
+    const result = await fulfill({
       id: order.id,
       userId: order.userId,
       details: order.details,
@@ -298,7 +301,7 @@ export async function verifyAndProcessIntent(
     }
 
     const fulfillmentMode = await getFulfillmentMode();
-    const initialStatus = fulfillmentMode === "api" ? "processing" : "pending";
+    const initialStatus = fulfillmentMode === "manual" ? "pending" : "processing";
 
     const orderDetails: Record<string, any> = {
       phoneNumber: intent.phoneNumber,
