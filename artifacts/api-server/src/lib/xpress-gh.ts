@@ -270,6 +270,13 @@ async function applyItemUpdate(u: {
   } else {
     // failed or refunded — Xpress-gh auto-refunds the wallet on their side,
     // so on our side we just mark for manual follow-up + alert admin.
+    // Idempotency guard: if we already marked this order failed for the same
+    // status, do nothing. Without this, the poller (and any duplicate webhook)
+    // re-runs this branch every cycle and spams Telegram alerts forever.
+    const existing = order.details as any;
+    if (existing?.fulfillmentStatus === "pending_manual" && existing?.webhookStatus === u.status) {
+      return;
+    }
     const reason = `Xpress-gh reported: ${u.status}${outcome === "refunded" ? " (auto-refunded by provider)" : ""}`;
     await db
       .update(ordersTable)
@@ -300,12 +307,15 @@ async function pollPendingOrders(): Promise<void> {
   if (!XPRESS_GH_API_KEY) return;
   try {
     const allOrders = await db.select().from(ordersTable);
+    // Only poll orders still genuinely awaiting a result ("sent"). Once an
+    // order is resolved — "delivered" or "pending_manual" — we stop polling it
+    // so we don't re-process terminal states or re-alert on failures.
     const pending = allOrders.filter((o) => {
       const d = o.details as any;
       return (
         d?.fulfillmentProvider === "xpress_gh" &&
         d?.xpressGhOrderId &&
-        (d?.fulfillmentStatus === "sent" || o.status === "processing")
+        d?.fulfillmentStatus === "sent"
       );
     });
     if (pending.length === 0) return;

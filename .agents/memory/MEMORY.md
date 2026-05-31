@@ -1,0 +1,1 @@
+- [Fulfillment poller idempotency](fulfillment-poller-idempotency.md) — pollers must poll only 'sent' orders; failure-alert branch must be idempotent or it spams Telegram.
