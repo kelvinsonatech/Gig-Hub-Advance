@@ -8,7 +8,7 @@ import { requireAuth, requireAdmin } from "../middleware/auth";
 import { sendPushToTokens } from "../lib/fcm";
 import { pushEventToUser, pushEventToAdmins, addAdminSseClient, removeAdminSseClient } from "../lib/sse";
 import { encrypt, decrypt } from "../lib/crypto";
-import { getFulfillmentMode, setFulfillmentMode, isNewNumberRestrictionEnabled, setNewNumberRestriction, type FulfillmentMode } from "../lib/settings";
+import { getFulfillmentMode, setFulfillmentMode, isNewNumberRestrictionEnabled, setNewNumberRestriction, getRestrictedNetworks, setRestrictedNetworks, NETWORK_KEYS, type NetworkKey, type FulfillmentMode } from "../lib/settings";
 import { normalizePhone } from "../lib/allowed-numbers";
 import { fulfillBundle as fulfillBundleJessco } from "../lib/jessco";
 import { fulfillBundle as fulfillBundleXpressGh, getXpressGhWalletBalance } from "../lib/xpress-gh";
@@ -937,8 +937,11 @@ router.put("/settings/fulfillment", async (req, res) => {
 
 router.get("/settings/number-restriction", async (req, res) => {
   try {
-    const enabled = await isNewNumberRestrictionEnabled();
-    return res.json({ enabled });
+    const [enabled, networks] = await Promise.all([
+      isNewNumberRestrictionEnabled(),
+      getRestrictedNetworks(),
+    ]);
+    return res.json({ enabled, networks });
   } catch (err) {
     req.log.error(err, "get number restriction error");
     return res.status(500).json({ error: "internal_error", message: "Failed to get setting" });
@@ -947,13 +950,32 @@ router.get("/settings/number-restriction", async (req, res) => {
 
 router.put("/settings/number-restriction", async (req, res) => {
   try {
-    const { enabled } = req.body;
-    if (typeof enabled !== "boolean") {
-      return res.status(400).json({ error: "validation_error", message: "enabled must be a boolean" });
+    const { enabled, networks } = req.body;
+
+    if (enabled !== undefined) {
+      if (typeof enabled !== "boolean") {
+        return res.status(400).json({ error: "validation_error", message: "enabled must be a boolean" });
+      }
+      await setNewNumberRestriction(enabled);
+      console.log(`[Settings] New-number restriction ${enabled ? "enabled" : "disabled"}`);
     }
-    await setNewNumberRestriction(enabled);
-    console.log(`[Settings] New-number restriction ${enabled ? "enabled" : "disabled"}`);
-    return res.json({ enabled, success: true });
+
+    if (networks !== undefined) {
+      if (!Array.isArray(networks) || networks.some((n) => !NETWORK_KEYS.includes(n))) {
+        return res.status(400).json({
+          error: "validation_error",
+          message: `networks must be an array of: ${NETWORK_KEYS.join(", ")}`,
+        });
+      }
+      await setRestrictedNetworks(networks as NetworkKey[]);
+      console.log(`[Settings] New-number restriction networks: ${JSON.stringify(networks)}`);
+    }
+
+    const [nowEnabled, nowNetworks] = await Promise.all([
+      isNewNumberRestrictionEnabled(),
+      getRestrictedNetworks(),
+    ]);
+    return res.json({ enabled: nowEnabled, networks: nowNetworks, success: true });
   } catch (err) {
     req.log.error(err, "set number restriction error");
     return res.status(500).json({ error: "internal_error", message: "Failed to update setting" });

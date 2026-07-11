@@ -78,7 +78,7 @@ router.post("/initialize", async (req, res) => {
       // New-number restriction: in JessCo ("api") fulfillment mode, only numbers
       // already on the system can order. Deny BEFORE any payment is initialized
       // so the customer is never charged for an order we can't fulfill.
-      const denial = await checkNewNumberRestriction(phoneNumber);
+      const denial = await checkNewNumberRestriction(phoneNumber, bundle.networkName);
       if (denial) {
         return res.status(403).json({ error: "new_number_not_allowed", message: denial });
       }

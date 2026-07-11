@@ -25,6 +25,13 @@ function getToken() {
   return localStorage.getItem("gigshub_token") || "";
 }
 
+const NETWORK_LABELS: Record<string, string> = {
+  mtn: "MTN",
+  airteltigo: "AirtelTigo",
+  telecel: "Telecel",
+};
+const ALL_NETWORK_KEYS = ["mtn", "airteltigo", "telecel"];
+
 export default function AdminNumbers() {
   const qc = useQueryClient();
   const { toast } = useToast();
@@ -35,7 +42,7 @@ export default function AdminNumbers() {
   const [newNote, setNewNote] = useState("");
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
 
-  const { data: restriction } = useQuery<{ enabled: boolean }>({
+  const { data: restriction } = useQuery<{ enabled: boolean; networks: string[] }>({
     queryKey: ["admin-number-restriction"],
     queryFn: async () => {
       const res = await fetch(`${API}/api/admin/settings/number-restriction`, {
@@ -47,11 +54,11 @@ export default function AdminNumbers() {
   });
 
   const toggleMut = useMutation({
-    mutationFn: async (enabled: boolean) => {
+    mutationFn: async (body: { enabled?: boolean; networks?: string[] }) => {
       const res = await fetch(`${API}/api/admin/settings/number-restriction`, {
         method: "PUT",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` },
-        body: JSON.stringify({ enabled }),
+        body: JSON.stringify(body),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Failed");
@@ -60,10 +67,12 @@ export default function AdminNumbers() {
     onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: ["admin-number-restriction"] });
       toast({
-        title: data.enabled ? "Restriction enabled" : "Restriction disabled",
+        title: "Settings saved",
         description: data.enabled
-          ? "New numbers will be denied while JessCo mode is active."
-          : "All numbers can order again.",
+          ? data.networks.length === 0
+            ? "Restriction is on, but no networks are selected — all numbers can order."
+            : `New numbers are blocked on: ${data.networks.map((n: string) => NETWORK_LABELS[n] || n).join(", ")}.`
+          : "Restriction is off — all numbers can order.",
       });
     },
     onError: (err: any) => toast({ variant: "destructive", title: "Failed", description: err.message }),
@@ -125,6 +134,7 @@ export default function AdminNumbers() {
   const pageSize = data?.pageSize ?? 50;
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const enabled = restriction?.enabled ?? true;
+  const restrictedNetworks = restriction?.networks ?? ["mtn"];
 
   return (
     <div className="space-y-6">
@@ -143,41 +153,83 @@ export default function AdminNumbers() {
       {/* Restriction toggle card */}
       <div
         className={cn(
-          "rounded-xl border p-4 flex items-start sm:items-center justify-between gap-4 flex-col sm:flex-row",
+          "rounded-xl border p-4 space-y-4",
           enabled ? "border-amber-200 bg-amber-50" : "border-gray-200 bg-white"
         )}
       >
-        <div className="flex items-start gap-3">
-          {enabled ? (
-            <ShieldCheck className="h-6 w-6 text-amber-600 shrink-0 mt-0.5" />
-          ) : (
-            <ShieldOff className="h-6 w-6 text-gray-400 shrink-0 mt-0.5" />
-          )}
-          <div>
-            <p className="font-semibold text-gray-900">
-              New-number restriction {enabled ? "is ON" : "is OFF"}
+        <div className="flex items-start sm:items-center justify-between gap-4 flex-col sm:flex-row">
+          <div className="flex items-start gap-3">
+            {enabled ? (
+              <ShieldCheck className="h-6 w-6 text-amber-600 shrink-0 mt-0.5" />
+            ) : (
+              <ShieldOff className="h-6 w-6 text-gray-400 shrink-0 mt-0.5" />
+            )}
+            <div>
+              <p className="font-semibold text-gray-900">
+                New-number restriction {enabled ? "is ON" : "is OFF"}
+              </p>
+              <p className="text-sm text-gray-600 mt-0.5">
+                {enabled
+                  ? "While JessCo fulfillment is active, bundle orders on the selected networks are denied for numbers not on this list — before payment."
+                  : "All numbers can place orders on every network. Turn this on if JessCo stops accepting new numbers."}
+              </p>
+            </div>
+          </div>
+          <Button
+            variant={enabled ? "outline" : "default"}
+            disabled={toggleMut.isPending}
+            onClick={() => toggleMut.mutate({ enabled: !enabled })}
+            className="shrink-0"
+          >
+            {toggleMut.isPending ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : enabled ? (
+              "Turn off"
+            ) : (
+              "Turn on"
+            )}
+          </Button>
+        </div>
+
+        {enabled && (
+          <div className="border-t border-amber-200 pt-3">
+            <p className="text-sm font-medium text-gray-900 mb-2">
+              Networks that do NOT accept new numbers:
             </p>
-            <p className="text-sm text-gray-600 mt-0.5">
-              {enabled
-                ? "While JessCo fulfillment is active, bundle orders from numbers not on this list are denied before payment."
-                : "All numbers can place orders. Turn this on if JessCo stops accepting new numbers."}
+            <div className="flex flex-wrap gap-2">
+              {ALL_NETWORK_KEYS.map(key => {
+                const active = restrictedNetworks.includes(key);
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    disabled={toggleMut.isPending}
+                    onClick={() => {
+                      const next = active
+                        ? restrictedNetworks.filter(n => n !== key)
+                        : [...restrictedNetworks, key];
+                      toggleMut.mutate({ networks: next });
+                    }}
+                    className={cn(
+                      "px-4 py-2 rounded-full text-sm font-medium border transition-colors",
+                      active
+                        ? "bg-amber-600 border-amber-600 text-white"
+                        : "bg-white border-gray-300 text-gray-600 hover:border-gray-400"
+                    )}
+                  >
+                    {NETWORK_LABELS[key]}
+                    <span className="ml-1.5 text-xs opacity-80">
+                      {active ? "· blocked" : "· open"}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+            <p className="text-xs text-gray-500 mt-2">
+              Blocked = only numbers on this list can order. Open = any number can order.
             </p>
           </div>
-        </div>
-        <Button
-          variant={enabled ? "outline" : "default"}
-          disabled={toggleMut.isPending}
-          onClick={() => toggleMut.mutate(!enabled)}
-          className="shrink-0"
-        >
-          {toggleMut.isPending ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : enabled ? (
-            "Turn off"
-          ) : (
-            "Turn on"
-          )}
-        </Button>
+        )}
       </div>
 
       {/* Add form */}

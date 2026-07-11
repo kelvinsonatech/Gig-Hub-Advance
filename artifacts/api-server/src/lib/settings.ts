@@ -51,3 +51,30 @@ export async function isNewNumberRestrictionEnabled(): Promise<boolean> {
 export async function setNewNumberRestriction(enabled: boolean): Promise<void> {
   await setSetting("restrict_new_numbers", enabled ? "on" : "off");
 }
+
+/**
+ * Which networks the new-number restriction applies to.
+ * Stored as a JSON array of canonical network keys: "mtn" | "airteltigo" | "telecel".
+ * Defaults to ["mtn"] — JessCo only rejects new numbers on MTN.
+ */
+export const NETWORK_KEYS = ["mtn", "airteltigo", "telecel"] as const;
+export type NetworkKey = (typeof NETWORK_KEYS)[number];
+
+export async function getRestrictedNetworks(): Promise<NetworkKey[]> {
+  const raw = await getSetting("restrict_new_numbers_networks");
+  if (!raw) return ["mtn"];
+  try {
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) {
+      return parsed.filter((n): n is NetworkKey => NETWORK_KEYS.includes(n));
+    }
+  } catch {
+    // fall through to default
+  }
+  return ["mtn"];
+}
+
+export async function setRestrictedNetworks(networks: NetworkKey[]): Promise<void> {
+  const clean = Array.from(new Set(networks.filter((n) => NETWORK_KEYS.includes(n))));
+  await setSetting("restrict_new_numbers_networks", JSON.stringify(clean));
+}

@@ -265,7 +265,7 @@ router.post("/", async (req, res) => {
 
       // New-number restriction: deny BEFORE any wallet debit so the customer
       // is never charged for an order we can't fulfill via JessCo.
-      const denial = await checkNewNumberRestriction(phoneNumber);
+      const denial = await checkNewNumberRestriction(phoneNumber, bundle.networkName);
       if (denial) {
         return res.status(403).json({ error: "new_number_not_allowed", message: denial });
       }

@@ -102,10 +102,11 @@ A Ghanaian digital services marketplace with:
 
 JessCo stopped accepting new phone numbers, so bundle purchases are restricted to numbers already on the system:
 - DB: `allowed_numbers` table (unique normalized phone `0XXXXXXXXX`), seeded once from historical `orders.details->>'phoneNumber'` (one-time guard flag `allowed_numbers_seeded` in app_settings so admin removals aren't resurrected).
-- Logic: `artifacts/api-server/src/lib/allowed-numbers.ts` — `normalizePhone` (handles +233/233/0X/9-digit), `checkNewNumberRestriction` (applies only when fulfillment mode is `api` (JessCo) AND admin toggle `restrict_new_numbers` is on; default on).
+- Logic: `artifacts/api-server/src/lib/allowed-numbers.ts` — `normalizePhone` (handles +233/233/0X/9-digit), `checkNewNumberRestriction(phone, networkName)` (applies only when fulfillment mode is `api` (JessCo) AND admin toggle `restrict_new_numbers` is on; default on).
+- **Per-network**: restriction applies only to networks in setting `restrict_new_numbers_networks` (JSON array of keys `mtn`/`airteltigo`/`telecel`, default `["mtn"]`). `networkKeyFromName()` maps bundle networkName → key; unrecognized networks fail-safe restricted. AirtelTigo and Telecel accept new numbers by default.
 - Enforcement BEFORE money moves: `POST /api/payments/initialize` (bundle_purchase, before Paystack) and `POST /api/orders` wallet path (before debit). Denied with 403 `new_number_not_allowed` + clear message.
-- Admin API: `GET/PUT /api/admin/settings/number-restriction`, `GET/POST/DELETE /api/admin/allowed-numbers` (search + pagination).
-- Admin UI: `/admin/numbers` (`AdminNumbers.tsx`) — toggle card, search, add/remove numbers.
+- Admin API: `GET/PUT /api/admin/settings/number-restriction` (returns/accepts `{enabled, networks}`), `GET/POST/DELETE /api/admin/allowed-numbers` (search + pagination).
+- Admin UI: `/admin/numbers` (`AdminNumbers.tsx`) — master toggle card + per-network blocked/open pills (MTN/AirtelTigo/Telecel), search, add/remove numbers.
 - Hardening: `POST /api/orders` now requires a valid `bundleId` for bundle orders, rejects unknown order types, and rejects any order resolving to amount <= 0.
 
 ## Fulfillment System

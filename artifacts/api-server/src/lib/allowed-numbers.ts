@@ -1,22 +1,52 @@
 import { db } from "@workspace/db";
 import { allowedNumbersTable, ordersTable } from "@workspace/db";
 import { eq, sql, isNotNull } from "drizzle-orm";
-import { getSetting, setSetting, getFulfillmentMode, isNewNumberRestrictionEnabled } from "./settings";
+import {
+  getSetting,
+  setSetting,
+  getFulfillmentMode,
+  isNewNumberRestrictionEnabled,
+  getRestrictedNetworks,
+  type NetworkKey,
+} from "./settings";
 
 export const NEW_NUMBER_DENIAL_MESSAGE =
   "Sorry — we are currently not accepting new numbers that are not on our system. Please use a number that has ordered with us before, or contact support for help.";
 
 /**
+ * Map a bundle's networkName (e.g. "MTN Ghana", "AirtelTigo", "Telecel Ghana")
+ * to a canonical network key. Returns null if unrecognized.
+ */
+export function networkKeyFromName(networkName: string | null | undefined): NetworkKey | null {
+  const n = (networkName || "").toLowerCase();
+  if (n.includes("mtn")) return "mtn";
+  if (n.includes("airtel") || n.includes("tigo")) return "airteltigo";
+  if (n.includes("telecel") || n.includes("voda")) return "telecel";
+  return null;
+}
+
+/**
  * Returns a denial message if the new-number restriction should block this
  * purchase, or null if the purchase may proceed.
- * The restriction only applies while JessCo ("api") fulfillment mode is active
- * and the admin toggle is enabled.
+ * The restriction only applies while JessCo ("api") fulfillment mode is active,
+ * the admin toggle is enabled, AND the bundle's network is on the restricted
+ * list (default: MTN only — AirtelTigo and Telecel accept new numbers).
  */
-export async function checkNewNumberRestriction(phone: string): Promise<string | null> {
+export async function checkNewNumberRestriction(
+  phone: string,
+  networkName: string | null | undefined,
+): Promise<string | null> {
   const mode = await getFulfillmentMode();
   if (mode !== "api") return null;
   const enabled = await isNewNumberRestrictionEnabled();
   if (!enabled) return null;
+
+  const key = networkKeyFromName(networkName);
+  const restricted = await getRestrictedNetworks();
+  // Unrecognized networks are treated as restricted (fail safe) —
+  // recognized-but-unrestricted networks (e.g. AirtelTigo, Telecel) pass.
+  if (key !== null && !restricted.includes(key)) return null;
+
   const allowed = await isAllowedNumber(phone);
   return allowed ? null : NEW_NUMBER_DENIAL_MESSAGE;
 }
