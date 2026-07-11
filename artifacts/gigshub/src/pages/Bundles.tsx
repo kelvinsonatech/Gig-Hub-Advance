@@ -1,11 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import confetti from "canvas-confetti";
 import { useGetBundles, useGetNetworks, useCreateOrder, useGetWallet, type Bundle } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatGHS, cn } from "@/lib/utils";
-import { Wifi, Phone, CreditCard, Wallet, Smartphone, Loader2, ShoppingBag, RefreshCw, CheckCircle2 } from "lucide-react";
+import { Wifi, Phone, CreditCard, Wallet, Smartphone, Loader2, ShoppingBag, RefreshCw, CheckCircle2, PhoneOff, MessageCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
@@ -94,6 +94,12 @@ export default function Bundles() {
   const [paymentMethod, setPaymentMethod] = useState<"momo" | "wallet">("momo");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPaying, setIsPaying] = useState(false);
+  const [blockedNumber, setBlockedNumber] = useState<string | null>(null);
+  const attemptedPhoneRef = useRef("");
+
+  const isNewNumberError = (err: any) =>
+    err?.data?.error === "new_number_not_allowed" ||
+    /not accepting new numbers/i.test(err?.message || "");
 
   const createOrder = useCreateOrder({
     mutation: {
@@ -111,6 +117,10 @@ export default function Bundles() {
       },
       onError: (err: any) => {
         setIsPaying(false);
+        if (isNewNumberError(err)) {
+          setBlockedNumber(attemptedPhoneRef.current || phoneNumber);
+          return;
+        }
         toast({ variant: "destructive", title: "Purchase failed", description: err?.message || "Something went wrong." });
       }
     }
@@ -123,11 +133,13 @@ export default function Bundles() {
       return;
     }
     setSelectedBundle(bundle);
+    setBlockedNumber(null);
     setIsModalOpen(true);
   };
 
   const handlePurchase = async () => {
     if (!selectedBundle || phoneNumber.replace(/\D/g, "").length < 10) return;
+    attemptedPhoneRef.current = phoneNumber;
 
     if (paymentMethod === "wallet") {
       if (!wallet || wallet.balance < selectedBundle.price) {
@@ -163,6 +175,11 @@ export default function Bundles() {
 
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
+        if (err.error === "new_number_not_allowed") {
+          setIsPaying(false);
+          setBlockedNumber(attemptedPhoneRef.current || phoneNumber);
+          return;
+        }
         throw new Error(err.message || "Failed to initialise payment");
       }
 
@@ -469,7 +486,7 @@ export default function Bundles() {
                         : ""
                     )}
                     value={phoneNumber}
-                    onChange={(e) => { setPhoneNumber(e.target.value); setPhoneTouched(true); }}
+                    onChange={(e) => { setPhoneNumber(e.target.value); setPhoneTouched(true); setBlockedNumber(null); }}
                   />
                 </div>
                 {phoneTouched && phoneNumber.replace(/\D/g, "").length < 10 && (
@@ -478,6 +495,33 @@ export default function Bundles() {
                   </p>
                 )}
               </div>
+
+              {/* New-number blocked notice */}
+              {blockedNumber && (
+                <div className="relative overflow-hidden rounded-2xl border border-amber-200 bg-gradient-to-br from-amber-50 via-orange-50 to-amber-50 p-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                  <div className="absolute -top-8 -right-8 w-24 h-24 rounded-full bg-amber-200/40 blur-2xl" />
+                  <div className="relative flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center flex-shrink-0 shadow-md shadow-amber-200">
+                      <PhoneOff className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="min-w-0 space-y-1.5">
+                      <p className="text-sm font-bold text-amber-900 leading-tight">
+                        This number isn't on our system yet
+                      </p>
+                      <p className="text-xs text-amber-800/90 leading-relaxed">
+                        We can't accept new numbers on this network right now. Please use a number
+                        that has ordered with us before — <span className="font-semibold">{blockedNumber}</span> hasn't yet.
+                      </p>
+                      <div className="flex items-center gap-1.5 pt-0.5">
+                        <MessageCircle className="w-3.5 h-3.5 text-amber-700 flex-shrink-0" />
+                        <p className="text-[11px] font-semibold text-amber-700">
+                          Need help? Tap the chat bubble to reach support.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
