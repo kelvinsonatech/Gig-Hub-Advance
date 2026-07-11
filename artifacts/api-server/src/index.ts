@@ -4,6 +4,7 @@ import { seedDatabase } from "./lib/seed";
 import { startJesscoPoller } from "./lib/jessco";
 import { startXpressGhPoller } from "./lib/xpress-gh";
 import { startPaymentReconciler } from "./lib/payment-reconciler";
+import { seedAllowedNumbersFromOrders } from "./lib/allowed-numbers";
 
 const rawPort = process.env["PORT"];
 
@@ -34,5 +35,6 @@ seedDatabase().finally(() => {
     startJesscoPoller(30_000);
     startXpressGhPoller(30_000);
     startPaymentReconciler(45_000);
+    void seedAllowedNumbersFromOrders();
   });
 });

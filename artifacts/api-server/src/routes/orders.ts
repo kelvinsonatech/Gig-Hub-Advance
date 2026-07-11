@@ -6,6 +6,7 @@ import { eq, desc, and, sql, gte } from "drizzle-orm";
 import { addSseClient, removeSseClient, pushEventToAdmins } from "../lib/sse";
 import { sendOrderNotification, sendFulfillmentAlert } from "../lib/telegram";
 import { getFulfillmentMode } from "../lib/settings";
+import { checkNewNumberRestriction } from "../lib/allowed-numbers";
 import { fulfillBundle as fulfillBundleJessco } from "../lib/jessco";
 import { fulfillBundle as fulfillBundleXpressGh } from "../lib/xpress-gh";
 import { verifyAndProcessIntent } from "../lib/payment-reconciler";
@@ -252,9 +253,23 @@ router.post("/", async (req, res) => {
     let amount = 0;
     let orderDetails: any = { phoneNumber, paymentMethod, ...details };
 
-    if (type === "bundle" && bundleId) {
-      const [bundle] = await db.select().from(bundlesTable).where(eq(bundlesTable.id, parseInt(bundleId))).limit(1);
+    if (type === "bundle") {
+      // bundleId is REQUIRED for bundle orders — otherwise a zero-amount order
+      // with client-controlled details could slip through to fulfillment.
+      const parsedBundleId = parseInt(bundleId);
+      if (!bundleId || !isFinite(parsedBundleId)) {
+        return res.status(400).json({ error: "validation_error", message: "bundleId is required for bundle orders" });
+      }
+      const [bundle] = await db.select().from(bundlesTable).where(eq(bundlesTable.id, parsedBundleId)).limit(1);
       if (!bundle) return res.status(404).json({ error: "not_found", message: "Bundle not found" });
+
+      // New-number restriction: deny BEFORE any wallet debit so the customer
+      // is never charged for an order we can't fulfill via JessCo.
+      const denial = await checkNewNumberRestriction(phoneNumber);
+      if (denial) {
+        return res.status(403).json({ error: "new_number_not_allowed", message: denial });
+      }
+
       amount = parseFloat(bundle.price);
       orderDetails = {
         ...orderDetails,
@@ -267,6 +282,14 @@ router.post("/", async (req, res) => {
       amount = 20;
     } else if (type === "agent_registration") {
       amount = 50;
+    } else {
+      return res.status(400).json({ error: "validation_error", message: "Invalid order type" });
+    }
+
+    // Server-side invariant: never accept an order that resolves to a
+    // non-positive amount — this must never depend on client input.
+    if (!isFinite(amount) || amount <= 0) {
+      return res.status(400).json({ error: "validation_error", message: "Invalid order amount" });
     }
 
     if (paymentMethod === "wallet") {

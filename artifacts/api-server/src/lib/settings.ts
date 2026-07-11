@@ -37,3 +37,17 @@ export async function getFulfillmentMode(): Promise<FulfillmentMode> {
 export async function setFulfillmentMode(mode: FulfillmentMode): Promise<void> {
   await setSetting("fulfillment_mode", mode);
 }
+
+/**
+ * New-number restriction: when enabled, bundle purchases in JessCo ("api")
+ * fulfillment mode are only accepted for phone numbers already on the
+ * allowed_numbers list. Defaults to enabled.
+ */
+export async function isNewNumberRestrictionEnabled(): Promise<boolean> {
+  const value = await getSetting("restrict_new_numbers");
+  return value !== "off";
+}
+
+export async function setNewNumberRestriction(enabled: boolean): Promise<void> {
+  await setSetting("restrict_new_numbers", enabled ? "on" : "off");
+}

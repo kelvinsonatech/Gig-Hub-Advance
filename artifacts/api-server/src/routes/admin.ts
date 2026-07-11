@@ -1,14 +1,15 @@
 import { Router, type IRouter } from "express";
 import jwt from "jsonwebtoken";
 import { db } from "@workspace/db";
-import { bundlesTable, servicesTable, networksTable, ordersTable, usersTable, notificationsTable, deviceTokensTable, walletsTable, transactionsTable, paymentIntentsTable, conversationsTable, chatMessagesTable, vouchersTable, voucherRedemptionsTable } from "@workspace/db";
+import { bundlesTable, servicesTable, networksTable, ordersTable, usersTable, notificationsTable, deviceTokensTable, walletsTable, transactionsTable, paymentIntentsTable, conversationsTable, chatMessagesTable, vouchersTable, voucherRedemptionsTable, allowedNumbersTable } from "@workspace/db";
 import { getPaymentHealth, listStuckIntents, verifyAndProcessIntent } from "../lib/payment-reconciler";
 import { eq, count, inArray, gte, lt, lte, sql, desc, isNull, and } from "drizzle-orm";
 import { requireAuth, requireAdmin } from "../middleware/auth";
 import { sendPushToTokens } from "../lib/fcm";
 import { pushEventToUser, pushEventToAdmins, addAdminSseClient, removeAdminSseClient } from "../lib/sse";
 import { encrypt, decrypt } from "../lib/crypto";
-import { getFulfillmentMode, setFulfillmentMode, type FulfillmentMode } from "../lib/settings";
+import { getFulfillmentMode, setFulfillmentMode, isNewNumberRestrictionEnabled, setNewNumberRestriction, type FulfillmentMode } from "../lib/settings";
+import { normalizePhone } from "../lib/allowed-numbers";
 import { fulfillBundle as fulfillBundleJessco } from "../lib/jessco";
 import { fulfillBundle as fulfillBundleXpressGh, getXpressGhWalletBalance } from "../lib/xpress-gh";
 import bcrypt from "bcryptjs";
@@ -929,6 +930,102 @@ router.put("/settings/fulfillment", async (req, res) => {
   } catch (err) {
     req.log.error(err, "set fulfillment mode error");
     return res.status(500).json({ error: "internal_error", message: "Failed to update settings" });
+  }
+});
+
+// ── Allowed numbers (new-number restriction for JessCo) ─────────────────────
+
+router.get("/settings/number-restriction", async (req, res) => {
+  try {
+    const enabled = await isNewNumberRestrictionEnabled();
+    return res.json({ enabled });
+  } catch (err) {
+    req.log.error(err, "get number restriction error");
+    return res.status(500).json({ error: "internal_error", message: "Failed to get setting" });
+  }
+});
+
+router.put("/settings/number-restriction", async (req, res) => {
+  try {
+    const { enabled } = req.body;
+    if (typeof enabled !== "boolean") {
+      return res.status(400).json({ error: "validation_error", message: "enabled must be a boolean" });
+    }
+    await setNewNumberRestriction(enabled);
+    console.log(`[Settings] New-number restriction ${enabled ? "enabled" : "disabled"}`);
+    return res.json({ enabled, success: true });
+  } catch (err) {
+    req.log.error(err, "set number restriction error");
+    return res.status(500).json({ error: "internal_error", message: "Failed to update setting" });
+  }
+});
+
+router.get("/allowed-numbers", async (req, res) => {
+  try {
+    const search = typeof req.query.search === "string" ? req.query.search.trim() : "";
+    const page = Math.max(1, parseInt(String(req.query.page || "1")) || 1);
+    const pageSize = 50;
+
+    const where = search
+      ? sql`${allowedNumbersTable.phoneNumber} LIKE ${"%" + search.replace(/\D/g, "") + "%"}`
+      : undefined;
+
+    const [numbers, [{ total }]] = await Promise.all([
+      db
+        .select()
+        .from(allowedNumbersTable)
+        .where(where)
+        .orderBy(desc(allowedNumbersTable.createdAt))
+        .limit(pageSize)
+        .offset((page - 1) * pageSize),
+      db.select({ total: count() }).from(allowedNumbersTable).where(where),
+    ]);
+
+    return res.json({ numbers, total, page, pageSize });
+  } catch (err) {
+    req.log.error(err, "list allowed numbers error");
+    return res.status(500).json({ error: "internal_error", message: "Failed to list numbers" });
+  }
+});
+
+router.post("/allowed-numbers", async (req, res) => {
+  try {
+    const { phoneNumber, note } = req.body;
+    const normalized = normalizePhone(String(phoneNumber ?? ""));
+    if (!normalized) {
+      return res.status(400).json({
+        error: "validation_error",
+        message: "Enter a valid Ghana number (e.g. 0594811692 or +233594811692)",
+      });
+    }
+    const [row] = await db
+      .insert(allowedNumbersTable)
+      .values({ phoneNumber: normalized, addedBy: "admin", note: note ? String(note).slice(0, 200) : null })
+      .onConflictDoNothing()
+      .returning();
+    if (!row) {
+      return res.status(409).json({ error: "already_exists", message: "This number is already on the system" });
+    }
+    return res.status(201).json(row);
+  } catch (err) {
+    req.log.error(err, "add allowed number error");
+    return res.status(500).json({ error: "internal_error", message: "Failed to add number" });
+  }
+});
+
+router.delete("/allowed-numbers/:id", async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    if (!isFinite(id)) return res.status(400).json({ error: "validation_error", message: "Invalid id" });
+    const [deleted] = await db
+      .delete(allowedNumbersTable)
+      .where(eq(allowedNumbersTable.id, id))
+      .returning();
+    if (!deleted) return res.status(404).json({ error: "not_found", message: "Number not found" });
+    return res.json({ success: true });
+  } catch (err) {
+    req.log.error(err, "delete allowed number error");
+    return res.status(500).json({ error: "internal_error", message: "Failed to remove number" });
   }
 });
 

@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 import { db } from "@workspace/db";
 import { usersTable, bundlesTable, paymentIntentsTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
+import { checkNewNumberRestriction } from "../lib/allowed-numbers";
 
 const router: IRouter = Router();
 const JWT_SECRET = process.env.JWT_SECRET || "gigshub-secret-key-change-in-production";
@@ -73,6 +74,14 @@ router.post("/initialize", async (req, res) => {
       if (!bundle) return res.status(404).json({ error: "not_found", message: "Bundle not found" });
       amountGHS = parseFloat(bundle.price);
       intentBundleId = bundle.id;
+
+      // New-number restriction: in JessCo ("api") fulfillment mode, only numbers
+      // already on the system can order. Deny BEFORE any payment is initialized
+      // so the customer is never charged for an order we can't fulfill.
+      const denial = await checkNewNumberRestriction(phoneNumber);
+      if (denial) {
+        return res.status(403).json({ error: "new_number_not_allowed", message: denial });
+      }
     }
 
     // Initialize with Paystack

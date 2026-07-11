@@ -11,3 +11,4 @@ export * from "./settings";
 export * from "./conversations";
 export * from "./chat_messages";
 export * from "./vouchers";
+export * from "./allowed_numbers";

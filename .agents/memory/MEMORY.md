@@ -1,1 +1,2 @@
 - [Fulfillment poller idempotency](fulfillment-poller-idempotency.md) — pollers must poll only 'sent' orders; failure-alert branch must be idempotent or it spams Telegram.
+- [Dev database routing](dev-database-routing.md) — app data lives in Supabase; executeSql/DATABASE_URL hit the empty Replit DB, use psql $SUPABASE_DATABASE_URL.
